@@ -2,20 +2,6 @@
   justify-content: center;
   padding: 10px;
 
-  .go-back-button {
-    top: 10px;
-    left: 10px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    font-size: 14px;
-
-    &:hover {
-      opacity: 0.8;
-    }
-  }
-
   .certificate {
     max-width: 600px;
     text-align: center;

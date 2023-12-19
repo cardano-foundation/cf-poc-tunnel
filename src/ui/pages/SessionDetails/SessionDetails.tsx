@@ -1,5 +1,5 @@
 import React from 'react';
-import {useLocation, useNavigate} from "react-router-dom";
+import {useLocation} from "react-router-dom";
 import './SessionDetails.scss';
 import {BackButton} from "../../components/BackButton/BackButton";
 
