@@ -21,4 +21,8 @@
   border: none;
   padding: 8px;
   cursor: pointer;
+
+  img {
+    filter: invert(100%);
+  }
 }
