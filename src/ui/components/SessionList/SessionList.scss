@@ -3,14 +3,59 @@
   list-style: none;
   padding: 0;
 }
-
 .listItem {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 10px;
-  padding: 10px;
+  padding: 5px 10px 5px 10px;
   border-radius: 4px;
+
+  .sessionName{
+    width: 100px;
+  }
+  .sessionInfo {
+  }
+  .connectMobileIcon{
+    filter: invert(100%);
+    margin-right: 2px;
+  }
+
+  .infoButton{
+    font-size: 32px;
+    font-weight: normal;
+    cursor: pointer;
+    margin-right: 5px;
+  }
+  .iconButton {
+    display: flex;
+    align-items: center;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+
+    .icon {
+      margin-right: 10px;
+    }
+
+    .label {
+      padding-right: 10px;
+    }
+
+    &:hover {
+      background-color: #007bff;
+      opacity: 0.9;
+      color: white;
+    }
+  }
+
+  .buttonGroup {
+    display: flex;
+
+  }
 }
 
 .primaryText {
@@ -23,11 +68,3 @@
   cursor: pointer;
 }
 
-.deleteButton {
-  background-color: #1976d2;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  cursor: pointer;
-  border-radius: 4px;
-}

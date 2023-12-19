@@ -4,14 +4,13 @@ import './Navbar.scss';
 import Logo from '../../../../static/icons/32x.png';
 
 import SessionIcon from '../../../../static/icons/session-icon.svg';
-import QrCodeIcon from '../../../../static/icons/qrcode-icon.svg';
 import SettingsIcon from '../../../../static/icons/settings-icon.svg';
 import LockIcon from '../../../../static/icons/lock-icon.svg';
 
 const NavBar = () => {
     const navigate = useNavigate();
 
-    const handleMenuClick = (option:string) => {
+    const handleNavigation = (option:string) => {
         navigate(option);
     };
 
@@ -26,16 +25,13 @@ const NavBar = () => {
 
             <div className='title'>Tunnel</div>
 
-            <button className='iconButton' onClick={() => handleMenuClick('/')}>
+            <button className='iconButton' onClick={() => handleNavigation('/')}>
                 <img src={SessionIcon} alt="QR Code" width={34}/>
-            </button>
-            <button className='iconButton' onClick={() => handleMenuClick('/connect')}>
-                <img src={QrCodeIcon} alt="QR Code" width={24}/>
             </button>
             <button className='iconButton' onClick={() => handleSettingsClick()}>
                 <img src={SettingsIcon} alt="Settings" width={24}/>
             </button>
-            <button className='iconButton ' onClick={() => handleMenuClick('/lock')}>
+            <button className='iconButton ' onClick={() => handleNavigation('/lock')}>
                 <img src={LockIcon} alt="Lock" width={24}/>
             </button>
         </div>

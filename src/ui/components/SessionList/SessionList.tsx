@@ -1,6 +1,8 @@
 import React, {useEffect, useState} from 'react';
-import './SessionList.scss';
+import {useNavigate} from "react-router-dom";
 import { Countdown } from "../Countdown/Countdown";
+import './SessionList.scss';
+import MobileConnectIcon from '../../../../static/icons/mobile-connect-icon.svg';
 
 interface Session {
     id: string;
@@ -9,7 +11,13 @@ interface Session {
 }
 
 const SessionList: React.FC = () => {
+    const navigate = useNavigate();
+
     const [sessions, setSessions] = useState([]);
+
+    const handleNavigation = (option: string, p: { state: { session: Session } }) => {
+        navigate(option, p);
+    };
 
     useEffect(() => {
         if (navigator.serviceWorker.controller) {
@@ -25,27 +33,34 @@ const SessionList: React.FC = () => {
         }
     }, []);
 
+    const handleConnect = (session: Session) => {
+        handleNavigation(`/${session.id}/connect`, { state: { session }})
+    };
 
-    const handleDelete = (id: string) => {
-        console.log('Delete session:', id);
+    const handleInfo = (session: Session) => {
+        handleNavigation(`/${session.id}`, { state: { session }})
     };
 
     return (
         <ul className='list'>
             {sessions.map((session) => (
                 <li key={session.id} className='listItem'>
-                    <div>
+                    <div className='sessionName'>
                         <div className='primaryText'>{session.name}</div>
                         <div className='secondaryText'>
                             <Countdown expiryDate={session.expiryDate} />
                         </div>
                     </div>
-                    <button
-                        className='deleteButton'
-                        onClick={() => handleDelete(session.id)}
+                    <button className="iconButton"
+                            onClick={() => handleConnect(session)}
                     >
-                        Delete
+                        <img className='icon' src={MobileConnectIcon} width={30} />
+                        <span className="label">Connect</span>
                     </button>
+
+                    <div className='buttonGroup'>
+                        <span  onClick={() => handleInfo(session)} className='infoButton'> → </span>
+                    </div>
                 </li>
             ))}
         </ul>

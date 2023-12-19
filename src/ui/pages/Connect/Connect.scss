@@ -1,0 +1,35 @@
+.sessionDetails {
+  justify-content: center;
+  padding: 10px;
+
+  .go-back-button {
+    top: 10px;
+    left: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 14px;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+  .certificate {
+    max-width: 600px;
+    text-align: center;
+
+    h1 {
+      margin-bottom: 15px;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    .expiry-date, .session-info {
+      margin-bottom: 10px;
+    }
+  }
+}
