@@ -1,32 +1,29 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, IconButton } from '@mui/material';
-import SettingsIcon from '@mui/icons-material/Settings';
-import LockIcon from '@mui/icons-material/Lock';
-import QrCodeIcon from '@mui/icons-material/QrCode';
+import './Navbar.scss';
 import Logo from '../../../../static/icons/32x.png';
 
-const NavBar: React.FC = () => {
+import QrCodeIcon from '../../../../static/icons/qrcode-icon.svg';
+import SettingsIcon from '../../../../static/icons/settings-icon.svg';
+import LockIcon from '../../../../static/icons/lock-icon.svg';
+
+const NavBar = () => {
     return (
-        <AppBar position="static">
-            <Toolbar>
-                <img src={Logo} alt="Logo" style={{ marginRight: 10 }} />
+        <div className='navBar'>
+            <img src={Logo}  alt="Logo" className='logo' />
 
-                <Typography variant="h6" style={{ flexGrow: 1 }}>
-                    Project Tunnel
-                </Typography>
+            <div className='title'>Project Tunnel</div>
 
-                <IconButton color="inherit">
-                    <QrCodeIcon />
-                </IconButton>
-                <IconButton color="inherit">
-                    <SettingsIcon />
-                </IconButton>
-                <IconButton color="inherit">
-                    <LockIcon />
-                </IconButton>
-            </Toolbar>
-        </AppBar>
+            <button className='iconButton'>
+                <img src={QrCodeIcon} alt="QR Code" width={24}/>
+            </button>
+            <button className='iconButton'>
+                <img src={SettingsIcon} alt="Settings" width={24}/>
+            </button>
+            <button className='iconButton'>
+                <img src={LockIcon} alt="Lock" width={24}/>
+            </button>
+        </div>
     );
 };
 
-export {NavBar};
+export { NavBar };
