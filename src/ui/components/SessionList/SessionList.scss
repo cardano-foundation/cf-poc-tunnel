@@ -1,0 +1,33 @@
+
+.list {
+  list-style: none;
+  padding: 0;
+}
+
+.listItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.primaryText {
+  color: white;
+  font-weight: bold;
+}
+
+.secondaryText {
+  color: #a9abb1;
+  cursor: pointer;
+}
+
+.deleteButton {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+}
