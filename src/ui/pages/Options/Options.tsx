@@ -1,31 +1,31 @@
 import React, {useState} from 'react';
-import '../../../../styles/options.scss';
-
+import './Options.scss';
 const Options = () => {
     const [endpoint, setEndpoint] = useState<string>('');
     const [logs, setLogs] = useState<string[]>([]);
 
     const handleEndpointChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        console.log(e.target.value);
         setEndpoint(e.target.value);
     };
 
     const saveEndpoint = () => {
-        // Save the endpoint logic
+        // save in local
     };
 
     const clearDatabase = () => {
-        // Clear database logic
+        // Clear database
     };
 
     const viewLogs = () => {
-        // Fetch and set logs logic
-        setLogs(['Log 1', 'Log 2']); // Example logs
+        // Fetch and set logs
+        setLogs(['Log 1', 'Log 2']);
     };
 
     return (
-        <div className='settingsPage'>
+        <div className='optionsPage'>
             <div className='section'>
-                <h2>Configure Endpoints</h2>
+                <h2>Keria endpoint</h2>
                 <input
                     type="text"
                     value={endpoint}
@@ -34,17 +34,20 @@ const Options = () => {
                 <button onClick={saveEndpoint}>Save</button>
             </div>
             <div className='section'>
-                <h2>Database Operations</h2>
+                <h2>Local database</h2>
                 <button onClick={clearDatabase}>Clear Database</button>
             </div>
             <div className='section'>
-                <h2>Logs</h2>
+                <h2>Check logs</h2>
                 <button onClick={viewLogs}>View Logs</button>
-                <div className='logs'>
-                    {logs.map((log, index) => (
-                        <div key={index}>{log}</div>
-                    ))}
-                </div>
+                {
+                    logs.length ? <div className='logs'>
+                        {logs.map((log, index) => (
+                            <div key={index}>{log}</div>
+                        ))}
+                    </div> : null
+                }
+
             </div>
         </div>
     );
