@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button, List, ListItem, ListItemText, ListItemSecondaryAction } from '@mui/material';
-import {Countdown} from "../Countdown/Countdown";
+import './SessionList.scss';
+import { Countdown } from "../Countdown/Countdown";
 
 interface Session {
     id: string;
@@ -20,24 +20,25 @@ const SessionList: React.FC = () => {
     };
 
     return (
-        <List>
+        <ul className='list'>
             {sessions.map((session) => (
-                <ListItem key={session.id}>
-                    <ListItemText
-                        primary={session.name}
-                        secondary={<Countdown expiryDate={session.expiryDate} />}
-                        sx={{
-                            '& .MuiListItemText-primary': { color: 'white' },
-                            '& .MuiListItemText-secondary': { color: '#a9abb1', cursor: 'pointer' }
-                        }}
-                    />
-                    <ListItemSecondaryAction>
-                        <Button variant="contained" onClick={() => handleDelete(session.id)}>Delete</Button>
-                    </ListItemSecondaryAction>
-                </ListItem>
+                <li key={session.id} className='listItem'>
+                    <div>
+                        <div className='primaryText'>{session.name}</div>
+                        <div className='secondaryText'>
+                            <Countdown expiryDate={session.expiryDate} />
+                        </div>
+                    </div>
+                    <button
+                        className='deleteButton'
+                        onClick={() => handleDelete(session.id)}
+                    >
+                        Delete
+                    </button>
+                </li>
             ))}
-        </List>
+        </ul>
     );
 };
 
-export {SessionList};
+export { SessionList };

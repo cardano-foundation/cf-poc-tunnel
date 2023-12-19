@@ -1,0 +1,28 @@
+.navBar {
+  background-color: #1976d2;
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.logo {
+  margin-right: 10px;
+}
+
+.title {
+  flex-grow: 1;
+  font-size: 1.25rem;
+}
+
+.iconButton {
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+
+  img {
+    filter: invert(100%);
+  }
+}
