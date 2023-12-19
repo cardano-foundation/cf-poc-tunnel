@@ -5,7 +5,6 @@ const Options = () => {
     const [logs, setLogs] = useState<string[]>([]);
 
     const handleEndpointChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        console.log(e.target.value);
         setEndpoint(e.target.value);
     };
 
