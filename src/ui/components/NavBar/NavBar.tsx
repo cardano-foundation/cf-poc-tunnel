@@ -3,6 +3,7 @@ import {useNavigate} from 'react-router-dom';
 import './Navbar.scss';
 import Logo from '../../../../static/icons/32x.png';
 
+import SessionIcon from '../../../../static/icons/session-icon.svg';
 import QrCodeIcon from '../../../../static/icons/qrcode-icon.svg';
 import SettingsIcon from '../../../../static/icons/settings-icon.svg';
 import LockIcon from '../../../../static/icons/lock-icon.svg';
@@ -23,8 +24,11 @@ const NavBar = () => {
         <div className='navBar'>
             <img src={Logo}  alt="Logo" className='logo' />
 
-            <div className='title'>Project Tunnel</div>
+            <div className='title'>Tunnel</div>
 
+            <button className='iconButton' onClick={() => handleMenuClick('/')}>
+                <img src={SessionIcon} alt="QR Code" width={34}/>
+            </button>
             <button className='iconButton' onClick={() => handleMenuClick('/connect')}>
                 <img src={QrCodeIcon} alt="QR Code" width={24}/>
             </button>
