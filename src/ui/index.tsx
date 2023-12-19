@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import '../../styles/popup.scss';
 import {Popup} from "./Popup";
+import {BrowserRouter} from "react-router-dom";
 
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
@@ -9,6 +10,7 @@ const root = ReactDOM.createRoot(
 
 root.render(
     <React.StrictMode>
-        <Popup />
+        <BrowserRouter basename="/popup.html"><Popup /></BrowserRouter>
     </React.StrictMode>
 );
+

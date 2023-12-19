@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import './SessionList.scss';
 import { Countdown } from "../Countdown/Countdown";
 
@@ -8,12 +8,23 @@ interface Session {
     expiryDate: string;
 }
 
-const sessions: Session[] = [
-    { id: '1', name: 'voting-app.org', expiryDate: '2024-04-05' },
-    { id: '2', name: 'platform.gov', expiryDate: '2024-05-10' }
-];
-
 const SessionList: React.FC = () => {
+    const [sessions, setSessions] = useState([]);
+
+    useEffect(() => {
+        if (navigator.serviceWorker.controller) {
+            const messageChannel = new MessageChannel();
+            messageChannel.port1.onmessage = event => {
+                setSessions(event.data as Session[])
+            };
+
+            navigator.serviceWorker.controller.postMessage(
+                { type: 'GET_SESSIONS' },
+                [messageChannel.port2]
+            );
+        }
+    }, []);
+
 
     const handleDelete = (id: string) => {
         console.log('Delete session:', id);

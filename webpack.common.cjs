@@ -10,7 +10,7 @@ module.exports = {
     serviceWorker: './src/serviceWorker.ts',
     contentScript: './src/contentScript.ts',
     popup: './src/ui/index.tsx',
-    options: './src/ui/options.ts',
+    options: './src/ui/pages/Options/index.tsx',
   },
   module: {
     rules: [
