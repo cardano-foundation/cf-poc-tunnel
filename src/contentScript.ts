@@ -9,7 +9,6 @@ window.addEventListener('message', (event) => {
         }
       },
     );
-    console.log('he2');
   }
 });
 

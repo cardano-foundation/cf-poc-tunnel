@@ -53,12 +53,14 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log("message");
+  console.log(message);
   if (message.type === 'GET_SESSIONS')
   {
     sendResponse(sessions);
-  } else if (message.data && message.type === 'DELETE_SESSION') {
+  } else if (message.sessionId && message.type === 'DELETE_SESSION') {
     sessions = sessions.filter(
-      (session) => message.data.sessionId !== session.id,
+      (session) => message.sessionId !== session.id,
     );
     sendResponse({ status: 'OK' });
   } else if (message.data && message.type === 'LOGIN_FROM_WEB') {

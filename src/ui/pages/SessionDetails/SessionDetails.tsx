@@ -11,18 +11,16 @@ const SessionDetails = () => {
     return <div>No session data available</div>;
   }
   const deleteSession = () => {
-    if (navigator.serviceWorker.controller) {
-      const messageChannel = new MessageChannel();
-      messageChannel.port1.onmessage = (event) => {
-        console.log('Session deleted');
-        navigate(-1);
-      };
-
-      navigator.serviceWorker.controller.postMessage(
-        { type: 'DELETE_SESSION', sessionId: session.id },
-        [messageChannel.port2],
-      );
-    }
+    chrome.runtime.sendMessage(
+        {
+          type: 'DELETE_SESSION',
+          sessionId: session.id
+        },
+        (response) => {
+          // Add log
+          navigate(-1);
+        },
+    );
   };
   return (
     <div className="sessionDetails">
