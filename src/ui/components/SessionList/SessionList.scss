@@ -1,4 +1,3 @@
-
 .list {
   list-style: none;
   padding: 0;
@@ -11,17 +10,17 @@
   padding: 5px 10px 5px 10px;
   border-radius: 4px;
 
-  .sessionName{
+  .sessionName {
     width: 110px;
   }
   .sessionInfo {
   }
-  .connectMobileIcon{
+  .connectMobileIcon {
     filter: invert(100%);
     margin-right: 2px;
   }
 
-  .infoButton{
+  .infoButton {
     font-size: 32px;
     font-weight: normal;
     cursor: pointer;
@@ -54,7 +53,6 @@
 
   .buttonGroup {
     display: flex;
-
   }
 }
 
@@ -67,4 +65,3 @@
   color: #a9abb1;
   cursor: pointer;
 }
-

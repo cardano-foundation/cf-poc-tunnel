@@ -1,24 +1,22 @@
 import React from 'react';
-import {Routes, Route} from "react-router-dom";
-import {SessionList} from './components/SessionList/SessionList';
-import {NavBar} from './components/NavBar/NavBar';
-import {SessionDetails} from "./pages/SessionDetails/SessionDetails";
-import {Connect} from "./pages/Connect/Connect";
+import { Routes, Route } from 'react-router-dom';
+import { SessionList } from './components/SessionList/SessionList';
+import { NavBar } from './components/NavBar/NavBar';
+import { SessionDetails } from './pages/SessionDetails/SessionDetails';
+import { Connect } from './pages/Connect/Connect';
 
 const Popup = () => {
-    return (
-        <div>
-            <NavBar />
-            <Routes>
-                <Route path="/" element={<SessionList />} />
-                <Route path="/:id" element={<SessionDetails />} />
-                <Route path="/:id/connect" element={<Connect />} />
-                <Route path="*" element={<div>Route not found</div>} />
-            </Routes>
-        </div>
-    );
-}
+  return (
+    <div>
+      <NavBar />
+      <Routes>
+        <Route path="/" element={<SessionList />} />
+        <Route path="/:id" element={<SessionDetails />} />
+        <Route path="/:id/connect" element={<Connect />} />
+        <Route path="*" element={<div>Route not found</div>} />
+      </Routes>
+    </div>
+  );
+};
 
-export {
-    Popup
-}
+export { Popup };

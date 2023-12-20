@@ -5,6 +5,7 @@
   .certificate {
     max-width: 600px;
     text-align: center;
+    margin-bottom: 20px;
 
     h1 {
       margin-bottom: 15px;
@@ -14,11 +15,11 @@
       margin-bottom: 20px;
     }
 
-    .expiry-date, .session-info {
+    .expiry-date,
+    .session-info {
       margin-bottom: 10px;
     }
   }
-
 
   .deleteButton {
     background-color: #f44336;

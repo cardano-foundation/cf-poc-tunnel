@@ -9,9 +9,9 @@ on:
     branches:
       - main
 
-# This concurrency mode will cancel in-progress workflows if a new commit is pushed   
-concurrency: 
-  group: ${{ github.head_ref || github.ref_name }} 
+# This concurrency mode will cancel in-progress workflows if a new commit is pushed
+concurrency:
+  group: ${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -20,8 +20,8 @@ jobs:
     steps:
       - name: Set up Git repository
         uses: actions/checkout@v3
-      
-      - name: Set up node 
+
+      - name: Set up node
         uses: actions/setup-node@v3
 
       - name: Install dependencies
