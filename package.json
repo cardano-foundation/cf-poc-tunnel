@@ -49,7 +49,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-qrcode-logo": "^2.9.0",
-    "react-router-dom": "^6.21.0"
+    "react-router-dom": "^6.21.0",
+    "uid": "^2.0.2"
   },
   "browserslist": "> 0.25%, not dead",
   "husky": {

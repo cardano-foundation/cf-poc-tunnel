@@ -5,8 +5,8 @@ import './App.css';
 function sendMessageToExtension(data) {
   window.postMessage(
     {
-      type: 'FROM_PAGE',
-      text: data,
+      type: 'LOGIN_FROM_WEB',
+      data,
     },
     '*',
   );
@@ -14,7 +14,13 @@ function sendMessageToExtension(data) {
 
 const App = () => {
   const handleLogin = async () => {
-    sendMessageToExtension('Hey, extension!');
+    const enterpriseData = {
+      name: 'new-webapp.com',
+      serverPubeid: 'JJBD4S...9S23',
+      oobi: 'http://ac2in...1JS5',
+      acdc: 'ACac2in...1JS5DC',
+    };
+    sendMessageToExtension(enterpriseData);
   };
   return (
     <>

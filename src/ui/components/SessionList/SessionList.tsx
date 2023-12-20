@@ -24,16 +24,14 @@ const SessionList: React.FC = () => {
   };
 
   useEffect(() => {
-    if (navigator.serviceWorker.controller) {
-      const messageChannel = new MessageChannel();
-      messageChannel.port1.onmessage = (event) => {
-        setSessions(event.data as Session[]);
-      };
-
-      navigator.serviceWorker.controller.postMessage({ type: 'GET_SESSIONS' }, [
-        messageChannel.port2,
-      ]);
-    }
+    chrome.runtime.sendMessage(
+      {
+        type: 'GET_SESSIONS',
+      },
+      (response) => {
+        setSessions(response);
+      },
+    );
   }, []);
 
   const handleConnect = (session: Session) => {

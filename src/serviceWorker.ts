@@ -1,3 +1,5 @@
+import { uid } from 'uid';
+
 let sessions = [
   {
     id: '1',
@@ -50,15 +52,28 @@ chrome.runtime.onInstalled.addListener(async () => {
   console.log('Extension successfully installed!');
 });
 
-self.addEventListener('message', (event) => {
-  console.log('event message');
-  console.log(event.data.type);
-  if (event.data && event.data.type === 'GET_SESSIONS') {
-    event.ports[0].postMessage(sessions);
-  } else if (event.data && event.data.type === 'DELETE_SESSION') {
-      sessions = sessions.filter(session => event.data.sessionId !== session.id);
-      event.ports[0].postMessage({status: 'OK'});
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'GET_SESSIONS')
+  {
+    sendResponse(sessions);
+  } else if (message.data && message.type === 'DELETE_SESSION') {
+    sessions = sessions.filter(
+      (session) => message.data.sessionId !== session.id,
+    );
+    sendResponse({ status: 'OK' });
+  } else if (message.data && message.type === 'LOGIN_FROM_WEB') {
+    const newSession = {
+      ...message.data,
+      id: uid(24),
+      personalPubeid: '',
+      expiryDate: '',
+    };
+    sessions = [newSession, ...sessions];
+
+    sendResponse({ status: 'OK' });
   }
+
+  return true;
 });
 
 export {};

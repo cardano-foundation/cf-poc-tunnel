@@ -1,5 +1,5 @@
 import React from 'react';
-import {useLocation, useNavigate} from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import './SessionDetails.scss';
 import { BackButton } from '../../components/BackButton/BackButton';
 
@@ -14,13 +14,14 @@ const SessionDetails = () => {
     if (navigator.serviceWorker.controller) {
       const messageChannel = new MessageChannel();
       messageChannel.port1.onmessage = (event) => {
-        console.log("Session deleted");
-        navigate(-1)
+        console.log('Session deleted');
+        navigate(-1);
       };
 
-      navigator.serviceWorker.controller.postMessage({ type: 'DELETE_SESSION', sessionId: session.id }, [
-        messageChannel.port2,
-      ]);
+      navigator.serviceWorker.controller.postMessage(
+        { type: 'DELETE_SESSION', sessionId: session.id },
+        [messageChannel.port2],
+      );
     }
   };
   return (
@@ -54,7 +55,9 @@ const SessionDetails = () => {
             {session.acdc}
           </p>
         </div>
-        <button className="deleteButton" onClick={() => deleteSession()}>Delete</button>
+        <button className="deleteButton" onClick={() => deleteSession()}>
+          Delete
+        </button>
       </div>
     </div>
   );

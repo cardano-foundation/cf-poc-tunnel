@@ -1,11 +1,15 @@
 window.addEventListener('message', (event) => {
-  console.log('Message received from website');
-  if (
-    event.source === window &&
-    event.data &&
-    event.data.type === 'FROM_PAGE'
-  ) {
-    console.log('Message: ', event.data.text);
+  if (event.data.type === 'LOGIN_FROM_WEB') {
+
+    chrome.runtime.sendMessage(
+        event.data,
+      (response) => {
+        if (response === 'OK'){
+          // change icon
+        }
+      },
+    );
+    console.log('he2');
   }
 });
 
