@@ -12,8 +12,23 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 self.addEventListener('message', event => {
+  console.log("event message")
+  console.log(event.data.type)
   if (event.data && event.data.type === 'GET_SESSIONS') {
     event.ports[0].postMessage(sessions);
+  } else if (event.data && event.data.type === 'fetchRequest') {
+    const requestData = event.data.data;
+    fetch(requestData.url, {
+      method: requestData.method,
+      headers: requestData.headers,
+      body: requestData.body
+    })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Datos recibidos:', data);
+          // Puedes hacer algo con los datos aquí
+        })
+        .catch(error => console.error('Error en fetch:', error));
   }
 });
 
