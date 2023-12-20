@@ -1,6 +1,6 @@
 import { uid } from 'uid';
 
-let sessions = [
+const mockSessions = [
   {
     id: '1',
     name: 'voting-app.org',
@@ -50,26 +50,39 @@ let sessions = [
 
 chrome.runtime.onInstalled.addListener(async () => {
   console.log('Extension successfully installed!');
+  chrome.storage.local.set({ sessions: mockSessions }, function() {
+    // mock data added
+  });
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('message');
-  console.log(message);
   if (message.type === 'GET_SESSIONS') {
-    sendResponse(sessions);
+    chrome.storage.local.get(['sessions'], function(result) {
+      sendResponse(result.sessions);
+    });
+
   } else if (message.sessionId && message.type === 'DELETE_SESSION') {
-    sessions = sessions.filter((session) => message.sessionId !== session.id);
+    chrome.storage.local.get(['sessions'], function(result) {
+      const ss = result.sessions.filter((session) => message.sessionId !== session.id);
+      chrome.storage.local.set({ sessions: ss }, function() {
+        sendResponse({ status: 'OK' });
+      });
+    });
     sendResponse({ status: 'OK' });
   } else if (message.data && message.type === 'LOGIN_FROM_WEB') {
-    const newSession = {
-      ...message.data,
-      id: uid(24),
-      personalPubeid: '',
-      expiryDate: '',
-    };
-    sessions = [newSession, ...sessions];
+    chrome.storage.local.get(['sessions'], function(result) {
+      const newSession = {
+        ...message.data,
+        id: uid(24),
+        personalPubeid: '',
+        expiryDate: '',
+      };
+      const ss = [newSession, ...result.sessions];
 
-    sendResponse({ status: 'OK' });
+      chrome.storage.local.set({ sessions: ss }, function() {
+        sendResponse({ status: 'OK' });
+      });
+    });
   }
 
   return true;

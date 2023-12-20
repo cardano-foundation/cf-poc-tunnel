@@ -33,7 +33,7 @@ const SessionDetails = () => {
     <div className="sessionDetails">
       <BackButton />
       <div className="certificate">
-        <h1>{session.name}</h1>
+        <h1>{session.name} <span className="starIcon">★</span></h1>
         <div className="session-info">
           <p>
             <strong>

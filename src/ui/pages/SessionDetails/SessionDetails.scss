@@ -58,3 +58,14 @@
     filter: invert(100%);
   }
 }
+
+.certificate {
+  .starIcon{
+    color: limegreen;
+    cursor: pointer;
+    opacity: 0.7;
+  }
+  .starIcon:hover{
+    opacity: 1;
+  }
+}
