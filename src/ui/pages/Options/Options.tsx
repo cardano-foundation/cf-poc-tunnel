@@ -29,6 +29,10 @@ const Options = () => {
         <button onClick={saveEndpoint}>Save</button>
       </div>
       <div className="section">
+        <h2>Whitelist</h2>
+        <button onClick={clearDatabase}>Add Enterprise Server</button>
+      </div>
+      <div className="section">
         <h2>Local database</h2>
         <button onClick={clearDatabase}>Clear Database</button>
       </div>

@@ -1,15 +1,28 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import {useLocation, useNavigate} from 'react-router-dom';
 import './SessionDetails.scss';
 import { BackButton } from '../../components/BackButton/BackButton';
 
 const SessionDetails = () => {
+  const navigate = useNavigate();
   const location = useLocation();
   const session = location.state?.session;
   if (!session) {
     return <div>No session data available</div>;
   }
+  const deleteSession = () => {
+    if (navigator.serviceWorker.controller) {
+      const messageChannel = new MessageChannel();
+      messageChannel.port1.onmessage = (event) => {
+        console.log("Session deleted");
+        navigate(-1)
+      };
 
+      navigator.serviceWorker.controller.postMessage({ type: 'DELETE_SESSION', sessionId: session.id }, [
+        messageChannel.port2,
+      ]);
+    }
+  };
   return (
     <div className="sessionDetails">
       <BackButton />
@@ -27,10 +40,10 @@ const SessionDetails = () => {
             {session.expiryDate}
           </p>
           <p>
-            <strong>Server Public eAID:</strong> JJBD4S...9S23
+            <strong>Server Public eAID:</strong> {session.serverPubeid}
           </p>
           <p>
-            <strong>Personal Public eAID:</strong> KO7G10D4S...1JS5
+            <strong>Personal Public eAID:</strong> {session.personalPubeid}
           </p>
           <p>
             <strong>OOBI: </strong>
@@ -41,7 +54,7 @@ const SessionDetails = () => {
             {session.acdc}
           </p>
         </div>
-        <button className="deleteButton">Delete</button>
+        <button className="deleteButton" onClick={() => deleteSession()}>Delete</button>
       </div>
     </div>
   );
