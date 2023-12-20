@@ -45,3 +45,16 @@
     }
   }
 }
+
+.session-info {
+  .loginLabel {
+    cursor: pointer;
+    padding-bottom: 15px;
+  }
+  .loginLabel:hover {
+    opacity: 0.9;
+  }
+  img {
+    filter: invert(100%);
+  }
+}

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import './Navbar.scss';
 
 import TunnelIcon from '../../../../static/icons/tunnel-icon.svg';
-import SessionIcon from '../../../../static/icons/session-icon.svg';
 import SettingsIcon from '../../../../static/icons/settings-icon.svg';
 import LockIcon from '../../../../static/icons/lock-icon.svg';
 
@@ -25,9 +24,6 @@ const NavBar = () => {
 
       <div className="title">Tunnel</div>
 
-      <button className="iconButton" onClick={() => handleNavigation('/')}>
-        <img src={SessionIcon} alt="Sessions" width={34} />
-      </button>
       <button className="iconButton" onClick={() => handleSettingsClick()}>
         <img src={SettingsIcon} alt="Settings" width={24} />
       </button>

@@ -2,6 +2,7 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './SessionDetails.scss';
 import { BackButton } from '../../components/BackButton/BackButton';
+import MobileConnectIcon from '../../../../static/icons/mobile-connect-icon.svg';
 
 const SessionDetails = () => {
   const navigate = useNavigate();
@@ -10,16 +11,22 @@ const SessionDetails = () => {
   if (!session) {
     return <div>No session data available</div>;
   }
+  const handleLogin = (
+
+  ) => {
+    navigate(`/${session.id}/connect`, { state: { session } });
+  };
+
   const deleteSession = () => {
     chrome.runtime.sendMessage(
-        {
-          type: 'DELETE_SESSION',
-          sessionId: session.id
-        },
-        (response) => {
-          // Add log
-          navigate(-1);
-        },
+      {
+        type: 'DELETE_SESSION',
+        sessionId: session.id,
+      },
+      (response) => {
+        // Add log
+        navigate(-1);
+      },
     );
   };
   return (
@@ -33,7 +40,12 @@ const SessionDetails = () => {
               {session.expiryDate ? (
                 <>Expiration:</>
               ) : (
-                <> Login with your wallet </>
+                <>
+                  <div className="loginLabel" onClick={handleLogin}>
+                    <img src={MobileConnectIcon} width={20} /> Login with your
+                    wallet{' '}
+                  </div>
+                </>
               )}
             </strong>{' '}
             {session.expiryDate}
