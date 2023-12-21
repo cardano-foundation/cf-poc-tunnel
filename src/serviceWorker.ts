@@ -50,27 +50,28 @@ const mockSessions = [
 
 chrome.runtime.onInstalled.addListener(async () => {
   console.log('Extension successfully installed!');
-  chrome.storage.local.set({ sessions: mockSessions }, function() {
+  chrome.storage.local.set({ sessions: mockSessions }, function () {
     // mock data added
   });
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'GET_SESSIONS') {
-    chrome.storage.local.get(['sessions'], function(result) {
+    chrome.storage.local.get(['sessions'], function (result) {
       sendResponse(result.sessions);
     });
-
   } else if (message.sessionId && message.type === 'DELETE_SESSION') {
-    chrome.storage.local.get(['sessions'], function(result) {
-      const ss = result.sessions.filter((session) => message.sessionId !== session.id);
-      chrome.storage.local.set({ sessions: ss }, function() {
+    chrome.storage.local.get(['sessions'], function (result) {
+      const ss = result.sessions.filter(
+        (session) => message.sessionId !== session.id,
+      );
+      chrome.storage.local.set({ sessions: ss }, function () {
         sendResponse({ status: 'OK' });
       });
     });
     sendResponse({ status: 'OK' });
   } else if (message.data && message.type === 'LOGIN_FROM_WEB') {
-    chrome.storage.local.get(['sessions'], function(result) {
+    chrome.storage.local.get(['sessions'], function (result) {
       const newSession = {
         ...message.data,
         id: uid(24),
@@ -79,7 +80,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       };
       const ss = [newSession, ...result.sessions];
 
-      chrome.storage.local.set({ sessions: ss }, function() {
+      chrome.storage.local.set({ sessions: ss }, function () {
         sendResponse({ status: 'OK' });
       });
     });

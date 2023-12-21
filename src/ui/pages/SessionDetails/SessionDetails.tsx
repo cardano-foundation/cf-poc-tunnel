@@ -11,9 +11,7 @@ const SessionDetails = () => {
   if (!session) {
     return <div>No session data available</div>;
   }
-  const handleLogin = (
-
-  ) => {
+  const handleLogin = () => {
     navigate(`/${session.id}/connect`, { state: { session } });
   };
 
@@ -33,7 +31,9 @@ const SessionDetails = () => {
     <div className="sessionDetails">
       <BackButton />
       <div className="certificate">
-        <h1>{session.name} <span className="starIcon">★</span></h1>
+        <h1>
+          {session.name} <span className="starIcon">★</span>
+        </h1>
         <div className="session-info">
           <p>
             <strong>
