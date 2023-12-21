@@ -1,22 +1,45 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './Lock.scss';
-import { BackButton } from '../../components/BackButton/BackButton';
 import { useNavigate } from 'react-router-dom';
 
-const isPasscodeValid = (codes) => {
-  const validArray = Array(6).fill('1');
-  return JSON.stringify(codes) === JSON.stringify(validArray);
+const isPasscodeValid = async (codes: string[]): Promise<boolean> => {
+  const result = await chrome.storage.local.get(['passcode']);
+  console.log('isPasscodeValid');
+  console.log(result);
+  if (result.passcode.join('') === codes.join('')) {
+    return true;
+  }
+  return false;
 };
 
 const Lock = () => {
   const navigate = useNavigate();
 
+  const [isCreatingPasscode, setIsCreatingPasscode] = useState(true);
+  const [isConfirmingPasscode, setIsConfirmingPasscode] = useState(false);
+  const [firstPasscode, setFirstPasscode] = useState(Array(6).fill(''));
+  const [confirmPasscode, setConfirmPasscode] = useState(Array(6).fill(''));
+
   const [codes, setCodes] = useState(Array(6).fill(''));
+
+  const [storedPasscode, setStoredPasscode] = useState(undefined);
   const [phoneCodeShowError, setPhoneCodeShowError] = useState<boolean>(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   inputRefs.current = [];
 
-  const handleInputChange = (
+  useEffect(() => {
+    chrome.storage.local.get(['passcode'], function (result) {
+
+      if (result.passcode) {
+        setStoredPasscode(result.passcode);
+        setIsCreatingPasscode(false);
+      } else {
+        setIsCreatingPasscode(true);
+      }
+    });
+  }, []);
+
+  const handleInputChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
     index: number,
   ) => {
@@ -24,34 +47,61 @@ const Lock = () => {
 
     if (!(value && /^[0-9]$/.test(value)) && value !== '') return;
 
-    const updatedCodes = [...codes];
+    const updatedCodes = isConfirmingPasscode
+      ? [...confirmPasscode]
+      : [...codes];
     updatedCodes[index] = value;
-    setCodes(updatedCodes);
+    if (!isConfirmingPasscode) {
+      setCodes(updatedCodes);
 
-    const isValid = isPasscodeValid(updatedCodes);
-    console.log('isValid');
-    console.log(isValid);
-    if (isValid) {
-      setPhoneCodeShowError(false);
-      navigate('/');
-      return;
+      if (
+        updatedCodes.every((code) => code !== '') &&
+        updatedCodes.length === 6
+      ) {
+        if (storedPasscode) {
+          const isValid = await isPasscodeValid(updatedCodes);
+
+          if (isValid) {
+            navigate('/');
+            return;
+          }
+        } else {
+          setFirstPasscode(updatedCodes);
+          setIsConfirmingPasscode(true);
+          setTimeout(() => inputRefs.current[0]?.focus(), 0);
+          return;
+        }
+      }
     } else {
-      setPhoneCodeShowError(true);
+      setConfirmPasscode(updatedCodes);
+      if (
+        !updatedCodes.some((code) => code === '') &&
+        updatedCodes.join('') === firstPasscode.join('')
+      ) {
+        savePasscode();
+      }
     }
 
-    if (value && /^[0-9]$/.test(value) && index < 5) {
-      inputRefs.current[index + 1]?.focus();
+    if (value && index < 5) {
+      setTimeout(() => inputRefs.current[index + 1]?.focus(), 0);
     } else if (!value && index > 0) {
-      inputRefs.current[index]?.focus();
+      setTimeout(() => inputRefs.current[index - 1]?.focus(), 0);
     }
+  };
+
+  const savePasscode = () => {
+    chrome.storage.local.set({ passcode: codes }, function () {
+      console.log('Passcode is set to ' + codes);
+    });
+    navigate('/');
   };
 
   // Hide error message if codes is not complete
   const showErrorMessage = !codes.some((code) => code === '');
 
+  const codesToRender = isConfirmingPasscode ? confirmPasscode : codes;
   return (
     <div className="lockPage">
-      <BackButton />
       <div className="lockContainer">
         <div
           style={{
@@ -60,7 +110,13 @@ const Lock = () => {
             gap: '8px',
           }}
         >
-          <h1 className="lockLabel">Enter passcode</h1>
+          <h1 className="lockLabel">
+            {isCreatingPasscode
+              ? isConfirmingPasscode
+                ? 'Confirm passcode'
+                : 'Create passcode'
+              : 'Enter passcode'}
+          </h1>
         </div>
 
         <div
@@ -74,7 +130,7 @@ const Lock = () => {
           {[...Array(6)].map((_, index) => (
             <input
               key={index}
-              value={codes[index]}
+              value={codesToRender[index]}
               ref={(el) => (inputRefs.current[index] = el)}
               type="text"
               maxLength={1}
