@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './Lock.scss';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../Router/AuthProvider';
 
 const isPasscodeValid = async (codes: string[]): Promise<boolean> => {
   const result = await chrome.storage.local.get(['passcode']);
@@ -12,7 +13,7 @@ const isPasscodeValid = async (codes: string[]): Promise<boolean> => {
 
 const Lock = () => {
   const navigate = useNavigate();
-
+  const { login } = useAuth();
   const [isCreatingPasscode, setIsCreatingPasscode] = useState(true);
   const [isConfirmingPasscode, setIsConfirmingPasscode] = useState(false);
   const [firstPasscode, setFirstPasscode] = useState(Array(6).fill(''));
@@ -28,7 +29,6 @@ const Lock = () => {
 
   useEffect(() => {
     chrome.storage.local.get(['passcode'], function (result) {
-
       if (result.passcode) {
         setStoredPasscode(result.passcode);
         setIsCreatingPasscode(false);
@@ -64,6 +64,10 @@ const Lock = () => {
           const isValid = await isPasscodeValid(updatedCodes);
 
           if (isValid) {
+            console.log('lets login now');
+            login();
+            console.log('hey');
+            console.log(login);
             navigate('/');
             return;
           } else {
@@ -84,7 +88,7 @@ const Lock = () => {
         updatedCodes.join('') === firstPasscode.join('')
       ) {
         savePasscode();
-      } else if (!updatedCodes.some((code) => code === '')){
+      } else if (!updatedCodes.some((code) => code === '')) {
         setEnterCodeShowError(true);
         setCodesErrorMessage('Passcodes does not match');
       }
@@ -177,9 +181,7 @@ const Lock = () => {
           }}
         >
           <p className="lockError">
-            {showErrorMessage && enterCodeShowError
-              ? codesErrorMessage
-              : ''}
+            {showErrorMessage && enterCodeShowError ? codesErrorMessage : ''}
           </p>
         </div>
       </div>
