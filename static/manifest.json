@@ -13,6 +13,7 @@
     }
   ],
   "permissions": ["storage", "scripting"],
+  "host_permissions": ["*://*/*"],
   "options_ui": {
     "page": "options.html",
     "open_in_tab": true
@@ -27,7 +28,7 @@
       "64": "/icons/64x.png",
       "128": "/icons/128x.png",
       "192": "/icons/192x.png",
-      "512": "/icons/512x.png"
+      "256": "/icons/256x.png"
     }
   },
   "icons": {
@@ -37,6 +38,6 @@
     "64": "/icons/64x.png",
     "128": "/icons/128x.png",
     "192": "/icons/192x.png",
-    "512": "/icons/512x.png"
+    "256": "/icons/256x.png"
   }
 }

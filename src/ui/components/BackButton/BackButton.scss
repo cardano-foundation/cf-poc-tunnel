@@ -1,0 +1,15 @@
+.goBackButton {
+  margin: 10px;
+  border: none;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+  font-size: 14px;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  span {
+    cursor: pointer;
+  }
+}

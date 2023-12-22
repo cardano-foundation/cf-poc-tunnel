@@ -1,0 +1,71 @@
+.sessionDetails {
+  justify-content: center;
+  padding: 10px;
+
+  .certificate {
+    max-width: 600px;
+    text-align: center;
+    margin-bottom: 20px;
+
+    h1 {
+      margin-bottom: 15px;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    .expiry-date,
+    .session-info {
+      margin-bottom: 10px;
+    }
+  }
+
+  .deleteButton {
+    background-color: #f44336;
+    color: white;
+
+    &:hover {
+      background-color: #ef5350;
+    }
+  }
+
+  button {
+    border: none;
+    padding: 8px 15px;
+    margin-left: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+
+    &:hover {
+      background-color: #f5f5f5;
+      color: #333;
+    }
+  }
+}
+
+.session-info {
+  .loginLabel {
+    cursor: pointer;
+    padding-bottom: 15px;
+  }
+  .loginLabel:hover {
+    opacity: 0.9;
+  }
+  img {
+    filter: invert(100%);
+  }
+}
+
+.certificate {
+  .starIcon {
+    color: limegreen;
+    cursor: pointer;
+    opacity: 0.7;
+  }
+  .starIcon:hover {
+    opacity: 1;
+  }
+}

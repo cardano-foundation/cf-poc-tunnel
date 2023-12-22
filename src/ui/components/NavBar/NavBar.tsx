@@ -1,29 +1,36 @@
 import React from 'react';
 import './Navbar.scss';
-import Logo from '../../../../static/icons/32x.png';
 
-import QrCodeIcon from '../../../../static/icons/qrcode-icon.svg';
+import TunnelIcon from '../../../../static/icons/tunnel-icon.svg';
 import SettingsIcon from '../../../../static/icons/settings-icon.svg';
 import LockIcon from '../../../../static/icons/lock-icon.svg';
+import { useAuth } from '../../Router/AuthProvider';
 
 const NavBar = () => {
-    return (
-        <div className='navBar'>
-            <img src={Logo}  alt="Logo" className='logo' />
+  const { logout, isLoggedIn } = useAuth();
 
-            <div className='title'>Project Tunnel</div>
+  const handleSettingsClick = () => {
+    const settingsUrl = `chrome-extension://${chrome.runtime.id}/options.html`;
+    window.open(settingsUrl, '_blank');
+  };
 
-            <button className='iconButton'>
-                <img src={QrCodeIcon} alt="QR Code" width={24}/>
-            </button>
-            <button className='iconButton'>
-                <img src={SettingsIcon} alt="Settings" width={24}/>
-            </button>
-            <button className='iconButton'>
-                <img src={LockIcon} alt="Lock" width={24}/>
-            </button>
-        </div>
-    );
+  return (
+    <div className="navBar">
+      <img src={TunnelIcon} alt="Logo" className="logo" width={24} />
+
+      <div className="title">Tunnel</div>
+      {isLoggedIn ? (
+        <>
+          <button className="iconButton" onClick={() => handleSettingsClick()}>
+            <img src={SettingsIcon} alt="Settings" width={24} />
+          </button>
+          <button className="iconButton " onClick={() => logout()}>
+            <img src={LockIcon} alt="Lock" width={24} />
+          </button>
+        </>
+      ) : null}
+    </div>
+  );
 };
 
 export { NavBar };

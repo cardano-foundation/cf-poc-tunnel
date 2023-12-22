@@ -2,26 +2,41 @@ import React from 'react';
 import govLogo from './assets/gov.png';
 import './App.css';
 
+function sendMessageToExtension(data) {
+  window.postMessage(
+    {
+      type: 'LOGIN_FROM_WEB',
+      data,
+    },
+    '*',
+  );
+}
+
 const App = () => {
-
-    const handleLogin = () => {
-
-    }
-    return (
+  const handleLogin = async () => {
+    const hostname = window.location.hostname;
+    const port = window.location.port;
+    const enterpriseData = {
+      name: `${hostname}${port ? `:${port}` : ''}`,
+      serverPubeid: 'JJBD4S...9S23',
+      oobi: 'http://ac2in...1JS5',
+      acdc: 'ACac2in...1JS5DC',
+    };
+    sendMessageToExtension(enterpriseData);
+  };
+  return (
     <>
       <div>
-          <img src={govLogo} className="logo" alt="Vite logo" />
+        <img src={govLogo} className="logo" alt="Vite logo" />
       </div>
-      <h1>platform.gov</h1>
+      <h1>Web app</h1>
       <div className="card">
         <button className="login-button" onClick={() => handleLogin()}>
-          <span>
-              Login
-          </span>
+          <span>Login</span>
         </button>
       </div>
     </>
-    )
-}
+  );
+};
 
-export {App}
+export { App };

@@ -1,17 +1,15 @@
-import React from "react";
-import {SessionList} from "./components/SessionList/SessionList";
-import {NavBar} from "./components/NavBar/NavBar";
+import React from 'react';
+import { NavBar } from './components/NavBar/NavBar';
+import { Router } from './Router';
+import { AuthProvider } from './Router/AuthProvider';
 
 const Popup = () => {
+  return (
+    <AuthProvider>
+      <NavBar />
+      <Router />
+    </AuthProvider>
+  );
+};
 
-    return (
-        <div>
-            <NavBar />
-            <SessionList/>
-        </div>
-    );
-}
-
-export {
-    Popup
-}
+export { Popup };

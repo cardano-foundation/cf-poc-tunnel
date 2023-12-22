@@ -1,44 +1,82 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Countdown } from '../Countdown/Countdown';
 import './SessionList.scss';
-import { Countdown } from "../Countdown/Countdown";
+import MobileConnectIcon from '../../../../static/icons/mobile-connect-icon.svg';
+import { isExpired } from '../../utils';
 
 interface Session {
-    id: string;
-    name: string;
-    expiryDate: string;
+  id: string;
+  name: string;
+  expiryDate: string;
 }
 
-const sessions: Session[] = [
-    { id: '1', name: 'voting-app.org', expiryDate: '2024-04-05' },
-    { id: '2', name: 'platform.gov', expiryDate: '2024-05-10' }
-];
-
 const SessionList: React.FC = () => {
+  const navigate = useNavigate();
 
-    const handleDelete = (id: string) => {
-        console.log('Delete session:', id);
-    };
+  const [sessions, setSessions] = useState([]);
 
-    return (
-        <ul className='list'>
-            {sessions.map((session) => (
-                <li key={session.id} className='listItem'>
-                    <div>
-                        <div className='primaryText'>{session.name}</div>
-                        <div className='secondaryText'>
-                            <Countdown expiryDate={session.expiryDate} />
-                        </div>
-                    </div>
-                    <button
-                        className='deleteButton'
-                        onClick={() => handleDelete(session.id)}
-                    >
-                        Delete
-                    </button>
-                </li>
-            ))}
-        </ul>
+  const handleNavigation = (
+    option: string,
+    p: { state: { session: Session } },
+  ) => {
+    navigate(option, p);
+  };
+
+  useEffect(() => {
+    chrome.runtime.sendMessage(
+      {
+        type: 'GET_SESSIONS',
+      },
+      (response) => {
+        setSessions(response);
+      },
     );
+  }, []);
+
+  const handleConnect = (session: Session) => {
+    handleNavigation(`/${session.id}/connect`, { state: { session } });
+  };
+
+  const handleInfo = (session: Session) => {
+    handleNavigation(`/${session.id}`, { state: { session } });
+  };
+
+  return (
+    <ul className="list">
+      {sessions.map((session) => {
+        return (
+          <li key={session.id} className="listItem">
+            <div className="sessionName">
+              <div className="primaryText">{session.name}</div>
+              <div className="secondaryText">
+                {session.expiryDate && isExpired(session.expiryDate) ? (
+                  <>Expired</>
+                ) : (
+                  <Countdown expiryDate={session.expiryDate} />
+                )}
+              </div>
+            </div>
+            {!session.expiryDate || session.expiryDate === 0 ? (
+              <button
+                className="iconButton"
+                onClick={() => handleConnect(session)}
+              >
+                <img className="icon" src={MobileConnectIcon} width={30} />
+                <span className="label">Login</span>
+              </button>
+            ) : null}
+            <div className="buttonGroup">
+              <span onClick={() => handleInfo(session)} className="infoButton">
+                {' '}
+                →{' '}
+              </span>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
 };
 
 export { SessionList };

@@ -3,11 +3,12 @@
   color: white;
   display: flex;
   align-items: center;
-  padding: 0 16px;
+  padding: 10px;
 }
 
 .logo {
   margin-right: 10px;
+  filter: invert(100%);
 }
 
 .title {
@@ -19,7 +20,6 @@
   color: inherit;
   background: none;
   border: none;
-  padding: 8px;
   cursor: pointer;
 
   img {

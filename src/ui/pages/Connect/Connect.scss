@@ -1,0 +1,37 @@
+.sessionDetails {
+  justify-content: center;
+  padding: 10px;
+
+  .certificate {
+    max-width: 600px;
+    text-align: center;
+
+    h1 {
+      margin-bottom: 15px;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    .expiry-date,
+    .session-info {
+      margin-bottom: 10px;
+    }
+  }
+
+  .generateLabel {
+    padding: 4px;
+    border: 2px whitesmoke !important;
+    border-radius: 5px;
+    background-color: #1976d2;
+    cursor: pointer;
+  }
+
+  .blurEffect {
+    filter: blur(6px);
+  }
+  .blurEffectHover:hover {
+    filter: blur(6px);
+  }
+}

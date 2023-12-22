@@ -1,0 +1,84 @@
+body {
+  background-color: #292d3e;
+}
+.optionsPage {
+  padding: 20px;
+  min-height: 100vh;
+  font-family: 'Arial', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.section {
+  width: 100%;
+  max-width: 600px;
+  background-color: #535664;
+  padding: 20px;
+  margin-bottom: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s;
+
+  &:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  h2 {
+    color: white;
+    margin-bottom: 20px;
+  }
+
+  input,
+  button {
+    width: 100%;
+    padding: 10px 15px;
+    margin-top: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+  }
+
+  button {
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 20px;
+
+    &:hover {
+      background-color: #004494;
+    }
+  }
+}
+
+.logs {
+  background-color: #eaeaea;
+  padding: 10px;
+  border-radius: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 10px;
+}
+
+.lockMessage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 90vh;
+  text-align: center;
+  color: whitesmoke;
+  font-size: 24px;
+}
+
+@media (max-width: 768px) {
+  .settingsPage {
+    padding: 15px;
+  }
+
+  .section {
+    margin-bottom: 20px;
+  }
+}
