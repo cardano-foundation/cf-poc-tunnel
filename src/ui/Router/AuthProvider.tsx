@@ -20,7 +20,7 @@ const AuthProvider = ({ children }) => {
       setIsLoggedIn(result.isLoggedIn || false);
       setIsLoading(false);
 
-      if (result.isLoggedIn && inactiveTime > 5000) {
+      if (result.isLoggedIn && inactiveTime > 1800000) {
         logout();
       }
     });
