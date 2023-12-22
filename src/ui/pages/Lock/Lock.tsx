@@ -4,8 +4,6 @@ import { useNavigate } from 'react-router-dom';
 
 const isPasscodeValid = async (codes: string[]): Promise<boolean> => {
   const result = await chrome.storage.local.get(['passcode']);
-  console.log('isPasscodeValid');
-  console.log(result);
   if (result.passcode.join('') === codes.join('')) {
     return true;
   }
@@ -23,7 +21,8 @@ const Lock = () => {
   const [codes, setCodes] = useState(Array(6).fill(''));
 
   const [storedPasscode, setStoredPasscode] = useState(undefined);
-  const [phoneCodeShowError, setPhoneCodeShowError] = useState<boolean>(false);
+  const [enterCodeShowError, setEnterCodeShowError] = useState<boolean>(false);
+  const [codesErrorMessage, setCodesErrorMessage] = useState<string>('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   inputRefs.current = [];
 
@@ -47,6 +46,8 @@ const Lock = () => {
 
     if (!(value && /^[0-9]$/.test(value)) && value !== '') return;
 
+    setEnterCodeShowError(false);
+
     const updatedCodes = isConfirmingPasscode
       ? [...confirmPasscode]
       : [...codes];
@@ -64,6 +65,9 @@ const Lock = () => {
           if (isValid) {
             navigate('/');
             return;
+          } else {
+            setEnterCodeShowError(true);
+            setCodesErrorMessage('Invalid passcode, please, try again');
           }
         } else {
           setFirstPasscode(updatedCodes);
@@ -79,6 +83,9 @@ const Lock = () => {
         updatedCodes.join('') === firstPasscode.join('')
       ) {
         savePasscode();
+      } else {
+        setEnterCodeShowError(true);
+        setCodesErrorMessage('Passcodes does not match');
       }
     }
 
@@ -169,7 +176,7 @@ const Lock = () => {
           }}
         >
           <p className="lockError">
-            {showErrorMessage && phoneCodeShowError
+            {showErrorMessage && enterCodeShowError
               ? 'Invalid passcode, please, try again'
               : ''}
           </p>
