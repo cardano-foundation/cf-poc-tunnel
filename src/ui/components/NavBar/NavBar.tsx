@@ -7,7 +7,7 @@ import LockIcon from '../../../../static/icons/lock-icon.svg';
 import { useAuth } from '../../Router/AuthProvider';
 
 const NavBar = () => {
-  const { logout } = useAuth();
+  const { logout, isLoggedIn } = useAuth();
 
   const handleSettingsClick = () => {
     const settingsUrl = `chrome-extension://${chrome.runtime.id}/options.html`;
@@ -19,13 +19,16 @@ const NavBar = () => {
       <img src={TunnelIcon} alt="Logo" className="logo" width={24} />
 
       <div className="title">Tunnel</div>
-
-      <button className="iconButton" onClick={() => handleSettingsClick()}>
-        <img src={SettingsIcon} alt="Settings" width={24} />
-      </button>
-      <button className="iconButton " onClick={() => logout()}>
-        <img src={LockIcon} alt="Lock" width={24} />
-      </button>
+      {isLoggedIn ? (
+        <>
+          <button className="iconButton" onClick={() => handleSettingsClick()}>
+            <img src={SettingsIcon} alt="Settings" width={24} />
+          </button>
+          <button className="iconButton " onClick={() => logout()}>
+            <img src={LockIcon} alt="Lock" width={24} />
+          </button>
+        </>
+      ) : null}
     </div>
   );
 };

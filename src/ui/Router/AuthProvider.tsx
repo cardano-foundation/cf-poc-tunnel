@@ -14,16 +14,19 @@ const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    chrome.storage.local.get(['isLoggedIn', 'latestActivity'], function (result) {
-      const now = Date.now();
-      const inactiveTime = now - (result.latestActivity || 0);
-      setIsLoggedIn(result.isLoggedIn || false);
-      setIsLoading(false);
+    chrome.storage.local.get(
+      ['isLoggedIn', 'latestActivity'],
+      function (result) {
+        const now = Date.now();
+        const inactiveTime = now - (result.latestActivity || 0);
+        setIsLoggedIn(result.isLoggedIn || false);
+        setIsLoading(false);
 
-      if (result.isLoggedIn && inactiveTime > 1800000) {
-        logout();
-      }
-    });
+        if (result.isLoggedIn && inactiveTime > 1800000) {
+          logout();
+        }
+      },
+    );
   }, []);
 
   const resetLogoutTimer = () => {
@@ -50,6 +53,10 @@ const AuthProvider = ({ children }) => {
     };
   }, [isLoggedIn]);
 
+  const isLoggedInFromStorage = async (): Promise<boolean> => {
+    const result = await chrome.storage.local.get(['isLoggedIn']);
+    return result.isLoggedIn;
+  };
   const login = async () => {
     chrome.storage.local.set({ isLoggedIn: true }).then(() => {
       setIsLoggedIn(true);
@@ -69,7 +76,7 @@ const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, login, logout, isLoggedInFromStorage }}>
       {children}
     </AuthContext.Provider>
   );

@@ -9,7 +9,7 @@ const root = ReactDOM.createRoot(
 );
 
 root.render(
-    <BrowserRouter basename="/popup.html">
-      <Popup />
-    </BrowserRouter>
+  <BrowserRouter basename="/popup.html">
+    <Popup />
+  </BrowserRouter>,
 );

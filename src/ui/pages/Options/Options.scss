@@ -63,6 +63,16 @@ body {
   margin-top: 10px;
 }
 
+.lockMessage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 90vh;
+  text-align: center;
+  color: whitesmoke;
+  font-size: 24px;
+}
+
 @media (max-width: 768px) {
   .settingsPage {
     padding: 15px;
