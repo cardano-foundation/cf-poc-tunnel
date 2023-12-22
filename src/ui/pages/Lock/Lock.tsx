@@ -47,6 +47,7 @@ const Lock = () => {
     if (!(value && /^[0-9]$/.test(value)) && value !== '') return;
 
     setEnterCodeShowError(false);
+    setCodesErrorMessage('');
 
     const updatedCodes = isConfirmingPasscode
       ? [...confirmPasscode]
@@ -83,7 +84,7 @@ const Lock = () => {
         updatedCodes.join('') === firstPasscode.join('')
       ) {
         savePasscode();
-      } else {
+      } else if (!updatedCodes.some((code) => code === '')){
         setEnterCodeShowError(true);
         setCodesErrorMessage('Passcodes does not match');
       }
@@ -177,7 +178,7 @@ const Lock = () => {
         >
           <p className="lockError">
             {showErrorMessage && enterCodeShowError
-              ? 'Invalid passcode, please, try again'
+              ? codesErrorMessage
               : ''}
           </p>
         </div>
