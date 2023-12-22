@@ -64,12 +64,10 @@ const Lock = () => {
           const isValid = await isPasscodeValid(updatedCodes);
 
           if (isValid) {
-            console.log('lets login now');
-            login();
-            console.log('hey');
-            console.log(login);
-            navigate('/');
-            return;
+            login().then(() => {
+              navigate('/');
+              return;
+            });
           } else {
             setEnterCodeShowError(true);
             setCodesErrorMessage('Invalid passcode, please, try again');
@@ -87,7 +85,12 @@ const Lock = () => {
         !updatedCodes.some((code) => code === '') &&
         updatedCodes.join('') === firstPasscode.join('')
       ) {
+        login().then(() => {
+          navigate('/');
+          return;
+        });
         savePasscode();
+        return;
       } else if (!updatedCodes.some((code) => code === '')) {
         setEnterCodeShowError(true);
         setCodesErrorMessage('Passcodes does not match');
@@ -103,7 +106,7 @@ const Lock = () => {
 
   const savePasscode = () => {
     chrome.storage.local.set({ passcode: codes }, function () {
-      console.log('Passcode is set to ' + codes);
+      // Logger
     });
     navigate('/');
   };

@@ -8,9 +8,6 @@ import { useAuth } from './AuthProvider';
 
 const ProtectedRoute = ({ children }) => {
   const { isLoggedIn } = useAuth();
-
-  console.log('isLoggedIn in ProtectedRoute');
-  console.log(isLoggedIn);
   if (!isLoggedIn) {
     return <Navigate to="/lock" />;
   }
