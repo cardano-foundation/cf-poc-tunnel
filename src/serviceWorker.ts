@@ -62,12 +62,6 @@ chrome.runtime.onStartup.addListener(async () => {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
-  handleAsyncMessage(message, sendResponse);
-
-  return true;
-});
-
-async function handleAsyncMessage(message, sendResponse) {
   switch (message.type) {
     case 'GET_SESSIONS':
       chrome.storage.local.get(['sessions'], function (result) {
@@ -100,6 +94,8 @@ async function handleAsyncMessage(message, sendResponse) {
       });
       break;
   }
-}
+
+  return true;
+});
 
 export {};
