@@ -76,7 +76,9 @@ const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, login, logout, isLoggedInFromStorage }}>
+    <AuthContext.Provider
+      value={{ isLoggedIn, login, logout, isLoggedInFromStorage }}
+    >
       {children}
     </AuthContext.Provider>
   );

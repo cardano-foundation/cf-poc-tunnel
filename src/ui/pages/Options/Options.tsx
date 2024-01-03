@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import './Options.scss';
 import { useAuth } from '../../Router/AuthProvider';
 const Options = () => {
@@ -6,25 +6,25 @@ const Options = () => {
   const { isLoggedIn, isLoggedInFromStorage, logout, login } = useAuth();
   const [logs, setLogs] = useState<string[]>([]);
 
-    const checkIsLogged = async () => {
-        const isLogged = await isLoggedInFromStorage();
-        if (!isLogged) logout();
-        else login();
+  const checkIsLogged = async () => {
+    const isLogged = await isLoggedInFromStorage();
+    if (!isLogged) logout();
+    else login();
+  };
+
+  useEffect(() => {
+    window.addEventListener('mousemove', checkIsLogged);
+    window.addEventListener('keydown', checkIsLogged);
+    window.addEventListener('scroll', checkIsLogged);
+    window.addEventListener('click', checkIsLogged);
+
+    return () => {
+      window.removeEventListener('mousemove', checkIsLogged);
+      window.removeEventListener('keydown', checkIsLogged);
+      window.removeEventListener('scroll', checkIsLogged);
+      window.removeEventListener('click', checkIsLogged);
     };
-
-    useEffect(() => {
-        window.addEventListener('mousemove', checkIsLogged);
-        window.addEventListener('keydown', checkIsLogged);
-        window.addEventListener('scroll', checkIsLogged);
-        window.addEventListener('click', checkIsLogged);
-
-        return () => {
-            window.removeEventListener('mousemove', checkIsLogged);
-            window.removeEventListener('keydown', checkIsLogged);
-            window.removeEventListener('scroll', checkIsLogged);
-            window.removeEventListener('click', checkIsLogged);
-        };
-    }, [isLoggedIn]);
+  }, [isLoggedIn]);
 
   const handleEndpointChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEndpoint(e.target.value);
@@ -78,9 +78,7 @@ const Options = () => {
         </>
       ) : (
         <>
-            <div className="lockMessage">
-                Please, login again
-            </div>
+          <div className="lockMessage">Please, login again</div>
         </>
       )}
     </div>

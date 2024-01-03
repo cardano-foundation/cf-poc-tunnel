@@ -1,10 +1,14 @@
 import { uid } from 'uid';
+import { generateAID, getCurrentDate, isExpired } from './ui/utils';
+
+const expirationTime = 1800000; // 30 min
+const privateKeys: { [pubKey: string]: string } = {};
 
 const mockSessions = [
   {
     id: '1',
     name: 'voting-app.org',
-    expiryDate: '2024-04-05',
+    expiryDate: '2014-04-05',
     serverPubeid: 'JJBD4S...9S23',
     personalPubeid: 'KO7G10D4S...1JS5',
     oobi: 'http://ac2in...1JS5',
@@ -22,7 +26,7 @@ const mockSessions = [
   {
     id: '3',
     name: 'platform2.gov',
-    expiryDate: '2024-06-10',
+    expiryDate: '2015-06-10',
     serverPubeid: 'JJBD4S...9S23',
     personalPubeid: 'KO7G10D4S...1JS5',
     oobi: 'http://ac2in...1JS5',
@@ -48,54 +52,107 @@ const mockSessions = [
   },
 ];
 
+const isMemoryWiped = async (): Promise<boolean> => {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      chrome.storage.local.get(['sessions'], function (data) {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+        } else {
+          resolve(data);
+        }
+      });
+    });
+
+    console.log('result.sessions');
+    console.log(result.sessions);
+
+    if (!result.sessions) {
+      return true;
+    }
+
+    console.log('privateKeys');
+    console.log(Object.keys(privateKeys));
+    console.log(privateKeys);
+    return !result.sessions.every((session) => {
+      if (session.expiryDate && !isExpired(session.expiryDate)) {
+        return Object.keys(privateKeys).includes(session.personalPubeid);
+      }
+      return true;
+    });
+  } catch (error) {
+    console.error('Error checking memory:', error);
+    return true;
+  }
+};
+
+const handleWipedMemory = async (): Promise<void> => {
+  // Start process to get the private keys from the mobile
+  chrome.storage.local.get(['sessions'], function (result) {
+    const activeSessions = result.sessions.filter(
+        (session) => {
+          if (!session.expiryDate || session.expiryDate.length === 0) return false;
+          console.log('session.expiryDate');
+          console.log((session.expiryDate));
+          console.log(isExpired(session.expiryDate));
+          return !isExpired(session.expiryDate);
+        }
+    );
+    // ask to remote device to get all activeSessions (privKeys)
+    console.log('privateKeys');
+    console.log(privateKeys);
+    console.log('Sessions to restore', activeSessions);
+  });
+}
+
 chrome.runtime.onInstalled.addListener(async () => {
   console.log('Extension successfully installed!');
-  chrome.storage.local.set({ sessions: mockSessions, isServiceWorkerRestarted: false });
-
-});
-
-chrome.runtime.onStartup.addListener(async () => {
-  console.log('Extension successfully installed!');
-  chrome.storage.local.set({ sessions: mockSessions, isServiceWorkerRestarted: true });
-
+  chrome.storage.local.set({
+    sessions: mockSessions,
+  });
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log('privateKeys', privateKeys);
+  isMemoryWiped().then((isWiped) => {
 
-  switch (message.type) {
-    case 'GET_SESSIONS':
-      chrome.storage.local.get(['sessions'], function (result) {
-        sendResponse(result.sessions);
-      });
-      break;
-    case 'DELETE_SESSION':
-      chrome.storage.local.get(['sessions'], function (result) {
-        const ss = result.sessions.filter(
-            (session) => message.sessionId !== session.id,
-        );
-        chrome.storage.local.set({ sessions: ss }, function () {
-          sendResponse({ status: 'OK' });
-        });
-      });
-      break;
-    case 'LOGIN_FROM_WEB':
-      chrome.storage.local.get(['sessions'], function (result) {
-        const newSession = {
-          ...message.data,
-          id: uid(24),
-          personalPubeid: '',
-          expiryDate: '',
-        };
-        const ss = [newSession, ...result.sessions];
+    switch (message.type) {
+      case 'LOGIN_FROM_WEB':
+        if (isWiped) {
+          handleWipedMemory() // TODO: handle properly handleWipedMemory
+        }
+        chrome.storage.local.get(['sessions'], function (result) {
+          const newSession = {
+            ...message.data,
+            id: uid(24),
+            personalPubeid: '',
+            expiryDate: ''
+          };
 
-        chrome.storage.local.set({ sessions: ss }, function () {
-          sendResponse({ status: 'OK' });
+          const ss = [newSession, ...result.sessions];
+
+          chrome.storage.local.set({ sessions: ss }, function () {
+            // privateKeys[aid.pubKey] = aid.privKey;
+            sendResponse({ status: 'OK' });
+          });
         });
-      });
-      break;
-  }
+        break;
+      case 'SET_PRIVATE_KEY':
+        console.log('SET_PRIVATE_KEY');
+        privateKeys[message.data.pubKey] = message.data.privKey;
+        console.log('message.data');
+        console.log(message.data);
+        console.log('privateKeys');
+        console.log(privateKeys);
+        if (isWiped) {
+          handleWipedMemory()
+        }
+        sendResponse({ status: 'OK' });
+        break;
+    }
+  });
 
   return true;
 });
 
-export {};
+export {expirationTime};

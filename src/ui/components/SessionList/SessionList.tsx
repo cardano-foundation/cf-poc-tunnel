@@ -24,14 +24,9 @@ const SessionList: React.FC = () => {
   };
 
   useEffect(() => {
-    chrome.runtime.sendMessage(
-      {
-        type: 'GET_SESSIONS',
-      },
-      (response) => {
-        setSessions(response);
-      },
-    );
+    chrome.storage.local.get(['sessions'], function (result) {
+      setSessions(result.sessions);
+    });
   }, []);
 
   const handleConnect = (session: Session) => {

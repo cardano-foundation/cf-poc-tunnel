@@ -86,7 +86,6 @@ const Lock = () => {
         updatedCodes.join('') === firstPasscode.join('')
       ) {
         login().then(() => {
-          console.log("lets login!")
           navigate('/');
           return;
         });

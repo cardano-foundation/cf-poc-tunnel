@@ -4,20 +4,58 @@ import './Connect.scss';
 import { BackButton } from '../../components/BackButton/BackButton';
 import { QRCode } from 'react-qrcode-logo';
 import Logo from '../../../../static/icons/img.png';
+import {generateAID, getCurrentDate} from '../../utils';
+import {expirationTime} from "../../../serviceWorker";
 
 const Connect = () => {
   const location = useLocation();
   const [session, setSession] = useState(location.state?.session);
+  const [qrCodeValue, setQrCodeValue] = useState('***');
   const [isBlurred, setIsBlurred] = useState(true);
+  const [showSpinner, setShowSpinner] = useState(false);
   if (!session) {
     return <div>No session data available</div>;
   }
 
   const handleGenerateEaid = () => {
-    setIsBlurred(false);
-    const s = { ...session };
-    s.personalPubeid = 'XSLOM7D...54S0S4';
-    setSession(s);
+    if (showSpinner) return;
+
+    setShowSpinner(true);
+
+    generateAID().then((aid) => {
+      chrome.storage.local.get(['sessions'], function (result) {
+        let se = { ...session };
+        const updatedSessions = result.sessions.map(s => {
+          if (s.id === se.id){
+            s.personalPubeid = aid.pubKey;
+            s.expiryDate = getCurrentDate(expirationTime);
+            se = s;
+          }
+          return s;
+        })
+
+        chrome.storage.local.set({ sessions: updatedSessions }, function () {
+          chrome.runtime.sendMessage(
+              {
+                type: 'SET_PRIVATE_KEY',
+                data: {
+                  pubKey: aid.pubKey,
+                  privKey: aid.privKey
+                }
+              },
+              () => {
+                setShowSpinner(false);
+                setSession(se);
+                setQrCodeValue(`${aid.pubKey}:${aid.privKey}`)
+                setIsBlurred(false);
+              },
+          );
+        });
+
+      });
+
+
+    });
   };
 
   return (
@@ -25,30 +63,31 @@ const Connect = () => {
       <BackButton />
       <div className="certificate">
         <h1>Connect with wallet</h1>
-        <div
-          className={
+        <p className="connectDescription">In order to connect, scan the QR code with your identity wallet</p>
+        <div>
+          <div className={
             isBlurred ? 'blurEffectHover blurEffect' : 'blurEffectHover'
-          }
-        >
+          }>
           {' '}
           <QRCode
-            value={
-              session.personalPubeid?.length
-                ? session.personalPubeid
-                : 'OOBI-connection'
-            }
-            size={192}
-            fgColor={'black'}
-            bgColor={'white'}
-            qrStyle={'squares'}
-            logoImage={Logo}
-            logoWidth={60}
-            logoHeight={60}
-            logoOpacity={1}
-            quietZone={10}
+              value={qrCodeValue}
+              size={192}
+              fgColor={'black'}
+              bgColor={'white'}
+              qrStyle={'squares'}
+              logoImage={Logo}
+              logoWidth={60}
+              logoHeight={60}
+              logoOpacity={1}
+              quietZone={10}
           />{' '}
+          </div>
+          {showSpinner && (
+              <div className="spinnerOverlay">
+                <div className="spinner"></div>
+              </div>
+          )}
         </div>
-
         <p>
           <strong>Portal: </strong> {session.name}
         </p>

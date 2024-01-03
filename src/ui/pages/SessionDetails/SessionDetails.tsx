@@ -16,16 +16,13 @@ const SessionDetails = () => {
   };
 
   const deleteSession = () => {
-    chrome.runtime.sendMessage(
-      {
-        type: 'DELETE_SESSION',
-        sessionId: session.id,
-      },
-      (response) => {
-        // Add log
+    chrome.storage.local.get(['sessions'], function (result) {
+      const ss = result.sessions.filter((s) => session.id !== s.id);
+
+      chrome.storage.local.set({ sessions: ss }, function () {
         navigate(-1);
-      },
-    );
+      });
+    });
   };
   return (
     <div className="sessionDetails">
