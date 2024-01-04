@@ -4,8 +4,8 @@ import './Connect.scss';
 import { BackButton } from '../../components/BackButton/BackButton';
 import { QRCode } from 'react-qrcode-logo';
 import Logo from '../../../../static/icons/img.png';
-import {generateAID, getCurrentDate} from '../../utils';
-import {expirationTime} from "../../../serviceWorker";
+import { generateAID, getCurrentDate } from '../../utils';
+import { expirationTime } from '../../../serviceWorker';
 
 const Connect = () => {
   const location = useLocation();
@@ -25,36 +25,33 @@ const Connect = () => {
     generateAID().then((aid) => {
       chrome.storage.local.get(['sessions'], function (result) {
         let se = { ...session };
-        const updatedSessions = result.sessions.map(s => {
-          if (s.id === se.id){
+        const updatedSessions = result.sessions.map((s) => {
+          if (s.id === se.id) {
             s.personalPubeid = aid.pubKey;
             s.expiryDate = getCurrentDate(expirationTime);
             se = s;
           }
           return s;
-        })
+        });
 
         chrome.storage.local.set({ sessions: updatedSessions }, function () {
           chrome.runtime.sendMessage(
-              {
-                type: 'SET_PRIVATE_KEY',
-                data: {
-                  pubKey: aid.pubKey,
-                  privKey: aid.privKey
-                }
+            {
+              type: 'SET_PRIVATE_KEY',
+              data: {
+                pubKey: aid.pubKey,
+                privKey: aid.privKey,
               },
-              () => {
-                setShowSpinner(false);
-                setSession(se);
-                setQrCodeValue(`${aid.pubKey}:${aid.privKey}`)
-                setIsBlurred(false);
-              },
+            },
+            () => {
+              setShowSpinner(false);
+              setSession(se);
+              setQrCodeValue(`${aid.pubKey}:${aid.privKey}`);
+              setIsBlurred(false);
+            },
           );
         });
-
       });
-
-
     });
   };
 
@@ -63,13 +60,17 @@ const Connect = () => {
       <BackButton />
       <div className="certificate">
         <h1>Connect with wallet</h1>
-        <p className="connectDescription">In order to connect, scan the QR code with your identity wallet</p>
+        <p className="connectDescription">
+          In order to connect, scan the QR code with your identity wallet
+        </p>
         <div>
-          <div className={
-            isBlurred ? 'blurEffectHover blurEffect' : 'blurEffectHover'
-          }>
-          {' '}
-          <QRCode
+          <div
+            className={
+              isBlurred ? 'blurEffectHover blurEffect' : 'blurEffectHover'
+            }
+          >
+            {' '}
+            <QRCode
               value={qrCodeValue}
               size={192}
               fgColor={'black'}
@@ -80,12 +81,12 @@ const Connect = () => {
               logoHeight={60}
               logoOpacity={1}
               quietZone={10}
-          />{' '}
+            />{' '}
           </div>
           {showSpinner && (
-              <div className="spinnerOverlay">
-                <div className="spinner"></div>
-              </div>
+            <div className="spinnerOverlay">
+              <div className="spinner"></div>
+            </div>
           )}
         </div>
         <p>

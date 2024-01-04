@@ -1,5 +1,5 @@
 import { uid } from 'uid';
-import { generateAID, getCurrentDate, isExpired } from './ui/utils';
+import { isExpired } from './ui/utils';
 
 const expirationTime = 1800000; // 30 min
 const privateKeys: { [pubKey: string]: string } = {};
@@ -64,22 +64,18 @@ const isMemoryWiped = async (): Promise<boolean> => {
       });
     });
 
-    console.log('result.sessions');
-    console.log(result.sessions);
-
     if (!result.sessions) {
       return true;
     }
 
-    console.log('privateKeys');
-    console.log(Object.keys(privateKeys));
-    console.log(privateKeys);
-    return !result.sessions.every((session) => {
-      if (session.expiryDate && !isExpired(session.expiryDate)) {
+    return !result.sessions
+      .filter(
+        (session) =>
+          session.expiryDate.length && !isExpired(session.expiryDate),
+      )
+      .every((session) => {
         return Object.keys(privateKeys).includes(session.personalPubeid);
-      }
-      return true;
-    });
+      });
   } catch (error) {
     console.error('Error checking memory:', error);
     return true;
@@ -89,21 +85,13 @@ const isMemoryWiped = async (): Promise<boolean> => {
 const handleWipedMemory = async (): Promise<void> => {
   // Start process to get the private keys from the mobile
   chrome.storage.local.get(['sessions'], function (result) {
-    const activeSessions = result.sessions.filter(
-        (session) => {
-          if (!session.expiryDate || session.expiryDate.length === 0) return false;
-          console.log('session.expiryDate');
-          console.log((session.expiryDate));
-          console.log(isExpired(session.expiryDate));
-          return !isExpired(session.expiryDate);
-        }
-    );
-    // ask to remote device to get all activeSessions (privKeys)
-    console.log('privateKeys');
-    console.log(privateKeys);
-    console.log('Sessions to restore', activeSessions);
+    const activeSessions = result.sessions.filter((session) => {
+      if (!session.expiryDate || session.expiryDate.length === 0) return false;
+      return !isExpired(session.expiryDate);
+    });
+    // TODO: ask to Keria to get all activeSessions (privKeys)
   });
-}
+};
 
 chrome.runtime.onInstalled.addListener(async () => {
   console.log('Extension successfully installed!');
@@ -113,20 +101,18 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('privateKeys', privateKeys);
   isMemoryWiped().then((isWiped) => {
-
     switch (message.type) {
       case 'LOGIN_FROM_WEB':
         if (isWiped) {
-          handleWipedMemory() // TODO: handle properly handleWipedMemory
+          handleWipedMemory(); // TODO: handle properly handleWipedMemory
         }
         chrome.storage.local.get(['sessions'], function (result) {
           const newSession = {
             ...message.data,
             id: uid(24),
             personalPubeid: '',
-            expiryDate: ''
+            expiryDate: '',
           };
 
           const ss = [newSession, ...result.sessions];
@@ -138,16 +124,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
         break;
       case 'SET_PRIVATE_KEY':
-        console.log('SET_PRIVATE_KEY');
         privateKeys[message.data.pubKey] = message.data.privKey;
-        console.log('message.data');
-        console.log(message.data);
-        console.log('privateKeys');
-        console.log(privateKeys);
         if (isWiped) {
-          handleWipedMemory()
+          handleWipedMemory();
         }
         sendResponse({ status: 'OK' });
+        break;
+      case 'DELETE_PRIVATE_KEY':
+        // TODO
         break;
     }
   });
@@ -155,4 +139,4 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true;
 });
 
-export {expirationTime};
+export { expirationTime };
