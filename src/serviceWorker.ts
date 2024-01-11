@@ -1,8 +1,10 @@
 import { uid } from 'uid';
 import { isExpired } from './ui/utils';
+import {SignifyApi} from "./core/modules/signifyApi";
 
 const expirationTime = 1800000; // 30 min
 const privateKeys: { [pubKey: string]: string } = {};
+const signifyApi:SignifyApi = new SignifyApi();
 
 const mockSessions = [
   {
@@ -92,6 +94,7 @@ const handleWipedMemory = async (): Promise<void> => {
     // TODO: ask to Keria to get all activeSessions (privKeys)
   });
 };
+
 
 chrome.runtime.onInstalled.addListener(async () => {
   console.log('Extension successfully installed!');
