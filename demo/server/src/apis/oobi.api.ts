@@ -16,10 +16,11 @@ async function resolveClientOOBI(req: Request, res: Response) {
 
 async function getServerOOBI(_: Request, res: Response) {
     const oobisResult = await getOOBIs(config.signifyName, "agent");
-    const response: ResponseData<{ oobi: string }> = {
+    const resolvedOOBI = await resolveOOBI(oobisResult.oobis[0]);
+    const response: ResponseData<any> = {
       statusCode: 200,
       success: true,
-      data: { oobi: oobisResult.oobis[0] },
+      data: resolvedOOBI,
     };
     httpResponse(res, response);
   }
