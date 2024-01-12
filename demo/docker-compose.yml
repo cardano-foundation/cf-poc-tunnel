@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  tunnel-demo-server:
+    container_name: tunnel-demo-server
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    tty: true
+    ports:
+      - "3001:3001"
+    restart: always
+
+  tunnel-demo-ui:
+    container_name: tunnel-demo-ui
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    tty: true
+    ports:
+      - "5173:5173"
+    restart: always
