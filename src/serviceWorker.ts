@@ -54,7 +54,12 @@ const mockSessions = [
   },
 ];
 
-const isMemoryWiped = async (): Promise<boolean> => {
+const checkSignify = async (): Promise<void> => {
+  console.log("checkSignify...")
+  if (!signifyApi.started) await signifyApi.start();
+}
+
+const arePKWiped = async (): Promise<boolean> => {
   try {
     const result = await new Promise((resolve, reject) => {
       chrome.storage.local.get(['sessions'], function (data) {
@@ -95,19 +100,19 @@ const handleWipedMemory = async (): Promise<void> => {
   });
 };
 
-
 chrome.runtime.onInstalled.addListener(async () => {
   console.log('Extension successfully installed!');
   chrome.storage.local.set({
     sessions: mockSessions,
   });
+  checkSignify();
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  isMemoryWiped().then((isWiped) => {
+  arePKWiped().then((areWiped) => {
     switch (message.type) {
       case 'LOGIN_FROM_WEB':
-        if (isWiped) {
+        if (areWiped) {
           handleWipedMemory(); // TODO: handle properly handleWipedMemory
         }
         chrome.storage.local.get(['sessions'], function (result) {
@@ -128,7 +133,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         break;
       case 'SET_PRIVATE_KEY':
         privateKeys[message.data.pubKey] = message.data.privKey;
-        if (isWiped) {
+        if (areWiped) {
           handleWipedMemory();
         }
         sendResponse({ status: 'OK' });

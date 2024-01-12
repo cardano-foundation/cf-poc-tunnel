@@ -4,6 +4,7 @@ const DotenvPlugin = require('dotenv-webpack');
 const ESLintPlugin = require('eslint-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
 
 module.exports = {
   entry: {
@@ -36,10 +37,18 @@ module.exports = {
         test: /\.(png|svg|jpg|jpeg|gif)$/i,
         type: 'asset/resource',
       },
+      {
+        test: /\.mjs$/,
+        include: /node_modules/,
+        type: 'javascript/auto',
+        resolve: {
+          fullySpecified: false,
+        },
+      },
     ],
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
+    extensions: ['.tsx', '.ts', '.js']
   },
   output: {
     filename: '[name].js',
@@ -58,5 +67,12 @@ module.exports = {
     new CopyPlugin({
       patterns: [{ from: 'static' }],
     }),
+    new NodePolyfillPlugin()
   ],
+  infrastructureLogging: {
+    level: "info",
+  },
+  experiments: {
+    asyncWebAssembly: true
+  }
 };
