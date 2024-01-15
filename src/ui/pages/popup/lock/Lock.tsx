@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './Lock.scss';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../Router/AuthProvider';
+import { useAuth } from '../../../components/router/AuthProvider';
 
 const isPasscodeValid = async (codes: string[]): Promise<boolean> => {
   const result = await chrome.storage.local.get(['passcode']);

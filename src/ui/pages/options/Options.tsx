@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './Options.scss';
-import { useAuth } from '../../Router/AuthProvider';
+import { useAuth } from '../../components/router/AuthProvider';
 const Options = () => {
   const [endpoint, setEndpoint] = useState<string>('');
   const { isLoggedIn, isLoggedInFromStorage, logout, login } = useAuth();

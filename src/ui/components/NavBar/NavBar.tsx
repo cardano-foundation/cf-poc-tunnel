@@ -4,7 +4,7 @@ import './Navbar.scss';
 import TunnelIcon from '../../../../static/icons/tunnel-icon.svg';
 import SettingsIcon from '../../../../static/icons/settings-icon.svg';
 import LockIcon from '../../../../static/icons/lock-icon.svg';
-import { useAuth } from '../../Router/AuthProvider';
+import { useAuth } from '../router/AuthProvider';
 
 const NavBar = () => {
   const { logout, isLoggedIn } = useAuth();

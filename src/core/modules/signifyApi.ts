@@ -1,12 +1,12 @@
-import { SignifyClient, ready as signifyReady, Tier, randomPasscode } from 'signify-ts';
+import { SignifyClient, ready, Tier, randomPasscode } from 'signify-ts';
 
 class SignifyApi {
   private signifyClient!: SignifyClient;
   public started:boolean;
   static readonly KERIA_URL: string =
-    'https://dev.keria.cf-keripy.metadata.dev.cf-deployments.org';
+    '192.168.0.66:3902';
   static readonly KERIA_BOOT_ENDPOINT =
-    'https://dev.keria-boot.cf-keripy.metadata.dev.cf-deployments.org';
+    '192.168.0.66:3903';
   static readonly SIGNIFY_BRAN_STORAGE_KEY =
     'SIGNIFY_BRAN';
 
@@ -15,7 +15,7 @@ class SignifyApi {
   }
   async start(): Promise<void> {
     console.log("lets start")
-    await signifyReady();
+    await ready();
 
     console.log("signify is ready")
     const bran = await this.getBran();

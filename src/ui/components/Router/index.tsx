@@ -1,9 +1,9 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { SessionList } from '../components/SessionList/SessionList';
-import { SessionDetails } from '../pages/SessionDetails/SessionDetails';
-import { Connect } from '../pages/Connect/Connect';
-import { Lock } from '../pages/Lock/Lock';
+import { SessionList } from '../../pages/popup/SessionList/SessionList';
+import { SessionDetails } from '../../pages/popup/sessionDetails/SessionDetails';
+import { Connect } from '../../pages/popup/connect/Connect';
+import { Lock } from '../../pages/popup/lock/Lock';
 import { useAuth } from './AuthProvider';
 
 const ProtectedRoute = ({ children }) => {

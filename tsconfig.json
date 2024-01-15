@@ -6,19 +6,21 @@
       "dom.iterable",
       "es2020"
     ],
-    "module": "commonjs",
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "outDir": "./dist/",
     "noImplicitAny": true,
-    "allowJs": true,
-    "skipLibCheck": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "isolatedModules": true,
+    "noEmit": true,
     "jsx": "react",
-    "include": ["**/*.ts", "**/*.tsx", "src"],
+    "include": ["src"],
     "exclude": ["node_modules"]
   }
 }

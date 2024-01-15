@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import './Connect.scss';
-import { BackButton } from '../../components/BackButton/BackButton';
+import { BackButton } from '../../../components/BackButton/BackButton';
 import { QRCode } from 'react-qrcode-logo';
-import Logo from '../../../../static/icons/img.png';
-import { generateAID, getCurrentDate } from '../../utils';
+import Logo from '../../../../../static/icons/img.png';
+import { generateAID, getCurrentDate } from '../../../utils';
 import { expirationTime } from '../../../serviceWorker';
 
 const Connect = () => {

@@ -1,0 +1,50 @@
+{
+  "name": "project-tunnel",
+  "description": "Project Tunnel",
+  "version": "0.1.0",
+  "manifest_version": 3,
+  "background": {
+    "service_worker": "src/ui/pages/background/index.ts"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "run_at": "document_end",
+      "js": ["src/ui/pages/content/index.tsx"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'"
+  },
+  "externally_connectable": {
+    "matches": ["<all_urls>"]
+  },
+  "permissions": ["storage", "scripting"],
+  "host_permissions": ["*://*/*"],
+  "options_ui": {
+    "page": "public/options.html",
+    "open_in_tab": true
+  },
+  "action": {
+    "default_title": "Project Tunnel",
+    "default_popup": "public/popup.html",
+    "default_icon": {
+      "16": "public/icons/16x.png",
+      "32": "public/icons/32x.png",
+      "48": "public/icons/48x.png",
+      "64": "public/icons/64x.png",
+      "128": "public/icons/128x.png",
+      "192": "public/icons/192x.png",
+      "256": "public/icons/256x.png"
+    }
+  },
+  "icons": {
+    "16": "public/icons/16x.png",
+    "32": "public/icons/32x.png",
+    "48": "public/icons/48x.png",
+    "64": "public/icons/64x.png",
+    "128": "public/icons/128x.png",
+    "192": "public/icons/192x.png",
+    "256": "public/icons/256x.png"
+  }
+}
