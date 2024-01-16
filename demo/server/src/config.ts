@@ -18,7 +18,7 @@ const config = {
   signifyName,
   path: {
     ping: "/ping",
-    serverOobi: "/server-oobi",
+    serverOobi: "/oobi",
     resolveOOBI: "/resolve-oobi",
     schema: "/oobi/:id",
   },
