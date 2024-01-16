@@ -1,15 +1,22 @@
 import React from 'react';
-import {AuthProvider} from "../../components/router/AuthProvider";
-import {NavBar} from "../../components/NavBar/NavBar";
-import {Router} from "../../components/Router";
+import ReactDOM from 'react-dom/client';
+import '../../../styles/popup.scss';
+import { BrowserRouter } from 'react-router-dom';
 
-const Popup = () => {
-    return (
-        <AuthProvider>
-            <NavBar />
-            <Router />
-        </AuthProvider>
-    );
-};
+import { createRoot } from 'react-dom/client';
+import {Popup} from '@pages/popup/Popup';
 
-export { Popup };
+// import Popup from '@pages/popup/Popup';
+
+
+
+function render() {
+    const rootContainer = document.querySelector("#__root");
+    if (!rootContainer) throw new Error("Can't find Popup root element");
+    const root = createRoot(rootContainer);
+    root.render(<BrowserRouter><Popup /></BrowserRouter>);
+}
+
+render();
+
+

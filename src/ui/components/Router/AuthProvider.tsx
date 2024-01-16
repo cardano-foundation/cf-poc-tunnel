@@ -1,10 +1,27 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, {createContext, useContext, useState, useEffect, ReactNode} from 'react';
 
-const AuthContext = createContext(null);
 
-const useAuth = () => useContext(AuthContext);
+interface AuthContextType {
+  isLoggedIn: boolean;
+  login: () => Promise<void>;
+  logout: () => void;
+  isLoggedInFromStorage: () => Promise<boolean>;
+}
 
-const AuthProvider = ({ children }) => {
+interface AuthProviderProps {
+  children: ReactNode;
+}
+const AuthContext = createContext<AuthContextType | null>(null);
+
+const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === null) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   let logoutTimer: NodeJS.Timeout | string | number | undefined;

@@ -2,7 +2,7 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './SessionDetails.scss';
 import { BackButton } from '../../../components/BackButton/BackButton';
-import MobileConnectIcon from '../../../../../static/icons/mobile-connect-icon.svg';
+import MobileConnectIcon from '../../../assets/mobile-connect-icon.svg';
 
 const SessionDetails = () => {
   const navigate = useNavigate();

@@ -27,7 +27,7 @@
   },
   "action": {
     "default_title": "Project Tunnel",
-    "default_popup": "public/popup.html",
+    "default_popup": "src/ui/pages/popup/index.html",
     "default_icon": {
       "16": "public/icons/16x.png",
       "32": "public/icons/32x.png",

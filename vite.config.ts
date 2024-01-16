@@ -3,15 +3,15 @@ import { resolve } from 'path';
 import { defineConfig } from 'vite';
 import { crx, ManifestV3Export } from '@crxjs/vite-plugin';
 import merge from 'lodash/merge';
-import { nodePolyfills } from 'vite-plugin-node-polyfills'
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 import manifest from './public/manifest.json';
 import pkg from './package.json';
 
 const root = resolve(__dirname, 'src');
-const pagesDir = resolve(root, 'pages');
-const assetsDir = resolve(root, 'assets');
-const componentsDir = resolve(root, 'components');
+const pagesDir = resolve(root, 'ui/pages');
+const assetsDir = resolve(root, 'ui/assets');
+const componentsDir = resolve(root, 'ui/components');
 const outDir = resolve(__dirname, 'dist');
 const publicDir = resolve(__dirname, 'public');
 
@@ -34,14 +34,12 @@ export default defineConfig({
   },
   plugins: [
     react(),
-    crx(
-      {
+    crx({
       manifest: extensionManifest as ManifestV3Export,
       contentScripts: {
         injectCss: true,
-      }
-    }
-    ),
+      },
+    }),
     nodePolyfills(),
   ],
   publicDir,

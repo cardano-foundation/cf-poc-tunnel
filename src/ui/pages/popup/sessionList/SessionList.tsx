@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Countdown } from '../../../components/Countdown/Countdown';
 import './SessionList.scss';
-import MobileConnectIcon from '../../../../../static/icons/mobile-connect-icon.svg';
+import MobileConnectIcon from '../../../assets/mobile-connect-icon.svg';
 import { isExpired } from '../../../utils';
 
 interface Session {

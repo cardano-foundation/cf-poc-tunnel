@@ -3,9 +3,9 @@ import { useLocation } from 'react-router-dom';
 import './Connect.scss';
 import { BackButton } from '../../../components/BackButton/BackButton';
 import { QRCode } from 'react-qrcode-logo';
-import Logo from '../../../../../static/icons/img.png';
+import Logo from '../../../assets/img.png';
 import { generateAID, getCurrentDate } from '../../../utils';
-import { expirationTime } from '../../../serviceWorker';
+import { expirationTime } from '../../background';
 
 const Connect = () => {
   const location = useLocation();
