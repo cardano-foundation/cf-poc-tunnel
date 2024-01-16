@@ -1,5 +1,6 @@
 import { SignifyClient, ready as signifyReady, Tier } from "signify-ts";
 import { config } from "../config";
+import { Aid } from "../types/signifyApi.types";
 
 const { keriaUrl, keriaBootUrl } = config;
 export let signifyClient: SignifyClient;
@@ -28,7 +29,7 @@ export const getSignifyClient = async () => {
   return signifyClient;
 }
 
-export const getIdentifierByName = async(name: string) => {
+export const getIdentifierByName = async(name: string): Promise<Aid> => {
   try {
     const identifier = await signifyClient.identifiers().get(name);
     return identifier;    
