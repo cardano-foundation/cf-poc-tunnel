@@ -11,7 +11,7 @@ interface Session {
   expiryDate: string;
 }
 
-const SessionList: React.FC = () => {
+export default function SessionList() {
   const navigate = useNavigate();
 
   const [sessions, setSessions] = useState([]);
@@ -72,6 +72,4 @@ const SessionList: React.FC = () => {
       })}
     </ul>
   );
-};
-
-export { SessionList };
+}

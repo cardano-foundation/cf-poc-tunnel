@@ -11,7 +11,7 @@ const isPasscodeValid = async (codes: string[]): Promise<boolean> => {
   return false;
 };
 
-const Lock = () => {
+export default function Lock() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [isCreatingPasscode, setIsCreatingPasscode] = useState(true);
@@ -190,6 +190,4 @@ const Lock = () => {
       </div>
     </div>
   );
-};
-
-export { Lock };
+}

@@ -7,7 +7,7 @@ import Logo from '../../../assets/img.png';
 import { generateAID, getCurrentDate } from '../../../utils';
 import { expirationTime } from '../../background';
 
-const Connect = () => {
+export default function Connect() {
   const location = useLocation();
   const [session, setSession] = useState(location.state?.session);
   const [qrCodeValue, setQrCodeValue] = useState('***');
@@ -115,6 +115,4 @@ const Connect = () => {
       </div>
     </div>
   );
-};
-
-export { Connect };
+}

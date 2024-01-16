@@ -4,7 +4,7 @@ import './SessionDetails.scss';
 import { BackButton } from '../../../components/BackButton/BackButton';
 import MobileConnectIcon from '../../../assets/mobile-connect-icon.svg';
 
-const SessionDetails = () => {
+export default function SessionDetails() {
   const navigate = useNavigate();
   const location = useLocation();
   const session = location.state?.session;
@@ -68,6 +68,4 @@ const SessionDetails = () => {
       </div>
     </div>
   );
-};
-
-export { SessionDetails };
+}

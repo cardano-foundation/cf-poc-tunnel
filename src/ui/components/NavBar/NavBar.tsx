@@ -7,7 +7,7 @@ import LockIcon from '@assets/lock-icon.svg';
 import { useAuth } from '../Router/AuthProvider';
 
 const NavBar = () => {
-    console.log('NavBar!!')
+  console.log('NavBar!!');
   const { logout, isLoggedIn } = useAuth();
 
   const handleSettingsClick = () => {
