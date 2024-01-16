@@ -20,6 +20,7 @@ const config = {
     ping: "/ping",
     oobi: "/oobi",
     resolveOOBI: "/resolve-oobi",
+    schema: "/oobi/:id",
   },
 };
 
