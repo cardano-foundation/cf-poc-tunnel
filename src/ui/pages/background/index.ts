@@ -1,5 +1,5 @@
 import { uid } from 'uid';
-import { SignifyApi } from '../../../core/modules/signifyApi';
+import { SignifyApi } from '@src/core/modules/signifyApi';
 import { isExpired } from '../../utils';
 
 const expirationTime = 1800000; // 30 min
@@ -55,11 +55,10 @@ const mockSessions = [
 ];
 
 const checkSignify = async (): Promise<void> => {
-  console.log('checkSignify...');
   if (!signifyApi.started) await signifyApi.start();
 };
 
-const arePKWiped = async (): Promise<boolean> => {
+const arePKsWiped = async (): Promise<boolean> => {
   try {
     const result = await new Promise((resolve, reject) => {
       chrome.storage.local.get(['sessions'], function (data) {
@@ -89,7 +88,7 @@ const arePKWiped = async (): Promise<boolean> => {
   }
 };
 
-const handleWipedMemory = async (): Promise<void> => {
+const handleWipedPks = async (): Promise<void> => {
   // Start process to get the private keys from the mobile
   chrome.storage.local.get(['sessions'], function (result) {
     const activeSessions = result.sessions.filter((session) => {
@@ -109,41 +108,41 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  arePKWiped().then((areWiped) => {
-    switch (message.type) {
-      case 'LOGIN_FROM_WEB':
-        if (areWiped) {
-          handleWipedMemory(); // TODO: handle properly handleWipedMemory
-        }
-        chrome.storage.local.get(['sessions'], function (result) {
-          const newSession = {
-            ...message.data,
-            id: uid(24),
-            personalPubeid: '',
-            expiryDate: '',
-          };
+  checkSignify().then(() => {
+    arePKsWiped().then((areWiped) => {
+      switch (message.type) {
+        case 'LOGIN_FROM_WEB':
+          if (areWiped) {
+            handleWipedPks(); // TODO: handle properly handleWipedMemory
+          }
+          chrome.storage.local.get(['sessions'], function (result) {
+            const newSession = {
+              ...message.data,
+              id: uid(24),
+              personalPubeid: '',
+              expiryDate: '',
+            };
 
-          const ss = [newSession, ...result.sessions];
+            const ss = [newSession, ...result.sessions];
 
-          chrome.storage.local.set({ sessions: ss }, function () {
-            // privateKeys[aid.pubKey] = aid.privKey;
-            sendResponse({ status: 'OK' });
+            chrome.storage.local.set({ sessions: ss }, function () {
+              sendResponse({ status: 'OK' });
+            });
           });
-        });
-        break;
-      case 'SET_PRIVATE_KEY':
-        privateKeys[message.data.pubKey] = message.data.privKey;
-        if (areWiped) {
-          handleWipedMemory();
-        }
-        sendResponse({ status: 'OK' });
-        break;
-      case 'DELETE_PRIVATE_KEY':
-        // TODO
-        break;
-    }
+          break;
+        case 'SET_PRIVATE_KEY':
+          privateKeys[message.data.pubKey] = message.data.privKey;
+          if (areWiped) {
+            handleWipedPks();
+          }
+          sendResponse({ status: 'OK' });
+          break;
+        case 'DELETE_PRIVATE_KEY':
+          delete privateKeys[message.data.pubKey];
+          break;
+      }
+    });
   });
-
   return true;
 });
 
