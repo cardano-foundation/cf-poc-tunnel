@@ -49,7 +49,7 @@ export const routes: Array<RouteObject> = [
   },
   {
     path: '*',
-    element: <div>Not Found!!00</div>,
+    element: <div>Not Found</div>,
   },
 ];
 

@@ -11,8 +11,9 @@ const NavBar = () => {
   const { logout, isLoggedIn } = useAuth();
 
   const handleSettingsClick = () => {
-    const settingsUrl = `chrome-extension://${chrome.runtime.id}/options.html`;
-    window.open(settingsUrl, '_blank');
+    /*const settingsUrl = `chrome-extension://${chrome.runtime.id}/index.html`;
+    window.open(settingsUrl, '_blank');*/
+    chrome.runtime.openOptionsPage();
   };
 
   return (

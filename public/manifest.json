@@ -22,7 +22,7 @@
   "permissions": ["storage", "scripting"],
   "host_permissions": ["*://*/*"],
   "options_ui": {
-    "page": "public/options.html",
+    "page": "src/ui/pages/options/index.html",
     "open_in_tab": true
   },
   "action": {

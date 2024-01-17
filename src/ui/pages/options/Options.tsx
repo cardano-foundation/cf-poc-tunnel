@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './Options.scss';
-import { useAuth } from '../../components/router/AuthProvider';
+import { useAuth } from '@components/Router/AuthProvider';
 const Options = () => {
   const [endpoint, setEndpoint] = useState<string>('');
   const { isLoggedIn, isLoggedInFromStorage, logout, login } = useAuth();
@@ -9,7 +9,7 @@ const Options = () => {
   const checkIsLogged = async () => {
     const isLogged = await isLoggedInFromStorage();
     if (!isLogged) logout();
-    else login();
+    else await login();
   };
 
   useEffect(() => {
