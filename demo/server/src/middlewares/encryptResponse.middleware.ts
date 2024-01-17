@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
-import { getIdentifierByName, signifyClient } from "../modules/signifyApi";
+import { getIdentifierByName, getSignifyClient } from "../modules/signifyApi";
 import { config } from "../config";
 
 const encoder = new TextEncoder();
 export const encryptResponse = async (_: Request, res: Response, next) => {
     const serverAID = await getIdentifierByName(config.signifyName);
+    const signifyClient = await getSignifyClient();
     const signer = await signifyClient.manager?.get(serverAID);
     // Intercept the response
     const originalSend = res.send;

@@ -18,7 +18,7 @@
         "dotenv": "^16.3.1",
         "express": "^4.18.2",
         "node-cache": "^5.1.2",
-        "signify-ts": "github:WebOfTrust/signify-ts#bcd83fc8fe00c2f291edc2e528a24b88a8e54a93",
+        "signify-ts": "github:WebOfTrust/signify-ts#858dea2464eba8288318f147a8d3ab2640f5d625",
         "uuid": "^9.0.1",
         "ws": "^8.13.0"
     },
