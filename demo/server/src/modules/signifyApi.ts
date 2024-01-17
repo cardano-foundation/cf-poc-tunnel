@@ -3,7 +3,7 @@ import { config } from "../config";
 import { Aid } from "../types/signifyApi.types";
 
 const { keriaUrl, keriaBootUrl } = config;
-export let signifyClient: SignifyClient;
+let signifyClient: SignifyClient;
 
 export const initSignify = async () => {
     await signifyReady();
