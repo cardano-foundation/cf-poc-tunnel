@@ -5,7 +5,7 @@ import { BackButton } from '../../../components/BackButton/BackButton';
 import { QRCode } from 'react-qrcode-logo';
 import Logo from '../../../assets/img.png';
 import { generateAID, getCurrentDate } from '../../../utils';
-import { expirationTime } from '../../background';
+import { expirationTime } from '../../../../core/background';
 
 export default function Connect() {
   const location = useLocation();

@@ -1,6 +1,6 @@
 import { uid } from 'uid';
 import { SignifyApi } from '@src/core/modules/signifyApi';
-import { isExpired } from '../../utils';
+import { isExpired } from '@src/ui/utils';
 
 const expirationTime = 1800000; // 30 min
 const privateKeys: { [pubKey: string]: string } = {};
