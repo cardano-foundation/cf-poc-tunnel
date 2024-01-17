@@ -108,40 +108,39 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  checkSignify().then(() => {
-    arePKsWiped().then((areWiped) => {
-      switch (message.type) {
-        case 'LOGIN_FROM_WEB':
-          if (areWiped) {
-            handleWipedPks(); // TODO: handle properly handleWipedMemory
-          }
-          chrome.storage.local.get(['sessions'], function (result) {
-            const newSession = {
-              ...message.data,
-              id: uid(24),
-              personalPubeid: '',
-              expiryDate: '',
-            };
+  checkSignify();
+  arePKsWiped().then((areWiped) => {
+    switch (message.type) {
+      case 'LOGIN_FROM_WEB':
+        if (areWiped) {
+          handleWipedPks(); // TODO: handle properly handleWipedMemory
+        }
+        chrome.storage.local.get(['sessions'], function (result) {
+          const newSession = {
+            ...message.data,
+            id: uid(24),
+            personalPubeid: '',
+            expiryDate: '',
+          };
 
-            const ss = [newSession, ...result.sessions];
+          const ss = [newSession, ...result.sessions];
 
-            chrome.storage.local.set({ sessions: ss }, function () {
-              sendResponse({ status: 'OK' });
-            });
+          chrome.storage.local.set({ sessions: ss }, function () {
+            sendResponse({ status: 'OK' });
           });
-          break;
-        case 'SET_PRIVATE_KEY':
-          privateKeys[message.data.pubKey] = message.data.privKey;
-          if (areWiped) {
-            handleWipedPks();
-          }
-          sendResponse({ status: 'OK' });
-          break;
-        case 'DELETE_PRIVATE_KEY':
-          delete privateKeys[message.data.pubKey];
-          break;
-      }
-    });
+        });
+        break;
+      case 'SET_PRIVATE_KEY':
+        privateKeys[message.data.pubKey] = message.data.privKey;
+        if (areWiped) {
+          handleWipedPks();
+        }
+        sendResponse({ status: 'OK' });
+        break;
+      case 'DELETE_PRIVATE_KEY':
+        delete privateKeys[message.data.pubKey];
+        break;
+    }
   });
   return true;
 });

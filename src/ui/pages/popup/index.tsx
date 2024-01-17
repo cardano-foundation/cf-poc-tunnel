@@ -1,5 +1,5 @@
 import React from 'react';
-import '../../../styles/popup.scss';
+import './popup.scss';
 import { BrowserRouter } from 'react-router-dom';
 
 import { createRoot } from 'react-dom/client';
