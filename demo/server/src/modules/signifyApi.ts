@@ -119,26 +119,42 @@ export const issueDomainCredential = async (
   }
 };
 
-export const initKeri = async (schemaSaid: string, issuerName: string) => {
-  let identifier = await getIdentifierByName(issuerName).catch(() => null);
+const getServerAcdc = async (mainAidPrefix: string) => {
+  return (
+    await signifyClient.credentials().list({
+      filter: {
+        '-a-i': mainAidPrefix,
+        '-a-domain': config.endpoint,
+      },
+    })
+  )[0];
+};
+
+export const initKeri = async (schemaSaid: string, mainAidName: string) => {
+  let identifier = await getIdentifierByName(mainAidName).catch(() => null);
   if (!identifier) {
-    identifier = await createIdentifier(issuerName);
+    identifier = await createIdentifier(mainAidName);
   }
+  const oobi = await getOOBIs(mainAidName, 'agent');
   // For the development purpose, the endpoint needs to be accessible from keria
   const schemaUrl = config.endpoint + '/oobi/' + schemaSaid;
   await resolveOOBI(schemaUrl);
-  const oobi = await getOOBIs(issuerName, 'agent');
-  const keriRegistryRegk = await createRegistry(issuerName);
-  const holderAcdc = uuidv4();
-  const holder = await createIdentifier(holderAcdc);
-  const oobiHolder = await getOOBIs(holderAcdc, 'agent');
-  await resolveOOBI(oobiHolder.oobis[0]);
-  await issueDomainCredential(
-    issuerName,
-    keriRegistryRegk,
-    schemaSaid,
-    holder.prefix,
-    config.endpoint,
-  );
-  return { identifier, oobi, keriRegistryRegk };
+
+  let credDomain = await getServerAcdc(identifier.prefix);
+
+  if (!credDomain) {
+    const issuerMainAcdcName = uuidv4();
+    await createIdentifier(issuerMainAcdcName);
+    const keriRegistryRegk = await createRegistry(issuerMainAcdcName);
+    await issueDomainCredential(
+      issuerMainAcdcName,
+      keriRegistryRegk,
+      schemaSaid,
+      identifier.prefix,
+      config.endpoint,
+    );
+    credDomain = await getServerAcdc(identifier.prefix);
+  }
+
+  return { identifier, oobi, credDomain };
 };
