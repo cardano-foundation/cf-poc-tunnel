@@ -3,7 +3,7 @@ import './popup.scss';
 import { BrowserRouter } from 'react-router-dom';
 
 import { createRoot } from 'react-dom/client';
-import { Popup } from '@pages/popup/Popup';
+import { Popup } from '@pages/popup/popup';
 
 function render() {
   const rootContainer = document.querySelector('#popup');

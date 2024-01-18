@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import './Connect.scss';
-import { BackButton } from '@components/BackButton/BackButton';
+import './connect.scss';
+import { BackButton } from '@components/backButton';
 import { QRCode } from 'react-qrcode-logo';
 import Logo from '../../../assets/img.png';
 import { generateAID, getCurrentDate } from '@src/ui/utils';

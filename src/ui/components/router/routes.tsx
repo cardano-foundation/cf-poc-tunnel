@@ -1,13 +1,13 @@
 import React, {lazy, ReactNode, Suspense} from 'react';
 import { Navigate, RouteObject, useRoutes } from 'react-router-dom';
-import { useAuth } from '@components/Router/AuthProvider';
+import { useAuth } from '@components/router/authProvider';
 
-const SessionList = lazy(() => import('@pages/popup/sessionList/SessionList'));
+const SessionList = lazy(() => import('@pages/popup/sessionList/sessionList'));
 const SessionDetails = lazy(
-  () => import('@pages/popup/sessionDetails/SessionDetails'),
+  () => import('@pages/popup/sessionDetails/sessionDetails'),
 );
-const Connect = lazy(() => import('@pages/popup/connect/Connect'));
-const Lock = lazy(() => import('@pages/popup/lock/Lock'));
+const Connect = lazy(() => import('@pages/popup/connect/connect'));
+const Lock = lazy(() => import('@pages/popup/lock/lock'));
 
 type ProtectedRouteProps = {
   children: ReactNode;

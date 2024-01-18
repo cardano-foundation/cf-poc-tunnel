@@ -1,8 +1,8 @@
 import { createRoot } from 'react-dom/client';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import { Options } from './Options';
-import { AuthProvider } from '@components/Router/AuthProvider';
+import { AuthProvider } from '@components/router/authProvider';
+import {Options} from "@pages/options/options";
 
 function render() {
   const optionsContainer = document.querySelector('#options');

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import './SessionDetails.scss';
-import { BackButton } from '@components/BackButton/BackButton';
+import './sessionDetails.scss';
+import { BackButton } from '@components/backButton';
 import MobileConnectIcon from '@assets/mobile-connect-icon.svg';
 
 export default function SessionDetails() {
