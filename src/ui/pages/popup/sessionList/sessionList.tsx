@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Countdown } from '@components/countdown';
 import './sessionList.scss';
 import MobileConnectIcon from '../../../assets/mobile-connect-icon.svg';
-import { isExpired } from '@src/ui/utils';
+import { isExpired } from '@src/utils';
 
 interface Session {
   id: string;
