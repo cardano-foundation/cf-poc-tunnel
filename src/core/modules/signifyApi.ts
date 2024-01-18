@@ -1,4 +1,4 @@
-import { SignifyClient, ready, Tier, randomPasscode } from 'signify-ts';
+import { randomPasscode, ready, SignifyClient, Tier } from 'signify-ts';
 
 class SignifyApi {
   private signifyClient!: SignifyClient;
@@ -46,6 +46,33 @@ class SignifyApi {
       return bran[SignifyApi.SIGNIFY_BRAN_STORAGE_KEY] as string;
     }
   }
+
+  createIdentifier = async (name: string) => {
+    return await this.signifyClient.identifiers().create(name);
+  };
+
+  getIdentifierByName = async (name: string) => {
+    return await this.signifyClient.identifiers().get(name);
+  };
+
+  resolveOOBI = async (url: string) => {
+    const oobiOperation = await this.signifyClient.oobis().resolve(url);
+    return await this.waitAndGetDoneOp(oobiOperation, 15000, 250);
+  };
+
+  private waitAndGetDoneOp = async (
+      op: any,
+      timeout: number,
+      interval: number,
+  ) => {
+    const startTime = new Date().getTime();
+    while (!op.done && new Date().getTime() < startTime + timeout) {
+      op = await this.signifyClient.operations().get(op.name);
+      await new Promise((resolve) => setTimeout(resolve, interval));
+    }
+    return op;
+  };
+
 }
 
 export { SignifyApi };
