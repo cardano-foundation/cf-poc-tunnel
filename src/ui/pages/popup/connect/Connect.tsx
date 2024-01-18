@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import './Connect.scss';
-import { BackButton } from '../../../components/BackButton/BackButton';
+import { BackButton } from '@components/BackButton/BackButton';
 import { QRCode } from 'react-qrcode-logo';
 import Logo from '../../../assets/img.png';
-import { generateAID, getCurrentDate } from '../../../utils';
-import { expirationTime } from '../../../../core/background';
+import { generateAID, getCurrentDate } from '@src/ui/utils';
+import { expirationTime } from '@src/core/background';
 
 export default function Connect() {
   const location = useLocation();

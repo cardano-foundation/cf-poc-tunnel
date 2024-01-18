@@ -1,8 +1,8 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './SessionDetails.scss';
-import { BackButton } from '../../../components/BackButton/BackButton';
-import MobileConnectIcon from '../../../assets/mobile-connect-icon.svg';
+import { BackButton } from '@components/BackButton/BackButton';
+import MobileConnectIcon from '@assets/mobile-connect-icon.svg';
 
 export default function SessionDetails() {
   const navigate = useNavigate();
