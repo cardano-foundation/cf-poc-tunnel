@@ -1,13 +1,27 @@
-import React, {lazy, ReactNode, Suspense} from 'react';
+import React, { lazy, ReactNode, Suspense } from 'react';
 import { Navigate, RouteObject, useRoutes } from 'react-router-dom';
 import { useAuth } from '@components/router/authProvider';
 
-const SessionList = lazy(() => import('@pages/popup/sessionList/sessionList'));
-const SessionDetails = lazy(
-  () => import('@pages/popup/sessionDetails/sessionDetails'),
+const SessionList = lazy(() =>
+  import('@pages/popup/sessionList/sessionList').then((module) => ({
+    default: module.SessionList,
+  })),
 );
-const Connect = lazy(() => import('@pages/popup/connect/connect'));
-const Lock = lazy(() => import('@pages/popup/lock/lock'));
+const SessionDetails = lazy(() =>
+  import('@pages/popup/sessionDetails/sessionDetails').then((module) => ({
+    default: module.SessionDetails,
+  })),
+);
+const Connect = lazy(() =>
+  import('@pages/popup/connect/connect').then((module) => ({
+    default: module.Connect,
+  })),
+);
+const Lock = lazy(() =>
+  import('@pages/popup/lock/lock').then((module) => ({
+    default: module.Lock,
+  })),
+);
 
 type ProtectedRouteProps = {
   children: ReactNode;
@@ -23,7 +37,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   return <>{children}</> || null;
 };
 
-export const routes: Array<RouteObject> = [
+const routes: Array<RouteObject> = [
   {
     index: true,
     element: (
@@ -58,6 +72,8 @@ export const routes: Array<RouteObject> = [
   },
 ];
 
-export default function Routes() {
+function Routes() {
   return <Suspense fallback={null}>{useRoutes(routes)}</Suspense>;
 }
+
+export { Routes, routes };

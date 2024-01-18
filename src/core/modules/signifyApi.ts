@@ -4,7 +4,8 @@ class SignifyApi {
   private signifyClient!: SignifyClient;
   public started: boolean;
   static readonly KERIA_URL = import.meta.env.VITE_KERIA_URL;
-  static readonly KERIA_BOOT_ENDPOINT = import.meta.env.VITE_KERIA_BOOT_ENDPOINT;
+  static readonly KERIA_BOOT_ENDPOINT = import.meta.env
+    .VITE_KERIA_BOOT_ENDPOINT;
   static readonly SIGNIFY_BRAN_STORAGE_KEY = 'SIGNIFY_BRAN';
 
   constructor() {

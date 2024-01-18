@@ -11,7 +11,7 @@ interface Session {
   expiryDate: string;
 }
 
-export default function SessionList() {
+function SessionList() {
   const navigate = useNavigate();
 
   const [sessions, setSessions] = useState([]);
@@ -73,3 +73,5 @@ export default function SessionList() {
     </ul>
   );
 }
+
+export { SessionList };

@@ -43,7 +43,7 @@ function getVitePlugins(): PluginOption[] {
       },
     }),
     nodePolyfills(),
-    compression()
+    compression(),
   ];
 }
 
