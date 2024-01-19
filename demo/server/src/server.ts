@@ -27,7 +27,7 @@ async function startServer() {
     name: identifier.name,
     prefix: identifier.prefix,
     oobi: oobi.oobis[0],
-    acdc : credDomain.sad
+    acdc : credDomain?.sad
   });
 }
 

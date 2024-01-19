@@ -1,4 +1,4 @@
-import { SignifyClient, ready as signifyReady, Tier } from "signify-ts";
+import { Authenticater, SignifyClient, ready as signifyReady, Tier } from "signify-ts";
 import { config } from "../config";
 import { Aid } from "../types/signifyApi.types";
 import { log } from '../log';
@@ -155,3 +155,14 @@ export const initKeri = async (schemaSaid: string, mainAidName: string) => {
 
   return { identifier, oobi, credDomain };
 };
+
+export const getSigner = async (aid: Aid) => {
+  const client = await getSignifyClient();
+  const signer = await client.manager?.get(aid);
+  return signer;
+}
+
+export const getServerAuthn = async (): Promise<Authenticater| null> => {
+  const client = await getSignifyClient();
+  return client.authn;
+}

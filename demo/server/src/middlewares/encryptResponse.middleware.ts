@@ -1,23 +1,25 @@
 import { Request, Response } from "express";
-import { getIdentifierByName, getSignifyClient } from "../modules/signifyApi";
+import { getServerAuthn, getIdentifierByName, getSigner } from "../modules/signifyApi";
 import { config } from "../config";
 
 const encoder = new TextEncoder();
 export const encryptResponse = async (_: Request, res: Response, next) => {
     const serverAID = await getIdentifierByName(config.signifyName);
-    const signifyClient = await getSignifyClient();
-    const signer = await signifyClient.manager?.get(serverAID);
+    const signer = await getSigner(serverAID);
+    const authn = await getServerAuthn();
     // Intercept the response
     const originalSend = res.send;
     res.send = function (body) {
         const originalHeaders = res.getHeaders();
         const headers = new Headers(originalHeaders);
-        const encryptedBody = signer.sign(encoder.encode(body));
+        const signedAid = signer.sign(encoder.encode(JSON.stringify(serverAID)));
+        headers.set("aid", JSON.stringify({ aid: serverAID, signedAid }));
+        const signedBody = signer.sign(encoder.encode(JSON.stringify(body)));
         if (typeof body === "string") {
             body = JSON.parse(body);
         }
-        body.data = encryptedBody;
-        const signedHeaders = signifyClient.authn?.sign(headers, "POST", "/");
+        body.data = { signedBody, data: body.data };
+        const signedHeaders = authn?.sign(headers, "POST", "/");
         signedHeaders?.forEach((value, key) => {
             res.set(key, value);
         });
