@@ -137,7 +137,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         console.log('message.data');
         console.log(message.data);
         const name = `${message.data.name}`;
-        console.log("key:", name);
+        console.log('key:', name);
         signifyApi.createIdentifier(name).then((aid) => {
           console.log('aid');
           console.log(aid);

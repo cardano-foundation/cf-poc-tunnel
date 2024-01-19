@@ -1,11 +1,11 @@
 import { randomPasscode, ready, SignifyClient, Tier } from 'signify-ts';
+import { Logger } from '@src/utils/logger';
 
 class SignifyApi {
   private signifyClient!: SignifyClient;
   public started: boolean;
   static readonly KERIA_URL = import.meta.env.VITE_KERIA_URL;
-  static readonly KERIA_BOOT_ENDPOINT = import.meta.env
-    .VITE_KERIA_BOOT_ENDPOINT;
+  static readonly KERIA_BOOT_URL = import.meta.env.VITE_KERIA_BOOT_ENDPOINT;
   static readonly SIGNIFY_BRAN_STORAGE_KEY = 'SIGNIFY_BRAN';
 
   constructor() {
@@ -19,17 +19,32 @@ class SignifyApi {
       SignifyApi.KERIA_URL as string,
       bran,
       Tier.low,
-      SignifyApi.KERIA_BOOT_ENDPOINT,
+      SignifyApi.KERIA_BOOT_URL,
     );
 
+    const logger = new Logger();
     try {
       await this.signifyClient.connect();
       this.started = true;
-
+      logger.addLog(
+        `Signify initialized with endpoint: ${SignifyApi.KERIA_URL}`,
+      );
     } catch (err) {
       await this.signifyClient.boot();
-      await this.signifyClient.connect();
-      this.started = true;
+      logger.addLog(
+        `Signify booted with endpoint: ${SignifyApi.KERIA_BOOT_URL}`,
+      );
+      try {
+        await this.signifyClient.connect();
+        this.started = true;
+        logger.addLog(
+          `Signify initialized with endpoint: ${SignifyApi.KERIA_URL}`,
+        );
+      } catch (e) {
+        logger.addLog(
+          `Init Signify failed with endpoint: ${SignifyApi.KERIA_URL}`,
+        );
+      }
     }
   }
   private async getBran(): Promise<string> {

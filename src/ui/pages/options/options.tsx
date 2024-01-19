@@ -1,16 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import './Options.scss';
 import { useAuth } from '@components/router/authProvider';
+import { LogEntry, Logger } from '@src/utils/logger';
+
 const Options = () => {
   const [endpoint, setEndpoint] = useState<string>('');
   const { isLoggedIn, isLoggedInFromStorage, logout, login } = useAuth();
-  const [logs, setLogs] = useState<string[]>([]);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
 
   const checkIsLogged = async () => {
     const isLogged = await isLoggedInFromStorage();
     if (!isLogged) logout();
     else await login();
   };
+
+  useEffect(() => {
+    const logger = new Logger();
+    logger.getLogs().then((lgs) => {
+      setLogs(lgs);
+    });
+  });
 
   useEffect(() => {
     window.addEventListener('mousemove', checkIsLogged);
@@ -40,7 +49,10 @@ const Options = () => {
 
   const viewLogs = () => {
     // Fetch and set logs
-    setLogs(['Log 1', 'Log 2']);
+    const logger = new Logger();
+    logger.getLogs().then((lgs) => {
+      setLogs(lgs);
+    });
   };
 
   return (
@@ -70,7 +82,7 @@ const Options = () => {
             {logs.length ? (
               <div className="logs">
                 {logs.map((log, index) => (
-                  <div key={index}>{log}</div>
+                  <div key={index}>{`[${(new Date(log.timestamp)).toLocaleString()}]: `}{log.message}</div>
                 ))}
               </div>
             ) : null}
