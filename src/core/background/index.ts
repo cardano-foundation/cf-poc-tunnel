@@ -1,10 +1,12 @@
 import { uid } from 'uid';
 import { SignifyApi } from '@src/core/modules/signifyApi';
 import { isExpired } from '@src/utils';
+import { Logger } from '@src/utils/logger';
 
 const expirationTime = 1800000; // 30 min
 const privateKeys: { [pubKey: string]: any } = {};
 const signifyApi: SignifyApi = new SignifyApi();
+const logger = new Logger();
 
 const mockSessions = [
   {
@@ -138,16 +140,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         console.log(message.data);
         const name = `${message.data.name}`;
         console.log('key:', name);
-        signifyApi.createIdentifier(name).then((aid) => {
-          console.log('aid');
-          console.log(aid);
-          privateKeys[`${message.data.name}:${message.data.id}`] = aid;
-          sendResponse({ status: 'OK', data: aid });
-        });
+        try {
+          signifyApi.createIdentifier(name).then((aid) => {
+            console.log('aid');
+            console.log(aid);
+            privateKeys[`${message.data.name}:${message.data.id}`] = aid;
+            logger.addLog(
+              `AID created with name ${name}: ${JSON.stringify(aid)}`,
+            );
+            sendResponse({ status: 'OK', data: aid });
+          });
+        } catch (e) {
+          logger.addLog(`Error on AID creation with name ${name}: ${e}`);
+        }
         if (areWiped) {
           handleWipedPks();
         }
-
         break;
       }
       case 'DELETE_PRIVATE_KEY':

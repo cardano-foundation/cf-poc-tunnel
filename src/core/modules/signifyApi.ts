@@ -1,6 +1,8 @@
 import { randomPasscode, ready, SignifyClient, Tier } from 'signify-ts';
 import { Logger } from '@src/utils/logger';
 
+const logger = new Logger();
+
 class SignifyApi {
   private signifyClient!: SignifyClient;
   public started: boolean;
@@ -22,7 +24,6 @@ class SignifyApi {
       SignifyApi.KERIA_BOOT_URL,
     );
 
-    const logger = new Logger();
     try {
       await this.signifyClient.connect();
       this.started = true;
@@ -43,6 +44,7 @@ class SignifyApi {
       } catch (e) {
         logger.addLog(
           `Init Signify failed with endpoint: ${SignifyApi.KERIA_URL}`,
+          true,
         );
       }
     }

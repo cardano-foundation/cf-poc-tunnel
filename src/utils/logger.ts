@@ -1,22 +1,26 @@
 interface LogEntry {
   message: string;
   timestamp: string;
+  error?: boolean;
 }
 
 class Logger {
   static readonly STORAGE_KEY = 'logs';
 
-  async addLog(message: string): Promise<void> {
+  async addLog(message: string, error?: boolean): Promise<void> {
     if (typeof message !== 'string' || !message.trim()) {
       throw new Error('Log message must be a non-empty string');
     }
 
-    const logEntry: LogEntry = { message, timestamp: new Date().toISOString() };
+    const logEntry: LogEntry = {
+      message,
+      timestamp: new Date().toISOString(),
+      error,
+    };
     try {
       const logs = await this._getStoredLogs();
       logs.push(logEntry);
       await this._storeLogs(logs);
-      console.log('Log saved.');
     } catch (error) {
       console.error('Error saving log:', error);
     }

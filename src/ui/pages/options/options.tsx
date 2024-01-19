@@ -14,12 +14,29 @@ const Options = () => {
     else await login();
   };
 
-  useEffect(() => {
+  const updateLogs = async () => {
     const logger = new Logger();
-    logger.getLogs().then((lgs) => {
-      setLogs(lgs);
-    });
+
+    try {
+      const lgs = await logger.getLogs();
+      const sortedLogs = lgs.sort(
+        (a, b) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+      );
+      setLogs(sortedLogs);
+    } catch (error) {
+      console.error('Error updating logs:', error);
+    }
+  };
+
+  useEffect(() => {
+    updateLogs();
   });
+
+  useEffect(() => {
+    const intervalId = setInterval(updateLogs, 3000);
+    return () => clearInterval(intervalId);
+  }, []);
 
   useEffect(() => {
     window.addEventListener('mousemove', checkIsLogged);
@@ -49,10 +66,7 @@ const Options = () => {
 
   const viewLogs = () => {
     // Fetch and set logs
-    const logger = new Logger();
-    logger.getLogs().then((lgs) => {
-      setLogs(lgs);
-    });
+    updateLogs();
   };
 
   return (
@@ -82,7 +96,16 @@ const Options = () => {
             {logs.length ? (
               <div className="logs">
                 {logs.map((log, index) => (
-                  <div key={index}>{`[${(new Date(log.timestamp)).toLocaleString()}]: `}{log.message}</div>
+                  <div
+                    style={{
+                      color: log.error ? '#B20000' : '',
+                      marginBottom: '5px',
+                    }}
+                    key={index}
+                  >
+                    {`[${new Date(log.timestamp).toLocaleString()}]: `}
+                    {log.message}
+                  </div>
                 ))}
               </div>
             ) : null}
