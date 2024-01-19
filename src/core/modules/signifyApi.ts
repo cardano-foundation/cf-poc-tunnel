@@ -25,6 +25,7 @@ class SignifyApi {
     try {
       await this.signifyClient.connect();
       this.started = true;
+
     } catch (err) {
       await this.signifyClient.boot();
       await this.signifyClient.connect();
@@ -61,9 +62,9 @@ class SignifyApi {
   };
 
   private waitAndGetDoneOp = async (
-      op: any,
-      timeout: number,
-      interval: number,
+    op: any,
+    timeout: number,
+    interval: number,
   ) => {
     const startTime = new Date().getTime();
     while (!op.done && new Date().getTime() < startTime + timeout) {
@@ -72,7 +73,6 @@ class SignifyApi {
     }
     return op;
   };
-
 }
 
 export { SignifyApi };

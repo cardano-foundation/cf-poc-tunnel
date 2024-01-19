@@ -22,6 +22,24 @@ function Connect() {
 
     setShowSpinner(true);
 
+    chrome.runtime.sendMessage(
+      {
+        type: 'SET_PRIVATE_KEY',
+        data: {
+          ...session,
+        },
+      },
+      (response: { status: string; data: any }) => {
+        console.log('response');
+        console.log(response);
+        setShowSpinner(false);
+        setSession(response.data);
+        setQrCodeValue(response.data.oobi);
+        setIsBlurred(false);
+      },
+    );
+
+    /*
     generateAID().then((aid) => {
       chrome.storage.local.get(['sessions'], function (result) {
         let se = { ...session };
@@ -39,8 +57,7 @@ function Connect() {
             {
               type: 'SET_PRIVATE_KEY',
               data: {
-                pubKey: aid.pubKey,
-                privKey: aid.privKey,
+               ...session
               },
             },
             () => {
@@ -53,6 +70,7 @@ function Connect() {
         });
       });
     });
+    */
   };
 
   return (

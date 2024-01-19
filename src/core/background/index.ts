@@ -3,7 +3,7 @@ import { SignifyApi } from '@src/core/modules/signifyApi';
 import { isExpired } from '@src/utils';
 
 const expirationTime = 1800000; // 30 min
-const privateKeys: { [pubKey: string]: string } = {};
+const privateKeys: { [pubKey: string]: any } = {};
 const signifyApi: SignifyApi = new SignifyApi();
 
 const mockSessions = [
@@ -116,6 +116,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           handleWipedPks(); // TODO: handle properly handleWipedMemory
         }
         chrome.storage.local.get(['sessions'], function (result) {
+          console.log('message.data');
+          console.log(message.data);
           const newSession = {
             ...message.data,
             id: uid(24),
@@ -130,13 +132,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           });
         });
         break;
-      case 'SET_PRIVATE_KEY':
-        privateKeys[message.data.pubKey] = message.data.privKey;
+      case 'SET_PRIVATE_KEY': {
+        console.log('lets create a AID');
+        console.log('message.data');
+        console.log(message.data);
+        const name = `${message.data.name}`;
+        console.log("key:", name);
+        signifyApi.createIdentifier(name).then((aid) => {
+          console.log('aid');
+          console.log(aid);
+          privateKeys[`${message.data.name}:${message.data.id}`] = aid;
+          sendResponse({ status: 'OK', data: aid });
+        });
         if (areWiped) {
           handleWipedPks();
         }
-        sendResponse({ status: 'OK' });
+
         break;
+      }
       case 'DELETE_PRIVATE_KEY':
         delete privateKeys[message.data.pubKey];
         break;
