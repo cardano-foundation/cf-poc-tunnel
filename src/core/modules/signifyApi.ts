@@ -1,5 +1,6 @@
 import { randomPasscode, ready, SignifyClient, Tier } from 'signify-ts';
 import { Logger } from '@src/utils/logger';
+import {Aid} from "@src/core/modules/signifyApi.types";
 
 const logger = new Logger();
 
@@ -66,7 +67,11 @@ class SignifyApi {
   }
 
   createIdentifier = async (name: string) => {
-    return await this.signifyClient.identifiers().create(name);
+    const aid = await this.signifyClient.identifiers().create(name);
+    logger.addLog(
+        `AID created with name: ${name}`,
+    );
+    return aid;
   };
 
   getIdentifierByName = async (name: string) => {
@@ -77,6 +82,10 @@ class SignifyApi {
     const oobiOperation = await this.signifyClient.oobis().resolve(url);
     return await this.waitAndGetDoneOp(oobiOperation, 15000, 250);
   };
+
+  getSigner = async (aid: Aid) => {
+    return await this.signifyClient.manager?.get(aid);
+  }
 
   private waitAndGetDoneOp = async (
     op: any,

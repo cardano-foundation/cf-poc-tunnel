@@ -144,10 +144,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           signifyApi.createIdentifier(name).then((aid) => {
             console.log('aid');
             console.log(aid);
-            privateKeys[`${message.data.name}:${message.data.id}`] = aid;
             logger.addLog(
               `AID created with name ${name}: ${JSON.stringify(aid)}`,
             );
+            signifyApi.getSigner(aid).then((signer) => console.log("signer", signer));
             sendResponse({ status: 'OK', data: aid });
           });
         } catch (e) {

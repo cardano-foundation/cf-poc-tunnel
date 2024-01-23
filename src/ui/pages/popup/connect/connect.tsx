@@ -33,8 +33,8 @@ function Connect() {
         console.log('response');
         console.log(response);
         setShowSpinner(false);
-        setSession(response.data);
-        setQrCodeValue(response.data.oobi);
+        // setSession(response.data);
+        // setQrCodeValue(response.data.oobi);
         setIsBlurred(false);
       },
     );
