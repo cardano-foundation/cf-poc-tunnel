@@ -10,6 +10,6 @@ router.get(config.path.ping, ping);
 router.post(config.path.resolveOOBI, resolveClientOOBI);
 router.get(config.path.oobi, getServerOOBI);
 router.get(config.path.schema, schemaApi);
-router.post(config.path.disclosureMainAcdc, disclosureAcdcApi);
+router.post(config.path.disclosureAcdc, disclosureAcdcApi);
 
 export default router;
