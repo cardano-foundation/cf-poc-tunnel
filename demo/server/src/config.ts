@@ -21,6 +21,7 @@ const config = {
     oobi: "/oobi",
     resolveOOBI: "/resolve-oobi",
     schema: "/oobi/:id",
+    disclosureMainAcdc: "/disclosure-main-acdc",
   },
 };
 

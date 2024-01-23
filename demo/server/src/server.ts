@@ -22,7 +22,7 @@ async function startServer() {
 
   /**Generate AID */
   await initSignify();
-  const { identifier, oobi,credDomain } = await initKeri(domainSchemaSAID, signifyName);
+  const { identifier, oobi,credDomain } = await initKeri(domainSchemaSAID);
   log(`Generated AID:`, {
     name: identifier.name,
     prefix: identifier.prefix,

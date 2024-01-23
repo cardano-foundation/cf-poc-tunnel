@@ -1,4 +1,4 @@
-import { SignifyClient, ready as signifyReady, Tier } from 'signify-ts';
+import { Serder, SignifyClient, ready as signifyReady, Tier } from 'signify-ts';
 import { config } from '../config';
 import { log } from '../log';
 import { v4 as uuidv4 } from 'uuid';
@@ -130,7 +130,30 @@ const getServerAcdc = async (mainAidPrefix: string) => {
   )[0];
 };
 
-export const initKeri = async (schemaSaid: string, mainAidName: string) => {
+export const disclosureAcdc = async (verifierPrefix: string) => {
+  const identifier = await getIdentifierByName(config.signifyName);
+  const acdc = await getServerAcdc(identifier.prefix);
+  const datetime = new Date().toISOString().replace('Z', '000+00:00');
+  const [grant2, gsigs2, gend2] = await signifyClient.ipex().grant({
+    senderName: config.signifyName,
+    recipient: verifierPrefix,
+    acdc: new Serder(acdc.sad),
+    anc: new Serder(acdc.anc),
+    iss: new Serder(acdc.iss),
+    acdcAttachment: acdc.atc,
+    ancAttachment: acdc.ancatc,
+    issAttachment: acdc.issAtc,
+    datetime,
+  });
+  await signifyClient
+    .exchanges()
+    .sendFromEvents(config.signifyName, 'presentation', grant2, gsigs2, gend2, [
+      verifierPrefix,
+    ]);
+};
+
+export const initKeri = async (schemaSaid: string) => {
+  const mainAidName = config.signifyName;
   let identifier = await getIdentifierByName(mainAidName).catch(() => null);
   if (!identifier) {
     identifier = await createIdentifier(mainAidName);
