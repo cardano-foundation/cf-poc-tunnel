@@ -2,6 +2,7 @@ import { Serder, SignifyClient, ready as signifyReady, Tier } from 'signify-ts';
 import { config } from '../config';
 import { log } from '../log';
 import { v4 as uuidv4 } from 'uuid';
+import { ERROR_MESSAGE } from '../utils/constants';
 
 const { keriaUrl, keriaBootUrl } = config;
 export let signifyClient: SignifyClient;
@@ -145,7 +146,7 @@ export const disclosureAcdc = async (
   const identifier = await getIdentifierByName(config.signifyName);
   const acdc = await getServerAcdc(identifier.prefix, schemaSaid, issuer);
   if (!acdc) {
-    throw new Error('ACDC not found');
+    throw new Error(ERROR_MESSAGE.ACDC_NOT_FOUND);
   }
   const datetime = new Date().toISOString().replace('Z', '000+00:00');
   const [grant2, gsigs2, gend2] = await signifyClient.ipex().grant({
