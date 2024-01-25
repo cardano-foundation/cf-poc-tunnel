@@ -79,8 +79,19 @@ class SignifyApi {
   };
 
   resolveOOBI = async (url: string) => {
-    const oobiOperation = await this.signifyClient.oobis().resolve(url);
-    return await this.waitAndGetDoneOp(oobiOperation, 15000, 250);
+    try {
+      const oobiOperation = await this.signifyClient.oobis().resolve(url);
+      const r = await this.waitAndGetDoneOp(oobiOperation, 15000, 250);
+      logger.addLog(
+          `OOBI resolved successfully for URL: ${url}. \nResponse from Keria: ${r}`,
+      );
+      return r;
+    } catch (e) {
+      logger.addLog(
+          `Resolving OOBI failed for URL: ${url}. \nError: ${e}`,
+          true
+      );
+    }
   };
 
   getSigner = async (aid: Aid) => {
