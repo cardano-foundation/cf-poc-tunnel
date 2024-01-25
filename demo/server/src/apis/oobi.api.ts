@@ -16,9 +16,7 @@ async function resolveClientOOBI(req: Request, res: Response) {
 
 async function getServerOOBI(_: Request, res: Response) {
     const oobisResult = await getOOBIs(config.signifyName, "agent");
-    const oobiUrlResponse = await fetch(oobisResult.oobis[0]);
-    const formattedOobiResponse = await oobiUrlResponse.text();
-    res.status(200).send(formattedOobiResponse);
+    res.status(200).send(oobisResult);
   }
   
 export { resolveClientOOBI, getServerOOBI };
