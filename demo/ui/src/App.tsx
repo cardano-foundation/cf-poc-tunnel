@@ -15,10 +15,7 @@ function sendMessageToExtension(data: any) {
 
 const App = () => {
   const handleLogin = async () => {
-    const hostname = window.location.hostname;
-    const port = window.location.port;
     const enterpriseData = {
-      name: `${hostname}${port ? `:${port}` : ''}`,
       serverPubeid: 'JJBD4S...9S23',
       oobi: 'http://ac2in...1JS5',
       acdc: 'ACac2in...1JS5DC',

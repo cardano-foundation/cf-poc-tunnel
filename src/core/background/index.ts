@@ -1,6 +1,6 @@
 import { uid } from 'uid';
 import { SignifyApi } from '@src/core/modules/signifyApi';
-import { isExpired } from '@src/utils';
+import {extractHostname, isExpired} from '@src/utils';
 import { Logger } from '@src/utils/logger';
 
 const expirationTime = 1800000; // 30 min
@@ -101,6 +101,12 @@ const handleWipedPks = async (): Promise<void> => {
   });
 };
 
+async function getCurrentTab() {
+  const queryOptions = { active: true, currentWindow: true };
+  const [tab] = await chrome.tabs.query(queryOptions);
+  return tab;
+}
+
 chrome.runtime.onInstalled.addListener(async () => {
   console.log('Extension successfully installed!');
   chrome.storage.local.set({
@@ -117,21 +123,53 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (areWiped) {
           handleWipedPks(); // TODO: handle properly handleWipedMemory
         }
+
         chrome.storage.local.get(['sessions'], function (result) {
           console.log('message.data');
           console.log(message.data);
-          const newSession = {
-            ...message.data,
-            id: uid(24),
-            personalPubeid: '',
-            expiryDate: '',
-          };
 
-          const ss = [newSession, ...result.sessions];
+         getCurrentTab().then(tab => {
+           console.log('tab: ', tab)
+           const hostname = extractHostname(tab.url);
 
-          chrome.storage.local.set({ sessions: ss }, function () {
-            sendResponse({ status: 'OK' });
-          });
+           console.log('hostname');
+           console.log(hostname);
+
+           fetch("http://localhost:3001/oobi", {
+             method: 'GET',
+             redirect: 'follow'
+           })
+               .then(response => response.text())
+               .then(result => console.log(result))
+               .catch(error => console.log('error', error));
+
+           signifyApi.resolveOOBI('http://127.0.0.1:3001/oobi').then(response =>{
+             console.log('response1');
+             console.log(response);
+           });
+
+           signifyApi.resolveOOBI('http://127.0.0.1:3902/oobi/EIXq76358sPcylz6tWgiV4J2BQuLbFHvhRZZ0jslJfTt/agent/EP48HXCPvtzGu0c90gG9fkOYiSoi6U5Am-XaqcoNHTBl').then(response =>{
+             console.log('response2');
+             console.log(response);
+           });
+
+           const newSession = {
+             ...message.data,
+             id: uid(24),
+             personalPubeid: '',
+             expiryDate: '',
+             hostname,
+             icon: tab.favIconUrl
+           };
+
+           const ss = [newSession, ...result.sessions];
+
+           chrome.storage.local.set({ sessions: ss }, function () {
+             sendResponse({ status: 'OK' });
+           });
+         });
+
+
         });
         break;
       case 'SET_PRIVATE_KEY': {

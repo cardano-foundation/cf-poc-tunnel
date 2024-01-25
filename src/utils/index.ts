@@ -25,4 +25,30 @@ const generateAID = async (): Promise<{ pubKey: string; privKey: string }> => {
   };
 };
 
-export { isExpired, getCurrentDate, generateAID };
+const extractHostname= (url: string): string => {
+
+  const regex = /^(?:https?:\/\/)?(?:[\w-]+\.)?([\w-]+\.[\w-]+(?:\:\d+)?)/;
+  const matches = url.match(regex);
+
+  return matches ? matches[1] : '';
+}
+
+const convertURLImageToBase64 = (url:string) => {
+  return fetch(url)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.blob();
+      })
+      .then(blob => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      });
+}
+
+export { isExpired, getCurrentDate, generateAID, extractHostname, convertURLImageToBase64 };
