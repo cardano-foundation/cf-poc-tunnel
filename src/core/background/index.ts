@@ -114,11 +114,11 @@ chrome.runtime.onInstalled.addListener(async () => {
   chrome.storage.local.set({
     sessions: mockSessions,
   });
+
   checkSignify();
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // checkSignify();
   arePKsWiped().then((areWiped) => {
     switch (message.type) {
       case 'LOGIN_FROM_WEB':
@@ -151,15 +151,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     };
 
                     const ss = [newSession, ...sessions.sessions];
-
-                    setTimeout(() => {
-                      chrome.storage.local.set({ sessions: ss }, function () {
-                        logger.addLog(
-                            `✅ New session stored in db: ${JSON.stringify(ss)}`,
-                        );
-                        sendResponse({ status: 'OK' });
-                      });
-                    }, 2000);
+                    chrome.storage.local.set({ sessions: ss }, function () {
+                      logger.addLog(
+                          `✅ New session stored in db: ${JSON.stringify(ss)}`,
+                      );
+                      sendResponse({ status: 'OK' });
+                    });
                   });
                 });
               })
@@ -170,15 +167,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
         break;
       case 'SET_PRIVATE_KEY': {
-        console.log('lets create a AID');
-        console.log('message.data');
-        console.log(message.data);
         const name = `${message.data.name}`;
-        console.log('key:', name);
         try {
           signifyApi.createIdentifier(name).then((aid) => {
-            console.log('aid');
-            console.log(aid);
             logger.addLog(
               `✅ AID created with name ${name}: ${JSON.stringify(aid)}`,
             );
