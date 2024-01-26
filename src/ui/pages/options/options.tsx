@@ -34,7 +34,7 @@ const Options = () => {
   });
 
   useEffect(() => {
-    const intervalId = setInterval(updateLogs, 3000);
+    const intervalId = setInterval(updateLogs, 2000);
     return () => clearInterval(intervalId);
   }, []);
 
@@ -98,8 +98,12 @@ const Options = () => {
                 {logs.map((log, index) => (
                   <div
                     style={{
+                      backgroundColor: index % 2 === 0 ? '#f2f2f2' : '#e4e4e4',
                       color: log.error ? '#B20000' : '',
                       marginBottom: '5px',
+                      padding: '10px',
+                      maxWidth: '570px',
+                      overflowX: 'auto',
                     }}
                     key={index}
                   >

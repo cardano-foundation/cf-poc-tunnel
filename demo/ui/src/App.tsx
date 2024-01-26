@@ -15,11 +15,7 @@ function sendMessageToExtension(data: any) {
 
 const App = () => {
   const handleLogin = async () => {
-    const enterpriseData = {
-      serverPubeid: 'JJBD4S...9S23',
-      oobi: 'http://ac2in...1JS5',
-      acdc: 'ACac2in...1JS5DC',
-    };
+    const enterpriseData = {};
     sendMessageToExtension(enterpriseData);
   };
   return (

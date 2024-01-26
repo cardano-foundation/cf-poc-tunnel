@@ -1,6 +1,6 @@
 import { uid } from 'uid';
 import { SignifyApi } from '@src/core/modules/signifyApi';
-import {extractHostname, isExpired} from '@src/utils';
+import { extractHostname, isExpired } from '@src/utils';
 import { Logger } from '@src/utils/logger';
 
 const expirationTime = 1800000; // 30 min
@@ -108,7 +108,9 @@ async function getCurrentTab() {
 }
 
 chrome.runtime.onInstalled.addListener(async () => {
-  console.log('Extension successfully installed!');
+  logger.addLog(
+      `✅ Extension successfully installed!`,
+  );
   chrome.storage.local.set({
     sessions: mockSessions,
   });
@@ -116,60 +118,55 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  checkSignify();
+  // checkSignify();
   arePKsWiped().then((areWiped) => {
     switch (message.type) {
       case 'LOGIN_FROM_WEB':
-        if (areWiped) {
-          handleWipedPks(); // TODO: handle properly handleWipedMemory
-        }
+        chrome.storage.local.get(['sessions'], function (sessions) {
 
-        chrome.storage.local.get(['sessions'], function (result) {
-          console.log('message.data');
-          console.log(message.data);
+          getCurrentTab().then((tab) => {
+            const hostname = extractHostname(tab.url);
 
-         getCurrentTab().then(tab => {
-           console.log('tab: ', tab)
-           const hostname = extractHostname(tab.url);
+            logger.addLog(
+              `⏳ Hostname ${hostname} is trying to create a new session`,
+            );
 
-           console.log('hostname');
-           console.log(hostname);
+            fetch('http://localhost:3001/oobi', {
+              method: 'GET',
+              redirect: 'follow',
+            })
+              .then((response) => response.json())
+              .then((result) => {
+                const oobiUrl = result.oobis[0];
+                logger.addLog(`⏳ Resolving OOBI URL: ${oobiUrl}`).then(() => {
+                  signifyApi.resolveOOBI(oobiUrl).then((response) => {
+                    logger.addLog(`✅ OOBI URL resolved successfully`);
+                    const newSession = {
+                      id: uid(24),
+                      personalPubeid: '',
+                      expiryDate: '',
+                      name: hostname,
+                      icon: tab.favIconUrl,
+                      oobi: response,
+                    };
 
-           fetch("http://localhost:3001/oobi", {
-             method: 'GET',
-             redirect: 'follow'
-           })
-               .then(response => response.text())
-               .then(result => console.log(result))
-               .catch(error => console.log('error', error));
+                    const ss = [newSession, ...sessions.sessions];
 
-           signifyApi.resolveOOBI('http://127.0.0.1:3001/oobi').then(response =>{
-             console.log('response1');
-             console.log(response);
-           });
-
-           signifyApi.resolveOOBI('http://127.0.0.1:3902/oobi/EIXq76358sPcylz6tWgiV4J2BQuLbFHvhRZZ0jslJfTt/agent/EP48HXCPvtzGu0c90gG9fkOYiSoi6U5Am-XaqcoNHTBl').then(response =>{
-             console.log('response2');
-             console.log(response);
-           });
-
-           const newSession = {
-             ...message.data,
-             id: uid(24),
-             personalPubeid: '',
-             expiryDate: '',
-             hostname,
-             icon: tab.favIconUrl
-           };
-
-           const ss = [newSession, ...result.sessions];
-
-           chrome.storage.local.set({ sessions: ss }, function () {
-             sendResponse({ status: 'OK' });
-           });
-         });
-
-
+                    setTimeout(() => {
+                      chrome.storage.local.set({ sessions: ss }, function () {
+                        logger.addLog(
+                            `✅ New session stored in db: ${JSON.stringify(ss)}`,
+                        );
+                        sendResponse({ status: 'OK' });
+                      });
+                    }, 2000);
+                  });
+                });
+              })
+              .catch((error) => {
+                logger.addLog(`❌ Error on Resolving OOBI: ${error}`);
+              });
+          });
         });
         break;
       case 'SET_PRIVATE_KEY': {
@@ -183,13 +180,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             console.log('aid');
             console.log(aid);
             logger.addLog(
-              `AID created with name ${name}: ${JSON.stringify(aid)}`,
+              `✅ AID created with name ${name}: ${JSON.stringify(aid)}`,
             );
-            signifyApi.getSigner(aid).then((signer) => console.log("signer", signer));
+            signifyApi
+              .getSigner(aid)
+              .then((signer) => console.log('signer', signer));
             sendResponse({ status: 'OK', data: aid });
           });
         } catch (e) {
-          logger.addLog(`Error on AID creation with name ${name}: ${e}`);
+          logger.addLog(`❌ Error on AID creation with name ${name}: ${e}`);
         }
         if (areWiped) {
           handleWipedPks();

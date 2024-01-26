@@ -3,10 +3,13 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import './sessionDetails.scss';
 import { BackButton } from '@components/backButton';
 import MobileConnectIcon from '@assets/mobile-connect-icon.svg';
+import { shortenText } from '@src/utils';
 
 function SessionDetails() {
   const navigate = useNavigate();
   const location = useLocation();
+  console.log('location.pathname');
+  console.log(location.pathname);
   const session = location.state?.session;
   if (!session) {
     return <div>No session data available</div>;
@@ -24,6 +27,9 @@ function SessionDetails() {
       });
     });
   };
+
+  console.log('session');
+  console.log(session);
   return (
     <div className="sessionDetails">
       <BackButton />
@@ -55,11 +61,11 @@ function SessionDetails() {
           </p>
           <p>
             <strong>OOBI: </strong>
-            {session.oobi}
+            {shortenText(session.oobi?.metadata?.oobi, 32)}
+            {session.oobi?.metadata?.oobi?.length ? ' ✅' : ''}
           </p>
           <p>
             <strong>Enterprise ACDC: </strong>
-            {session.acdc}
           </p>
         </div>
         <button className="deleteButton" onClick={() => deleteSession()}>

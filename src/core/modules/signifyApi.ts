@@ -1,6 +1,6 @@
 import { randomPasscode, ready, SignifyClient, Tier } from 'signify-ts';
 import { Logger } from '@src/utils/logger';
-import {Aid} from "@src/core/modules/signifyApi.types";
+import { Aid } from '@src/core/modules/signifyApi.types';
 
 const logger = new Logger();
 
@@ -29,22 +29,22 @@ class SignifyApi {
       await this.signifyClient.connect();
       this.started = true;
       logger.addLog(
-        `Signify initialized with endpoint: ${SignifyApi.KERIA_URL}`,
+        `✅ Signify initialized with Keria endpoint: ${SignifyApi.KERIA_URL}`,
       );
     } catch (err) {
       await this.signifyClient.boot();
       logger.addLog(
-        `Signify booted with endpoint: ${SignifyApi.KERIA_BOOT_URL}`,
+        `✅ Signify booted with Keria endpoint: ${SignifyApi.KERIA_BOOT_URL}`,
       );
       try {
         await this.signifyClient.connect();
         this.started = true;
         logger.addLog(
-          `Signify initialized with endpoint: ${SignifyApi.KERIA_URL}`,
+          `✅ Signify initialized with Keria endpoint: ${SignifyApi.KERIA_URL}`,
         );
       } catch (e) {
         logger.addLog(
-          `Init Signify failed with endpoint: ${SignifyApi.KERIA_URL}`,
+          `❌ Init Signify failed with endpoint: ${SignifyApi.KERIA_URL}`,
           true,
         );
       }
@@ -68,9 +68,7 @@ class SignifyApi {
 
   createIdentifier = async (name: string) => {
     const aid = await this.signifyClient.identifiers().create(name);
-    logger.addLog(
-        `AID created with name: ${name}`,
-    );
+    logger.addLog(`✅ AID created with name: ${name}`);
     return aid;
   };
 
@@ -80,23 +78,36 @@ class SignifyApi {
 
   resolveOOBI = async (url: string) => {
     try {
+      if (!this.started) return;
+
       const oobiOperation = await this.signifyClient.oobis().resolve(url);
       const r = await this.waitAndGetDoneOp(oobiOperation, 15000, 250);
-      logger.addLog(
-          `OOBI resolved successfully for URL: ${url}. \nResponse from Keria: ${r}`,
-      );
+      if (r.done) {
+        logger.addLog(
+          `✅ OOBI resolved successfully for URL: ${url}. \nResponse from Keria: ${JSON.stringify(
+            r,
+          )}`,
+        );
+      } else {
+        logger.addLog(
+          `❌ Resolving OOBI failed for URL: ${url}. \nResponse from Keria: ${JSON.stringify(
+            r,
+          )}`,
+          true,
+        );
+      }
       return r;
     } catch (e) {
       logger.addLog(
-          `Resolving OOBI failed for URL: ${url}. \nError: ${e}`,
-          true
+        `❌ Resolving OOBI failed for URL: ${url}. \nError: ${e}`,
+        true,
       );
     }
   };
 
   getSigner = async (aid: Aid) => {
     return await this.signifyClient.manager?.get(aid);
-  }
+  };
 
   private waitAndGetDoneOp = async (
     op: any,

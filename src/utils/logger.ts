@@ -1,6 +1,6 @@
 interface LogEntry {
   message: string;
-  timestamp: string;
+  timestamp: number;
   error?: boolean;
 }
 
@@ -14,7 +14,7 @@ class Logger {
 
     const logEntry: LogEntry = {
       message,
-      timestamp: new Date().toISOString(),
+      timestamp: Date.now(),
       error,
     };
     try {

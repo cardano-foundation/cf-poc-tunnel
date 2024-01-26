@@ -1,5 +1,5 @@
 window.addEventListener('message', (event) => {
-  console.log("im the content script")
+  console.log('im the content script');
   if (event.data.type === 'LOGIN_FROM_WEB') {
     console.log('event.data');
     console.log(event.data);
