@@ -3,6 +3,7 @@ import { SignifyApi } from '@src/core/modules/signifyApi';
 import { extractHostname, isExpired } from '@src/utils';
 import { Logger } from '@src/utils/logger';
 
+const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
 const expirationTime = 1800000; // 30 min
 const privateKeys: { [pubKey: string]: any } = {};
 const signifyApi: SignifyApi = new SignifyApi();
@@ -131,7 +132,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
               `⏳ Hostname ${hostname} is trying to create a new session`,
             );
 
-            fetch('http://localhost:3001/oobi', {
+            fetch(`${SERVER_ENDPOINT}/oobi`, {
               method: 'GET',
               redirect: 'follow',
             })
@@ -140,22 +141,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 const oobiUrl = result.oobis[0];
                 logger.addLog(`⏳ Resolving OOBI URL: ${oobiUrl}`).then(() => {
                   signifyApi.resolveOOBI(oobiUrl).then((response) => {
-                    logger.addLog(`✅ OOBI URL resolved successfully`);
-                    const newSession = {
-                      id: uid(24),
-                      personalPubeid: '',
-                      expiryDate: '',
-                      name: hostname,
-                      icon: tab.favIconUrl,
-                      oobi: response,
-                    };
+                    logger.addLog(`✅ OOBI URL resolved successfully`).then(() => {
+                      const newSession = {
+                        id: uid(24),
+                        personalPubeid: '',
+                        expiryDate: '',
+                        name: hostname,
+                        icon: tab.favIconUrl,
+                        oobi: response,
+                      };
 
-                    const ss = [newSession, ...sessions.sessions];
-                    chrome.storage.local.set({ sessions: ss }, function () {
-                      logger.addLog(
-                          `✅ New session stored in db: ${JSON.stringify(ss)}`,
-                      );
-                      sendResponse({ status: 'OK' });
+                      const ss = [newSession, ...sessions.sessions];
+                      chrome.storage.local.set({ sessions: ss }, function () {
+                        logger.addLog(
+                            `✅ New session stored in db: ${JSON.stringify(ss)}`,
+                        );
+                        sendResponse({ status: 'OK' });
+                      });
                     });
                   });
                 });
