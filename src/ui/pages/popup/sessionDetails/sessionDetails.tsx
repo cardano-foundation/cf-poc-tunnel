@@ -8,8 +8,6 @@ import { shortenText } from '@src/utils';
 function SessionDetails() {
   const navigate = useNavigate();
   const location = useLocation();
-  console.log('location.pathname');
-  console.log(location.pathname);
   const session = location.state?.session;
   if (!session) {
     return <div>No session data available</div>;
