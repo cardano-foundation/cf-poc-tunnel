@@ -163,7 +163,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 });
               })
               .catch((error) => {
-                logger.addLog(`❌ Error on Resolving OOBI: ${error}`);
+                logger.addLog(`❌ Error on Resolving OOBI: ${error}`, true);
               });
           });
         });
@@ -181,7 +181,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             sendResponse({ status: 'OK', data: aid });
           });
         } catch (e) {
-          logger.addLog(`❌ Error on AID creation with name ${name}: ${e}`);
+          logger.addLog(`❌ Error on AID creation with name ${name}: ${e}`, true);
         }
         if (areWiped) {
           handleWipedPks();
