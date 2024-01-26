@@ -44,7 +44,7 @@ class SignifyApi {
         );
       } catch (e) {
         logger.addLog(
-          `❌ Init Signify failed with endpoint: ${SignifyApi.KERIA_URL}`,
+          `❌ Init Signify failed with Keria endpoint: ${SignifyApi.KERIA_URL}`,
           true,
         );
       }
