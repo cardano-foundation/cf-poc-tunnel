@@ -11,10 +11,20 @@
   border-radius: 4px;
 
   .sessionName {
-    width: 110px;
+    display: flex;
+    align-items: center;
+
+    .sessionLogo {
+      margin-right: 10px;
+    }
+    .domainName {
+      margin-right: 10px;
+    }
+    .smallIcon {
+      width: 28px !important;
+    }
   }
-  .sessionInfo {
-  }
+
   .connectMobileIcon {
     filter: invert(100%);
     margin-right: 2px;

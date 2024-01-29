@@ -3,14 +3,13 @@ import { useLocation } from 'react-router-dom';
 import './connect.scss';
 import { BackButton } from '@components/backButton';
 import { QRCode } from 'react-qrcode-logo';
-import Logo from '../../../assets/img.png';
-import { generateAID, getCurrentDate } from '@src/utils';
-import { expirationTime } from '@src/core/background';
+import { shortenText } from '@src/utils';
+import webLogo from '@assets/web.png';
 
 function Connect() {
   const location = useLocation();
-  const [session, setSession] = useState(location.state?.session);
-  const [qrCodeValue, setQrCodeValue] = useState('***');
+  const [session] = useState(location.state?.session);
+  const [qrCodeValue] = useState('***');
   const [isBlurred, setIsBlurred] = useState(true);
   const [showSpinner, setShowSpinner] = useState(false);
   if (!session) {
@@ -36,7 +35,6 @@ function Connect() {
         setIsBlurred(false);
       },
     );
-
   };
 
   return (
@@ -60,7 +58,7 @@ function Connect() {
               fgColor={'black'}
               bgColor={'white'}
               qrStyle={'squares'}
-              logoImage={Logo}
+              logoImage={session.logo?.length ? session.logo : webLogo}
               logoWidth={60}
               logoHeight={60}
               logoOpacity={1}
@@ -91,7 +89,9 @@ function Connect() {
           )}
         </p>
         <p>
-          <strong>OOBI: </strong> {session.oobi}
+          <strong>OOBI: </strong>{' '}
+          {shortenText(session.oobi?.metadata?.oobi, 24)}{' '}
+          {session.oobi?.done ? ' ✅' : ''}
         </p>
         <p>
           <strong>ACDC: </strong> {session.acdc}

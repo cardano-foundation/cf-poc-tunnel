@@ -1,6 +1,10 @@
 import { uid } from 'uid';
 import { SignifyApi } from '@src/core/modules/signifyApi';
-import {convertURLImageToBase64, extractHostname, isExpired} from '@src/utils';
+import {
+  convertURLImageToBase64,
+  extractHostname,
+  isExpired,
+} from '@src/utils';
 import { Logger } from '@src/utils/logger';
 
 const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
@@ -109,9 +113,7 @@ async function getCurrentTab() {
 }
 
 chrome.runtime.onInstalled.addListener(async () => {
-  logger.addLog(
-      `✅ Extension successfully installed!`,
-  );
+  logger.addLog(`✅ Extension successfully installed!`);
   chrome.storage.local.set({
     sessions: mockSessions,
   });
@@ -120,25 +122,18 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-
   const pksAreWiped = await arePKsWiped();
-  console.log('pksAreWiped');
-  console.log(pksAreWiped);
 
   switch (message.type) {
     case 'LOGIN_FROM_WEB': {
-
       const sessions = await chrome.storage.local.get(['sessions']);
 
       const tab = await getCurrentTab();
-      console.log('tab');
-      console.log(tab);
-
       const hostname = extractHostname(tab.url);
-      const logo = convertURLImageToBase64(tab.favIconUrl);
+      const logo = await convertURLImageToBase64(tab.favIconUrl);
 
       await logger.addLog(
-          `⏳ Hostname ${hostname} is trying to create a new session`,
+        `⏳ Hostname ${hostname} is trying to create a new session`,
       );
 
       let response = await fetch(`${SERVER_ENDPOINT}/oobi`, {
@@ -158,18 +153,16 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         name: hostname,
         logo,
         icon: tab.favIconUrl,
-        oobi: resolvedOOBI
+        oobi: resolvedOOBI,
       };
 
       const ss = [newSession, ...sessions.sessions];
 
-      await chrome.storage.local.set({sessions: ss});
+      await chrome.storage.local.set({ sessions: ss });
 
-      await logger.addLog(
-          `✅ New session stored in db: ${JSON.stringify(ss)}`,
-      );
+      await logger.addLog(`✅ New session stored in db: ${JSON.stringify(ss)}`);
 
-      sendResponse({status: 'OK'});
+      sendResponse({ status: 'OK' });
 
       break;
     }
@@ -178,18 +171,21 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       try {
         signifyApi.createIdentifier(name).then((aid) => {
           logger.addLog(
-              `✅ AID created with name ${name}: ${JSON.stringify(aid)}`,
+            `✅ AID created with name ${name}: ${JSON.stringify(aid)}`,
           );
           signifyApi
-              .getSigner(aid)
-              .then((signer) => console.log('signer', signer));
+            .getSigner(aid)
+            .then((signer) => console.log('signer', signer));
           sendResponse({ status: 'OK', data: aid });
         });
       } catch (e) {
-        logger.addLog(`❌ Error on AID creation with name ${name}: ${e}`, true);
+        await logger.addLog(
+          `❌ Error on AID creation with name ${name}: ${e}`,
+          true,
+        );
       }
       if (pksAreWiped) {
-        handleWipedPks();
+        await handleWipedPks();
       }
       break;
     }
@@ -197,7 +193,6 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       delete privateKeys[message.data.pubKey];
       break;
   }
-
 
   return true;
 });

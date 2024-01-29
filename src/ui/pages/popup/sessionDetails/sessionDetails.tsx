@@ -58,7 +58,7 @@ function SessionDetails() {
           <p>
             <strong>OOBI: </strong>
             {shortenText(session.oobi?.metadata?.oobi, 32)}
-            {session.oobi?.metadata?.oobi?.length ? ' ✅' : ''}
+            {session.oobi?.done ? ' ✅' : ''}
           </p>
           <p>
             <strong>Enterprise ACDC: </strong>
