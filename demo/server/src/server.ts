@@ -7,7 +7,6 @@ import { log } from './log';
 import { initKeri, initSignify } from './modules/signifyApi';
 
 const signifyName = config.signifyName;
-const domainSchemaSAID = 'EGjD1gCLi9ecZSZp9zevkgZGyEX_MbOdmhBFt4o0wvdb';
 log({ signifyName });
 async function startServer() {
   const app = express();
@@ -22,7 +21,7 @@ async function startServer() {
 
   /**Generate AID */
   await initSignify();
-  const { identifier, oobi, credDomain } = await initKeri(domainSchemaSAID, signifyName);
+  const { identifier, oobi,credDomain } = await initKeri();
   log(`Generated AID:`, {
     name: identifier.name,
     prefix: identifier.prefix,

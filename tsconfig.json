@@ -1,17 +1,25 @@
 {
   "compilerOptions": {
+    "target": "es2020",
+    "module": "es2020",
+    "lib": ["dom", "dom.iterable", "es2020"],
+    "allowJs": false,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
     "baseUrl": ".",
     "outDir": "./dist/",
-    "noImplicitAny": true,
-    "module": "es6",
-    "target": "es5",
-    "allowJs": true,
-    "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "isolatedModules": true,
+    "noEmit": true,
     "jsx": "react",
-    "include": ["**/*.ts", "**/*.tsx", "src"],
+    "paths": {
+      "@src/*": ["src/*"],
+      "@assets/*": ["src/ui/assets/*"],
+      "@pages/*": ["src/ui/pages/*"],
+      "@components/*": ["src/ui/components/*"]
+    },
+    "include": ["src", "vite.config.ts"],
     "exclude": ["node_modules"]
   }
 }

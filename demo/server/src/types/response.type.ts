@@ -1,6 +1,6 @@
 interface ResponseData<T> {
   data: T;
-  error?: string;
+  error?: unknown;
   success: boolean;
   statusCode: number;
 }

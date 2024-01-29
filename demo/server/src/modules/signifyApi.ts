@@ -1,8 +1,9 @@
-import { Authenticater, SignifyClient, ready as signifyReady, Tier } from "signify-ts";
-import { config } from "../config";
+import { Authenticater, Serder, SignifyClient, ready as signifyReady, Tier } from "signify-ts";
 import { Aid } from "../types/signifyApi.types";
+import { config } from '../config';
 import { log } from '../log';
 import { v4 as uuidv4 } from 'uuid';
+import { ERROR_MESSAGE } from '../utils/constants';
 
 const { keriaUrl, keriaBootUrl } = config;
 let signifyClient: SignifyClient;
@@ -116,18 +117,57 @@ export const issueDomainCredential = async (
   }
 };
 
-const getServerAcdc = async (mainAidPrefix: string) => {
+const getServerAcdc = async (
+  owner: string,
+  schemaSaid?: string,
+  issuer?: string,
+) => {
   return (
     await signifyClient.credentials().list({
       filter: {
-        '-a-i': mainAidPrefix,
-        '-a-domain': config.endpoint,
+        ...(schemaSaid
+          ? { '-s': schemaSaid }
+          : { '-s': config.domainSchemaSaid }),
+        ...(issuer ? { '-i': issuer } : {}),
+        '-a-i': owner,
       },
     })
   )[0];
 };
 
-export const initKeri = async (schemaSaid: string, mainAidName: string) => {
+export const disclosureAcdc = async (
+  verifierPrefix: string,
+  schemaSaid?: string,
+  issuer?: string,
+) => {
+  const identifier = await getIdentifierByName(config.signifyName);
+  const acdc = await getServerAcdc(identifier.prefix, schemaSaid, issuer);
+  if (!acdc) {
+    throw new Error(ERROR_MESSAGE.ACDC_NOT_FOUND);
+  }
+  const datetime = new Date().toISOString().replace('Z', '000+00:00');
+  const [grant2, gsigs2, gend2] = await signifyClient.ipex().grant({
+    senderName: config.signifyName,
+    recipient: verifierPrefix,
+    acdc: new Serder(acdc.sad),
+    anc: new Serder(acdc.anc),
+    iss: new Serder(acdc.iss),
+    acdcAttachment: acdc.atc,
+    ancAttachment: acdc.ancatc,
+    issAttachment: acdc.issAtc,
+    datetime,
+  });
+  await signifyClient
+    .exchanges()
+    .sendFromEvents(config.signifyName, 'presentation', grant2, gsigs2, gend2, [
+      verifierPrefix,
+    ]);
+  return acdc;
+};
+
+export const initKeri = async () => {
+  const mainAidName = config.signifyName;
+  const schemaSaid = config.domainSchemaSaid;
   let identifier = await getIdentifierByName(mainAidName).catch(() => null);
   if (!identifier) {
     identifier = await createIdentifier(mainAidName);
@@ -137,7 +177,7 @@ export const initKeri = async (schemaSaid: string, mainAidName: string) => {
   const schemaUrl = config.endpoint + '/oobi/' + schemaSaid;
   await resolveOOBI(schemaUrl);
 
-  let credDomain = await getServerAcdc(identifier.prefix);
+  let credDomain = await getServerAcdc(identifier.prefix, schemaSaid);
 
   if (!credDomain) {
     const issuerMainAcdcName = uuidv4();
@@ -150,7 +190,7 @@ export const initKeri = async (schemaSaid: string, mainAidName: string) => {
       identifier.prefix,
       config.endpoint,
     );
-    credDomain = await getServerAcdc(identifier.prefix);
+    credDomain = await getServerAcdc(identifier.prefix, schemaSaid);
   }
 
   return { identifier, oobi, credDomain };
