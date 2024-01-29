@@ -30,8 +30,6 @@ function Connect() {
         },
       },
       (response: { status: string; data: any }) => {
-        console.log('response');
-        console.log(response);
         setShowSpinner(false);
         // setSession(response.data);
         // setQrCodeValue(response.data.oobi);
@@ -39,38 +37,6 @@ function Connect() {
       },
     );
 
-    /*
-    generateAID().then((aid) => {
-      chrome.storage.local.get(['sessions'], function (result) {
-        let se = { ...session };
-        const updatedSessions = result.sessions.map((s) => {
-          if (s.id === se.id) {
-            s.personalPubeid = aid.pubKey;
-            s.expiryDate = getCurrentDate(expirationTime);
-            se = s;
-          }
-          return s;
-        });
-
-        chrome.storage.local.set({ sessions: updatedSessions }, function () {
-          chrome.runtime.sendMessage(
-            {
-              type: 'SET_PRIVATE_KEY',
-              data: {
-               ...session
-              },
-            },
-            () => {
-              setShowSpinner(false);
-              setSession(se);
-              setQrCodeValue(`${aid.pubKey}:${aid.privKey}`);
-              setIsBlurred(false);
-            },
-          );
-        });
-      });
-    });
-    */
   };
 
   return (
