@@ -1,6 +1,6 @@
 import { uid } from 'uid';
 import { SignifyApi } from '@src/core/modules/signifyApi';
-import { extractHostname, isExpired } from '@src/utils';
+import {convertURLImageToBase64, extractHostname, isExpired} from '@src/utils';
 import { Logger } from '@src/utils/logger';
 
 const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
@@ -119,80 +119,86 @@ chrome.runtime.onInstalled.addListener(async () => {
   checkSignify();
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  arePKsWiped().then((areWiped) => {
-    switch (message.type) {
-      case 'LOGIN_FROM_WEB':
-        chrome.storage.local.get(['sessions'], function (sessions) {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
-          getCurrentTab().then((tab) => {
-            const hostname = extractHostname(tab.url);
+  const pksAreWiped = await arePKsWiped();
+  console.log('pksAreWiped');
+  console.log(pksAreWiped);
 
-            logger.addLog(
-              `⏳ Hostname ${hostname} is trying to create a new session`,
-            );
+  switch (message.type) {
+    case 'LOGIN_FROM_WEB': {
 
-            fetch(`${SERVER_ENDPOINT}/oobi`, {
-              method: 'GET',
-              redirect: 'follow',
-            })
-              .then((response) => response.json())
-              .then((result) => {
-                const oobiUrl = result.oobis[0];
-                logger.addLog(`⏳ Resolving OOBI URL: ${oobiUrl}`).then(() => {
-                  signifyApi.resolveOOBI(oobiUrl).then((response) => {
-                    logger.addLog(`✅ OOBI URL resolved successfully`).then(() => {
-                      const newSession = {
-                        id: uid(24),
-                        personalPubeid: '',
-                        expiryDate: '',
-                        name: hostname,
-                        icon: tab.favIconUrl,
-                        oobi: response,
-                      };
+      const sessions = await chrome.storage.local.get(['sessions']);
 
-                      const ss = [newSession, ...sessions.sessions];
-                      chrome.storage.local.set({ sessions: ss }, function () {
-                        logger.addLog(
-                            `✅ New session stored in db: ${JSON.stringify(ss)}`,
-                        );
-                        sendResponse({ status: 'OK' });
-                      });
-                    });
-                  });
-                });
-              })
-              .catch((error) => {
-                logger.addLog(`❌ Error on Resolving OOBI: ${error}`, true);
-              });
-          });
-        });
-        break;
-      case 'SET_PRIVATE_KEY': {
-        const name = `${message.data.name}`;
-        try {
-          signifyApi.createIdentifier(name).then((aid) => {
-            logger.addLog(
+      const tab = await getCurrentTab();
+      console.log('tab');
+      console.log(tab);
+
+      const hostname = extractHostname(tab.url);
+      const logo = convertURLImageToBase64(tab.favIconUrl);
+
+      await logger.addLog(
+          `⏳ Hostname ${hostname} is trying to create a new session`,
+      );
+
+      let response = await fetch(`${SERVER_ENDPOINT}/oobi`, {
+        method: 'GET',
+        redirect: 'follow',
+      });
+      response = await response.json();
+      const oobiUrl = response.oobis[0];
+      await logger.addLog(`⏳ Resolving OOBI URL: ${oobiUrl}`);
+      const resolvedOOBI = await signifyApi.resolveOOBI(oobiUrl);
+      await logger.addLog(`✅ OOBI URL resolved successfully`);
+
+      const newSession = {
+        id: uid(24),
+        personalPubeid: '',
+        expiryDate: '',
+        name: hostname,
+        logo,
+        icon: tab.favIconUrl,
+        oobi: resolvedOOBI
+      };
+
+      const ss = [newSession, ...sessions.sessions];
+
+      await chrome.storage.local.set({sessions: ss});
+
+      await logger.addLog(
+          `✅ New session stored in db: ${JSON.stringify(ss)}`,
+      );
+
+      sendResponse({status: 'OK'});
+
+      break;
+    }
+    case 'SET_PRIVATE_KEY': {
+      const name = `${message.data.name}`;
+      try {
+        signifyApi.createIdentifier(name).then((aid) => {
+          logger.addLog(
               `✅ AID created with name ${name}: ${JSON.stringify(aid)}`,
-            );
-            signifyApi
+          );
+          signifyApi
               .getSigner(aid)
               .then((signer) => console.log('signer', signer));
-            sendResponse({ status: 'OK', data: aid });
-          });
-        } catch (e) {
-          logger.addLog(`❌ Error on AID creation with name ${name}: ${e}`, true);
-        }
-        if (areWiped) {
-          handleWipedPks();
-        }
-        break;
+          sendResponse({ status: 'OK', data: aid });
+        });
+      } catch (e) {
+        logger.addLog(`❌ Error on AID creation with name ${name}: ${e}`, true);
       }
-      case 'DELETE_PRIVATE_KEY':
-        delete privateKeys[message.data.pubKey];
-        break;
+      if (pksAreWiped) {
+        handleWipedPks();
+      }
+      break;
     }
-  });
+    case 'DELETE_PRIVATE_KEY':
+      delete privateKeys[message.data.pubKey];
+      break;
+  }
+
+
   return true;
 });
 
