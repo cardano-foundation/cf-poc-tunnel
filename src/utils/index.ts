@@ -26,11 +26,8 @@ const generateAID = async (): Promise<{ pubKey: string; privKey: string }> => {
 };
 
 const extractHostname = (url: string): string => {
-  const regex = /^(?:https?:\/\/)?(?:[\w-]+\.)?([\w-]+(?:\.[\w-]+)*(?:\:\d+)?)/;
-  const matches = url.match(regex);
-
-  return matches ? matches[1] : '';
-};
+  return (new URL(url)).hostname
+}
 
 const convertURLImageToBase64 = (url: string) => {
   return fetch(url)
