@@ -30,10 +30,8 @@ interface Aid {
   windexes: number[];
 }
 
-interface ResponseData<T> {
-  data?: T;
-  error?: string | unknown;
-  success: boolean;
-}
+type ResponseData<T> =
+  | { success: true; data: T }
+  | { success: false; error: unknown };
 
 export { Aid, ResponseData };

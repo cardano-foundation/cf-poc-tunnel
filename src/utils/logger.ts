@@ -10,7 +10,6 @@ class Logger {
   static readonly STORAGE_KEY = 'logs';
 
   async addLog(message: string, error?: boolean): Promise<void> {
-
     if (!message || typeof message !== 'string' || !message.trim()) {
       throw new Error('Log message must be a non-empty string');
     }

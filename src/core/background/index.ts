@@ -151,7 +151,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         const resolvedOOBI = await signifyApi.resolveOOBI(oobiUrl);
         await logger.addLog(`✅ OOBI resolved successfully`);
 
-        if (resolvedOOBI.success){
+        if (resolvedOOBI.success) {
           const newSession = {
             id: uid(24),
             personalPubeid: '',
@@ -166,23 +166,27 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
           await chrome.storage.local.set({ sessions: ss });
 
-          await logger.addLog(`✅ New session stored in db: ${JSON.stringify(ss)}`);
+          await logger.addLog(
+            `✅ New session stored in db: ${JSON.stringify(ss)}`,
+          );
 
           sendResponse({ success: true });
         } else {
           sendResponse({ success: false });
         }
       } catch (e) {
-        await logger.addLog(`❌ Error getting OOBI URL from server: ${SERVER_ENDPOINT}/oobi`);
+        await logger.addLog(
+          `❌ Error getting OOBI URL from server: ${SERVER_ENDPOINT}/oobi`,
+        );
       }
 
       break;
     }
     case 'SET_PRIVATE_KEY': {
       const name = `${message.data.name}`;
-      const aid = (await signifyApi.createIdentifier(name));
+      const aid = await signifyApi.createIdentifier(name);
 
-      if (aid.success){
+      if (aid.success) {
         await logger.addLog(`✅ AID created successfully`);
         sendResponse({ success: true, data: aid.data });
       } else {
