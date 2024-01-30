@@ -4,6 +4,7 @@ import { getServerAuthn } from "../modules/signifyApi";
 export const verifyRequest = async (req: Request, res: Response, next) => {
     const authn = await getServerAuthn();
     try {
+        console.log('verifying...')
         const verification = authn?.verify(
             new Headers(req.headers),
             req.method,
@@ -11,11 +12,12 @@ export const verifyRequest = async (req: Request, res: Response, next) => {
         )
         console.log({ verification });
         if (!verification) {
-            res.status(500).send("error");
-        }            
-        next();
+            res.status(400).send("Request was not signed correctly");
+        } else {
+            next();
+        }
     } catch (error) {
         console.log({ error });
-        res.status(500).send("error");
+        res.status(500).send((error as Error).message);
     }
   }

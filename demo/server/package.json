@@ -5,7 +5,7 @@
     "main": "server.ts",
     "scripts": {
         "test": "test",
-        "start": "tsc && node build/server.js",
+        "start": "node build/server.js",
         "start:dev": "npx nodemon",
         "build": "rimraf ./build && tsc"
     },

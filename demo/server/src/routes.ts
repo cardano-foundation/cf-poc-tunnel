@@ -4,10 +4,7 @@ import { ping } from './apis/ping.api';
 import { getServerOOBI, resolveClientOOBI } from './apis/oobi.api';
 import { schemaApi } from './apis/schema.api';
 import { disclosureAcdcApi } from './apis/disclosure-acdc.api';
-import { 
-    signResponse, 
-    verifyRequest 
-} from "./middlewares";
+import { signResponse, verifyRequest } from "./middlewares";
 
 const router = express.Router();
 // Currently, I am testing the interceptor with the ping api

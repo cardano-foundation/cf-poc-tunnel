@@ -1,4 +1,4 @@
-import { Authenticater, Serder, SignifyClient, ready as signifyReady, Tier } from "signify-ts";
+import { Authenticater, Controller, Serder, SignifyClient, ready as signifyReady, Tier } from "signify-ts";
 import { Aid } from "../types/signifyApi.types";
 import { config } from '../config';
 import { log } from '../log';
@@ -205,4 +205,9 @@ export const getSigner = async (aid: Aid) => {
 export const getServerAuthn = async (): Promise<Authenticater| null> => {
   const client = await getSignifyClient();
   return client.authn;
+}
+
+export const getServerSignifyController = async (): Promise<Controller> => {
+  const client = await getSignifyClient();
+  return client.controller;
 }
