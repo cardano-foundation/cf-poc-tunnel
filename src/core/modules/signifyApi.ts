@@ -47,7 +47,6 @@ class SignifyApi {
           `❌ Init Signify failed with Keria endpoint: ${SignifyApi.KERIA_URL}. Error: ${e}`,
           true,
         );
-
       }
     }
   }
@@ -68,13 +67,12 @@ class SignifyApi {
   }
 
   createIdentifier = async (name: string) => {
-
     try {
       const aid = await this.signifyClient.identifiers().create(name);
       await logger.addLog(`✅ AID created with name: ${name}`);
       return {
         success: true,
-        data: aid
+        data: aid,
       };
     } catch (e) {
       return {
@@ -88,7 +86,7 @@ class SignifyApi {
     try {
       return {
         success: true,
-        data: await this.signifyClient.identifiers().get(name)
+        data: await this.signifyClient.identifiers().get(name),
       };
     } catch (e) {
       return {
@@ -100,7 +98,11 @@ class SignifyApi {
 
   resolveOOBI = async (url: string) => {
     try {
-      if (!this.started) return;
+      if (!this.started)
+        return {
+          success: false,
+          error: 'Signify not initialized',
+        };
 
       const oobiOperation = await this.signifyClient.oobis().resolve(url);
       const r = await this.waitAndGetDoneOp(oobiOperation, 15000, 250);
