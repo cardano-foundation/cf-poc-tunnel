@@ -62,7 +62,9 @@ const mockSessions = [
 ];
 
 const checkSignify = async (): Promise<void> => {
-  if (!signifyApi.started) await signifyApi.start();
+  if (!signifyApi.started) {
+    await signifyApi.start();
+  }
 };
 
 const arePKsWiped = async (): Promise<boolean> => {
@@ -136,43 +138,53 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         `⏳ Hostname ${hostname} is trying to create a new session`,
       );
 
-      let response = await fetch(`${SERVER_ENDPOINT}/oobi`, {
-        method: 'GET',
-        redirect: 'follow',
-      });
-      response = await response.json();
-      const oobiUrl = response.oobis[0];
-      await logger.addLog(`⏳ Resolving OOBI URL: ${oobiUrl}`);
-      const resolvedOOBI = await signifyApi.resolveOOBI(oobiUrl);
-      await logger.addLog(`✅ OOBI URL resolved successfully`);
+      try {
+        let response = await fetch(`${SERVER_ENDPOINT}/oobi`, {
+          method: 'GET',
+          redirect: 'follow',
+        });
+        response = await response.json();
+        const oobiUrl = response.oobis[0];
+        await logger.addLog(`⏳ Resolving OOBI URL: ${oobiUrl}`);
+        const resolvedOOBI = await signifyApi.resolveOOBI(oobiUrl);
+        await logger.addLog(resolvedOOBI.message);
 
-      const newSession = {
-        id: uid(24),
-        personalPubeid: '',
-        expiryDate: '',
-        name: hostname,
-        logo,
-        icon: tab.favIconUrl,
-        oobi: resolvedOOBI?.data,
-      };
+        if (resolvedOOBI.success){
 
-      const ss = [newSession, ...sessions.sessions];
+          const newSession = {
+            id: uid(24),
+            personalPubeid: '',
+            expiryDate: '',
+            name: hostname,
+            logo,
+            icon: tab.favIconUrl,
+            oobi: resolvedOOBI?.data,
+          };
 
-      await chrome.storage.local.set({ sessions: ss });
+          const ss = [newSession, ...sessions.sessions];
 
-      await logger.addLog(`✅ New session stored in db: ${JSON.stringify(ss)}`);
+          await chrome.storage.local.set({ sessions: ss });
 
-      sendResponse({ success: true });
+          await logger.addLog(`✅ New session stored in db: ${JSON.stringify(ss)}`);
+
+          sendResponse({ success: true });
+        } else {
+          sendResponse({ success: false });
+        }
+      } catch (e) {
+        await logger.addLog(`❌ Error getting OOBI URL form server: ${SERVER_ENDPOINT}/oobi`);
+      }
 
       break;
     }
     case 'SET_PRIVATE_KEY': {
       const name = `${message.data.name}`;
-      try {
-        const aid = (await signifyApi.createIdentifier(name)).data;
-        sendResponse({ success: true, data: aid });
-      } catch (e) {
-        sendResponse({ success: false, error: e });
+      const aid = (await signifyApi.createIdentifier(name));
+      await logger.addLog(aid.message);
+      if (aid.success){
+        sendResponse({ success: true, data: aid.data });
+      } else {
+        sendResponse({ success: false, error: aid.message });
       }
       if (pksAreWiped) {
         await handleWipedPks();

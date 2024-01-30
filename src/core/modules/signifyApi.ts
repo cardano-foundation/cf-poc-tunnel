@@ -15,7 +15,7 @@ class SignifyApi {
   constructor() {
     this.started = false;
   }
-  async start(): Promise<void> {
+  async start(): Promise<ResponseData<undefined>> {
     await ready();
     const bran = await this.getBran();
 
@@ -29,25 +29,24 @@ class SignifyApi {
     try {
       await this.signifyClient.connect();
       this.started = true;
-      await logger.addLog(
-        `✅ Signify initialized with Keria endpoint: ${SignifyApi.KERIA_URL}`,
-      );
+      return {
+        success: true,
+        message: `✅ Signify initialized with Keria endpoint: ${SignifyApi.KERIA_URL}`
+      }
     } catch (err) {
       await this.signifyClient.boot();
-      await logger.addLog(
-        `✅ Signify booted with Keria endpoint: ${SignifyApi.KERIA_BOOT_URL}`,
-      );
       try {
         await this.signifyClient.connect();
         this.started = true;
-        await logger.addLog(
-          `✅ Signify initialized with Keria endpoint: ${SignifyApi.KERIA_URL}`,
-        );
+        return {
+          success: true,
+          message: `✅ Signify initialized with Keria endpoint: ${SignifyApi.KERIA_URL}`
+        }
       } catch (e) {
-        await logger.addLog(
-          `❌ Init Signify failed with Keria endpoint: ${SignifyApi.KERIA_URL}. Error: ${e}`,
-          true,
-        );
+        return {
+          success: false,
+          message: `❌ Init Signify failed with Keria endpoint: ${SignifyApi.KERIA_URL}. Error: ${e}`
+        }
       }
     }
   }
@@ -69,21 +68,19 @@ class SignifyApi {
 
   createIdentifier = async (
     name: string,
-  ): Promise<ResponseData<EventResult>> => {
+  ): Promise<ResponseData<EventResult | any>> => {
     try {
       const aid = await this.signifyClient.identifiers().create(name);
-      await logger.addLog(`✅ AID created with name: ${name}`);
       return {
         success: true,
         data: aid,
+        message: `✅ AID created with name: ${name}`
       };
     } catch (e) {
-      await logger.addLog(
-        `❌ Error on AID creation with name ${name}. Error: ${e}`,
-      );
       return {
         success: false,
         error: e,
+        message: `❌ Error on AID creation with name ${name}. Error: ${e}`
       };
     }
   };
@@ -107,37 +104,32 @@ class SignifyApi {
       if (!this.started)
         return {
           success: false,
-          error: 'Signify not initialized',
+          message: '❌ Signify not initialized',
         };
 
       const oobiOperation = await this.signifyClient.oobis().resolve(url);
       const r = await this.waitAndGetDoneOp(oobiOperation, 15000, 250);
       if (r.done) {
-        logger.addLog(
-          `✅ OOBI resolved successfully for URL: ${url}. \nResponse from Keria: ${JSON.stringify(
-            r,
+        return {
+          success: true,
+          message: `✅ OOBI resolved successfully for URL: ${url}. \nResponse from Keria: ${JSON.stringify(
+              r,
           )}`,
-        );
+          data: r
+        };
       } else {
-        logger.addLog(
-          `❌ Resolving OOBI failed for URL: ${url}. \nResponse from Keria: ${JSON.stringify(
-            r,
-          )}`,
-          true,
-        );
+        return {
+          success: false,
+          message: `❌ Resolving OOBI failed for URL: ${url}. \nResponse from Keria: ${JSON.stringify(
+              r,
+          )}`
+        };
       }
-      return {
-        success: true,
-        data: r,
-      };
     } catch (e) {
-      logger.addLog(
-        `❌ Resolving OOBI failed for URL: ${url}. \nError: ${e}`,
-        true,
-      );
       return {
         success: false,
         error: e,
+        message: `❌ Resolving OOBI failed for URL: ${url}. \nError: ${e}`
       };
     }
   };
