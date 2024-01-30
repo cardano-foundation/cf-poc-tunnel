@@ -1,4 +1,4 @@
-export interface Aid {
+interface Aid {
   name: string;
   prefix: string;
   salty: any;
@@ -28,4 +28,15 @@ export interface Aid {
     di: string;
   };
   windexes: number[];
+}
+
+interface ResponseData<T> {
+  data?: T;
+  error?: string | unknown;
+  success: boolean;
+}
+
+export {
+  Aid,
+  ResponseData
 }
