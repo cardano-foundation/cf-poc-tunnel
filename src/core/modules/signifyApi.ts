@@ -31,7 +31,7 @@ class SignifyApi {
       this.started = true;
       return {
         success: true,
-        message: `✅ Signify initialized with Keria endpoint: ${SignifyApi.KERIA_URL}`
+        error: new Error(`Signify initialized with Keria endpoint: ${SignifyApi.KERIA_URL}`)
       }
     } catch (err) {
       await this.signifyClient.boot();
@@ -39,13 +39,12 @@ class SignifyApi {
         await this.signifyClient.connect();
         this.started = true;
         return {
-          success: true,
-          message: `✅ Signify initialized with Keria endpoint: ${SignifyApi.KERIA_URL}`
+          success: true
         }
       } catch (e) {
         return {
           success: false,
-          message: `❌ Init Signify failed with Keria endpoint: ${SignifyApi.KERIA_URL}. Error: ${e}`
+          error: new Error(`Init Signify failed with Keria endpoint: ${SignifyApi.KERIA_URL}. Error: ${e}`)
         }
       }
     }
@@ -73,14 +72,12 @@ class SignifyApi {
       const aid = await this.signifyClient.identifiers().create(name);
       return {
         success: true,
-        data: aid,
-        message: `✅ AID created with name: ${name}`
+        data: aid
       };
     } catch (e) {
       return {
         success: false,
-        error: e,
-        message: `❌ Error on AID creation with name ${name}. Error: ${e}`
+        error: new Error(`Error on AID creation with name ${name}. Error: ${e}`)
       };
     }
   };
@@ -104,7 +101,7 @@ class SignifyApi {
       if (!this.started)
         return {
           success: false,
-          message: '❌ Signify not initialized',
+          error: new Error('Signify not initialized')
         };
 
       const oobiOperation = await this.signifyClient.oobis().resolve(url);
@@ -112,24 +109,20 @@ class SignifyApi {
       if (r.done) {
         return {
           success: true,
-          message: `✅ OOBI resolved successfully for URL: ${url}. \nResponse from Keria: ${JSON.stringify(
-              r,
-          )}`,
           data: r
         };
       } else {
         return {
           success: false,
-          message: `❌ Resolving OOBI failed for URL: ${url}. \nResponse from Keria: ${JSON.stringify(
+          error: new Error(`Resolving OOBI failed for URL: ${url}. \nResponse from Keria: ${JSON.stringify(
               r,
-          )}`
+          )}`)
         };
       }
     } catch (e) {
       return {
         success: false,
-        error: e,
-        message: `❌ Resolving OOBI failed for URL: ${url}. \nError: ${e}`
+        error: new Error(`Resolving OOBI failed for URL: ${url}. \nError: ${e}`)
       };
     }
   };

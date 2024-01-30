@@ -33,7 +33,6 @@ interface Aid {
 interface ResponseData<T> {
   data?: T;
   error?: string | unknown;
-  message?: string;
   success: boolean;
 }
 

@@ -143,14 +143,15 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
           method: 'GET',
           redirect: 'follow',
         });
+        await logger.addLog(`✅ OOBI URL from ${SERVER_ENDPOINT}/oobi`);
+
         response = await response.json();
         const oobiUrl = response.oobis[0];
-        await logger.addLog(`⏳ Resolving OOBI URL: ${oobiUrl}`);
+        await logger.addLog(`⏳ Resolving OOBI URL...`);
         const resolvedOOBI = await signifyApi.resolveOOBI(oobiUrl);
-        await logger.addLog(resolvedOOBI.message);
+        await logger.addLog(`✅ OOBI resolved successfully`);
 
         if (resolvedOOBI.success){
-
           const newSession = {
             id: uid(24),
             personalPubeid: '',
@@ -172,7 +173,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
           sendResponse({ success: false });
         }
       } catch (e) {
-        await logger.addLog(`❌ Error getting OOBI URL form server: ${SERVER_ENDPOINT}/oobi`);
+        await logger.addLog(`❌ Error getting OOBI URL from server: ${SERVER_ENDPOINT}/oobi`);
       }
 
       break;
@@ -180,11 +181,13 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     case 'SET_PRIVATE_KEY': {
       const name = `${message.data.name}`;
       const aid = (await signifyApi.createIdentifier(name));
-      await logger.addLog(aid.message);
+
       if (aid.success){
+        await logger.addLog(`✅ AID created successfully`);
         sendResponse({ success: true, data: aid.data });
       } else {
-        sendResponse({ success: false, error: aid.message });
+        await logger.addLog(aid.error);
+        sendResponse({ success: false, error: aid.error });
       }
       if (pksAreWiped) {
         await handleWipedPks();
