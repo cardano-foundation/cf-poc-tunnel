@@ -1,3 +1,5 @@
+import { ResponseData } from '@src/core/modules/signifyApi.types';
+
 interface LogEntry {
   message: string;
   timestamp: number;
@@ -26,9 +28,7 @@ class Logger {
     }
   }
 
-  async getLogs(): Promise<
-    { success: boolean; data: LogEntry[] } | { success: boolean; error: string }
-  > {
+  async getLogs(): Promise<ResponseData<LogEntry[]>> {
     try {
       return {
         success: true,
