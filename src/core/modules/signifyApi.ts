@@ -1,7 +1,7 @@
 import { randomPasscode, ready, SignifyClient, Tier } from 'signify-ts';
 import { Logger } from '@src/utils/logger';
-import {Aid, ResponseData} from '@src/core/modules/signifyApi.types';
-import {EventResult} from "signify-ts/src/keri/app/aiding";
+import { Aid, ResponseData } from '@src/core/modules/signifyApi.types';
+import { EventResult } from 'signify-ts/src/keri/app/aiding';
 
 const logger = new Logger();
 
@@ -67,7 +67,9 @@ class SignifyApi {
     }
   }
 
-  createIdentifier = async (name: string): Promise<ResponseData<EventResult>> => {
+  createIdentifier = async (
+    name: string,
+  ): Promise<ResponseData<EventResult>> => {
     try {
       const aid = await this.signifyClient.identifiers().create(name);
       await logger.addLog(`✅ AID created with name: ${name}`);
@@ -76,7 +78,9 @@ class SignifyApi {
         data: aid,
       };
     } catch (e) {
-      await logger.addLog(`❌ Error on AID creation with name ${name}. Error: ${e}`);
+      await logger.addLog(
+        `❌ Error on AID creation with name ${name}. Error: ${e}`,
+      );
       return {
         success: false,
         error: e,

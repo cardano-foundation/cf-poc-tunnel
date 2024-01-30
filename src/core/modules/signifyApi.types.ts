@@ -36,7 +36,4 @@ interface ResponseData<T> {
   success: boolean;
 }
 
-export {
-  Aid,
-  ResponseData
-}
+export { Aid, ResponseData };
