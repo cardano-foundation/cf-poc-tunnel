@@ -34,7 +34,7 @@ const Options = () => {
   });
 
   useEffect(() => {
-    const intervalId = setInterval(updateLogs, 2000);
+    const intervalId = setInterval(updateLogs, 1000);
     return () => clearInterval(intervalId);
   }, []);
 
