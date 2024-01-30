@@ -26,8 +26,8 @@ const generateAID = async (): Promise<{ pubKey: string; privKey: string }> => {
 };
 
 const extractHostname = (url: string): string => {
-  return (new URL(url)).hostname
-}
+  return new URL(url).hostname;
+};
 
 const convertURLImageToBase64 = (url: string) => {
   return fetch(url)

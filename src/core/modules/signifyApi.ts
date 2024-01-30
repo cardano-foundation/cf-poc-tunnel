@@ -75,6 +75,7 @@ class SignifyApi {
         data: aid,
       };
     } catch (e) {
+      await logger.addLog(`❌ Error on AID creation with name ${name}`);
       return {
         success: false,
         error: e,

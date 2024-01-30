@@ -26,19 +26,30 @@ class Logger {
     }
   }
 
-  async getLogs(): Promise<LogEntry[]> {
+  async getLogs(): Promise<
+    { success: boolean; data: LogEntry[] } | { success: boolean; error: string }
+  > {
     try {
-      return await this._getStoredLogs();
-    } catch (error) {
-      console.error('Error retrieving logs:', error);
-      return [];
+      return {
+        success: true,
+        data: await this._getStoredLogs(),
+      };
+    } catch (e) {
+      return {
+        success: false,
+        error: `Error getting the logs from local storage: ${e}`,
+      };
     }
   }
 
   async displayLogs(): Promise<void> {
     try {
       const logs = await this.getLogs();
-      logs.forEach((log) => console.log(`${log.timestamp}: ${log.message}`));
+      if (logs.success) {
+        logs.data.forEach((log) =>
+          console.log(`${log.timestamp}: ${log.message}`),
+        );
+      }
     } catch (error) {
       console.error('Error displaying logs:', error);
     }

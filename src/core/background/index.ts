@@ -162,27 +162,17 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
       await logger.addLog(`✅ New session stored in db: ${JSON.stringify(ss)}`);
 
-      sendResponse({ status: 'OK' });
+      sendResponse({ success: true });
 
       break;
     }
     case 'SET_PRIVATE_KEY': {
       const name = `${message.data.name}`;
       try {
-        signifyApi.createIdentifier(name).then((aid) => {
-          logger.addLog(
-            `✅ AID created with name ${name}: ${JSON.stringify(aid)}`,
-          );
-          signifyApi
-            .getSigner(aid)
-            .then((signer) => console.log('signer', signer));
-          sendResponse({ status: 'OK', data: aid });
-        });
+        const aid = (await signifyApi.createIdentifier(name)).data;
+        sendResponse({ success: true, data: aid });
       } catch (e) {
-        await logger.addLog(
-          `❌ Error on AID creation with name ${name}: ${e}`,
-          true,
-        );
+        sendResponse({ success: false, error: e });
       }
       if (pksAreWiped) {
         await handleWipedPks();
