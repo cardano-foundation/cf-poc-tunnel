@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { Countdown } from '@components/countdown';
 import './sessionList.scss';
 import MobileConnectIcon from '../../../assets/mobile-connect-icon.svg';
+import webLogo from '../../../assets/web.png';
 import { isExpired } from '@src/utils';
 
 interface Session {
   id: string;
   name: string;
   expiryDate: string;
+  logo: string;
 }
 
 function SessionList() {
@@ -43,7 +45,14 @@ function SessionList() {
         return (
           <li key={session.id} className="listItem">
             <div className="sessionName">
-              <div className="primaryText">{session.name}</div>
+              <div className="sessionLogo">
+                <img
+                  className={session.logo?.length ? '' : 'smallIcon'}
+                  src={session.logo?.length ? session.logo : webLogo}
+                  width={32}
+                />
+              </div>
+              <div className="primaryText domainName">{session.name}</div>
               <div className="secondaryText">
                 {session.expiryDate && isExpired(session.expiryDate) ? (
                   <>Expired</>
