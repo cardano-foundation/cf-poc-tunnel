@@ -18,7 +18,7 @@ const Options = () => {
     const logger = new Logger();
 
     try {
-      const lgs = await logger.getLogs();
+      const lgs = (await logger.getLogs()).data;
       const sortedLogs = lgs.sort(
         (a, b) =>
           new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
