@@ -153,7 +153,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         name: hostname,
         logo,
         icon: tab.favIconUrl,
-        oobi: resolvedOOBI,
+        oobi: resolvedOOBI?.data,
       };
 
       const ss = [newSession, ...sessions.sessions];

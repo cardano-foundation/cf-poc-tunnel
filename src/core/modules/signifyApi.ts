@@ -28,25 +28,26 @@ class SignifyApi {
     try {
       await this.signifyClient.connect();
       this.started = true;
-      logger.addLog(
+      await logger.addLog(
         `✅ Signify initialized with Keria endpoint: ${SignifyApi.KERIA_URL}`,
       );
     } catch (err) {
       await this.signifyClient.boot();
-      logger.addLog(
+      await logger.addLog(
         `✅ Signify booted with Keria endpoint: ${SignifyApi.KERIA_BOOT_URL}`,
       );
       try {
         await this.signifyClient.connect();
         this.started = true;
-        logger.addLog(
+        await logger.addLog(
           `✅ Signify initialized with Keria endpoint: ${SignifyApi.KERIA_URL}`,
         );
       } catch (e) {
-        logger.addLog(
-          `❌ Init Signify failed with Keria endpoint: ${SignifyApi.KERIA_URL}`,
+        await logger.addLog(
+          `❌ Init Signify failed with Keria endpoint: ${SignifyApi.KERIA_URL}. Error: ${e}`,
           true,
         );
+
       }
     }
   }
@@ -67,13 +68,34 @@ class SignifyApi {
   }
 
   createIdentifier = async (name: string) => {
-    const aid = await this.signifyClient.identifiers().create(name);
-    logger.addLog(`✅ AID created with name: ${name}`);
-    return aid;
+
+    try {
+      const aid = await this.signifyClient.identifiers().create(name);
+      await logger.addLog(`✅ AID created with name: ${name}`);
+      return {
+        success: true,
+        data: aid
+      };
+    } catch (e) {
+      return {
+        success: false,
+        error: e,
+      };
+    }
   };
 
   getIdentifierByName = async (name: string) => {
-    return await this.signifyClient.identifiers().get(name);
+    try {
+      return {
+        success: true,
+        data: await this.signifyClient.identifiers().get(name)
+      };
+    } catch (e) {
+      return {
+        success: false,
+        error: e,
+      };
+    }
   };
 
   resolveOOBI = async (url: string) => {
@@ -96,17 +118,34 @@ class SignifyApi {
           true,
         );
       }
-      return r;
+      return {
+        success: true,
+        data: r,
+      };
     } catch (e) {
       logger.addLog(
         `❌ Resolving OOBI failed for URL: ${url}. \nError: ${e}`,
         true,
       );
+      return {
+        success: false,
+        error: e,
+      };
     }
   };
 
   getSigner = async (aid: Aid) => {
-    return await this.signifyClient.manager?.get(aid);
+    try {
+      return {
+        success: true,
+        data: await this.signifyClient.manager?.get(aid),
+      };
+    } catch (e) {
+      return {
+        success: false,
+        error: e,
+      };
+    }
   };
 
   private waitAndGetDoneOp = async (
