@@ -1,16 +1,42 @@
 import React, { useEffect, useState } from 'react';
 import './Options.scss';
 import { useAuth } from '@components/router/authProvider';
+import { LogEntry, Logger } from '@src/utils/logger';
+
 const Options = () => {
   const [endpoint, setEndpoint] = useState<string>('');
   const { isLoggedIn, isLoggedInFromStorage, logout, login } = useAuth();
-  const [logs, setLogs] = useState<string[]>([]);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
 
   const checkIsLogged = async () => {
     const isLogged = await isLoggedInFromStorage();
     if (!isLogged) logout();
     else await login();
   };
+
+  const updateLogs = async () => {
+    const logger = new Logger();
+
+    try {
+      const lgs = (await logger.getLogs()).data;
+      const sortedLogs = lgs.sort(
+        (a, b) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+      );
+      setLogs(sortedLogs);
+    } catch (error) {
+      console.error('Error updating logs:', error);
+    }
+  };
+
+  useEffect(() => {
+    updateLogs();
+  });
+
+  useEffect(() => {
+    const intervalId = setInterval(updateLogs, 1000);
+    return () => clearInterval(intervalId);
+  }, []);
 
   useEffect(() => {
     window.addEventListener('mousemove', checkIsLogged);
@@ -40,7 +66,7 @@ const Options = () => {
 
   const viewLogs = () => {
     // Fetch and set logs
-    setLogs(['Log 1', 'Log 2']);
+    updateLogs();
   };
 
   return (
@@ -70,7 +96,20 @@ const Options = () => {
             {logs.length ? (
               <div className="logs">
                 {logs.map((log, index) => (
-                  <div key={index}>{log}</div>
+                  <div
+                    style={{
+                      backgroundColor: index % 2 === 0 ? '#f2f2f2' : '#e4e4e4',
+                      color: log.error ? '#B20000' : '',
+                      marginBottom: '5px',
+                      padding: '10px',
+                      maxWidth: '570px',
+                      overflowX: 'auto',
+                    }}
+                    key={index}
+                  >
+                    {`[${new Date(log.timestamp).toLocaleString()}]: `}
+                    {log.message}
+                  </div>
                 ))}
               </div>
             ) : null}
