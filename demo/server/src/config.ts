@@ -22,6 +22,7 @@ const config = {
     resolveOOBI: "/resolve-oobi",
     schema: "/oobi/:id",
     disclosureAcdc: "/disclosure-acdc",
+    acdcRequirements: "/acdc-requirements"
   },
   domainSchemaSaid : 'EGjD1gCLi9ecZSZp9zevkgZGyEX_MbOdmhBFt4o0wvdb'
 };
