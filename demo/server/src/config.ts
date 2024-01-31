@@ -24,7 +24,8 @@ const config = {
     disclosureAcdc: "/disclosure-acdc",
     acdcRequirements: "/acdc-requirements"
   },
-  domainSchemaSaid : 'EGjD1gCLi9ecZSZp9zevkgZGyEX_MbOdmhBFt4o0wvdb'
+  domainSchemaSaid : 'EGjD1gCLi9ecZSZp9zevkgZGyEX_MbOdmhBFt4o0wvdb',
+  qviSchemaSaid: 'EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao',
 };
 
 export { config };

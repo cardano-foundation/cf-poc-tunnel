@@ -6,7 +6,7 @@ import { config } from "../config";
 function getAcdcRequirements(_: Request, res: Response) {
   const acdcRequirements = {
     user: {
-        '-s': config.domainSchemaSaid
+        '-s': config.qviSchemaSaid
     }
   }
   const response: ResponseData<any> = {
