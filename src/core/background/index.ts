@@ -115,12 +115,12 @@ async function getCurrentTab() {
 }
 
 chrome.runtime.onInstalled.addListener(async () => {
-  logger.addLog(`✅ Extension successfully installed!`);
-  chrome.storage.local.set({
+  await logger.addLog(`✅ Extension successfully installed!`);
+  await chrome.storage.local.set({
     sessions: mockSessions,
   });
 
-  checkSignify();
+  await checkSignify();
 });
 
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
