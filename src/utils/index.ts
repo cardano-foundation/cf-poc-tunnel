@@ -1,4 +1,5 @@
 import { uid } from 'uid';
+import { canonicalize } from 'json-canonicalize';
 
 const isExpired = (date: string): boolean => {
   const dateObj = new Date(date);
@@ -23,10 +24,6 @@ const generateAID = async (): Promise<{ pubKey: string; privKey: string }> => {
     pubKey: uid(12),
     privKey: uid(12),
   };
-};
-
-const extractHostname = (url: string): string => {
-  return new URL(url).hostname;
 };
 
 const convertURLImageToBase64 = (url: string) => {
@@ -61,7 +58,6 @@ export {
   isExpired,
   getCurrentDate,
   generateAID,
-  extractHostname,
   convertURLImageToBase64,
-  shortenText,
+  shortenText
 };

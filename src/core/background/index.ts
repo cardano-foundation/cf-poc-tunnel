@@ -2,7 +2,6 @@ import { uid } from 'uid';
 import { SignifyApi } from '@src/core/modules/signifyApi';
 import {
   convertURLImageToBase64,
-  extractHostname,
   isExpired,
 } from '@src/utils';
 import { Logger } from '@src/utils/logger';
@@ -121,6 +120,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   });
 
   await checkSignify();
+  await logger.addLog(`✅ Signify initialized successfully`);
 });
 
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
@@ -131,7 +131,11 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       const sessions = await chrome.storage.local.get(['sessions']);
 
       const tab = await getCurrentTab();
-      const hostname = extractHostname(tab.url);
+      let hostname = (new URL(tab.url)).hostname;
+      const port = (new URL(tab.url)).port;
+      if (port.length){
+        hostname = `${hostname}:${port}`
+      }
       const logo = await convertURLImageToBase64(tab.favIconUrl);
 
       await logger.addLog(
@@ -152,26 +156,37 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         await logger.addLog(`✅ OOBI resolved successfully`);
 
         if (resolvedOOBI.success) {
-          const newSession = {
-            id: uid(24),
-            personalPubeid: '',
-            expiryDate: '',
-            name: hostname,
-            logo,
-            icon: tab.favIconUrl,
-            oobi: resolvedOOBI?.data,
-          };
+          try {
+            await signifyApi.createIdentifier(hostname);
+            await logger.addLog(`✅ AID created successfully with name ${hostname}`);
 
-          const ss = [newSession, ...sessions.sessions];
+            const newSession = {
+              id: uid(24),
+              personalPubeid: '',
+              expiryDate: '',
+              name: hostname,
+              logo,
+              icon: tab.favIconUrl,
+              oobi: resolvedOOBI?.data,
+            };
 
-          await chrome.storage.local.set({ sessions: ss });
+            const ss = [newSession, ...sessions.sessions];
 
-          await logger.addLog(
-            `✅ New session stored in db: ${JSON.stringify(ss)}`,
-          );
+            await chrome.storage.local.set({ sessions: ss });
 
-          sendResponse({ success: true });
+            await logger.addLog(
+                `✅ New session stored in db: ${JSON.stringify(ss)}`,
+            );
+            sendResponse({ success: true });
+          } catch (e) {
+            await logger.addLog(
+                `❌ Error trying to create an AID with name: ${hostname}`,
+            );
+          }
         } else {
+          await logger.addLog(
+              `❌ Error getting OOBI URL from server: ${SERVER_ENDPOINT}/oobi`,
+          );
           sendResponse({ success: false });
         }
       } catch (e) {
@@ -201,6 +216,68 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     case 'DELETE_PRIVATE_KEY':
       delete privateKeys[message.data.pubKey];
       break;
+    case 'HANDLE_FETCH': {
+      console.log('HANDLE_FETCH: message');
+      console.log(message);
+      const dataToSign = message.data;
+      console.log('dataToSign');
+      console.log(dataToSign);
+
+      try {
+        const authn = await signifyApi.getAuthn();
+        console.log('authn');
+        console.log(authn);
+        if (authn.success) {
+          const url = dataToSign.data.url;
+          const method = dataToSign.data.method;
+          const headers = new Headers(dataToSign.data.headers);
+          const tab = await getCurrentTab();
+          let hostname = (new URL(tab.url)).hostname;
+          const port = (new URL(tab.url)).port;
+          if (port.length){
+            hostname = `${hostname}:${port}`
+          }
+          const ephemeralAID = await signifyApi.getIdentifierByName(hostname);
+
+          console.log('ephemeralAID');
+          console.log(ephemeralAID);
+
+          if (ephemeralAID.success) {
+            headers.set('Signify-Resource', ephemeralAID.data.prefix);
+
+            try {
+              const signedHeaders = authn.data?.sign(
+                  headers,
+                  method,
+                  new URL(url).pathname,
+              );
+
+              console.log('signedHeaders');
+              console.log(signedHeaders);
+            } catch (e) {
+              await logger.addLog(
+                  `❌ Error while signing.. headers: ${hostname}, method: ${method}, pathname: ${
+                      new URL(url).pathname
+                  }`,
+              );
+            }
+          } else {
+            await logger.addLog(
+                `❌ Error getting ephemeral AID with name: ${hostname}`,
+            );
+          }
+        } else {
+          await logger.addLog(`❌ Error getting authn from signifyClient`);
+        }
+
+      } catch (e) {
+        await logger.addLog(
+            `❌ Error getting Authenticater from signifyApi. Error: ${e}`,
+        );
+      }
+
+      break;
+    }
   }
 
   return true;

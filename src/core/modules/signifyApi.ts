@@ -1,4 +1,10 @@
-import { randomPasscode, ready, SignifyClient, Tier } from 'signify-ts';
+import {
+  Authenticater,
+  randomPasscode,
+  ready,
+  SignifyClient,
+  Tier,
+} from 'signify-ts';
 import { Logger } from '@src/utils/logger';
 import { Aid, ResponseData } from '@src/core/modules/signifyApi.types';
 import { EventResult } from 'signify-ts/src/keri/app/aiding';
@@ -30,10 +36,7 @@ class SignifyApi {
       await this.signifyClient.connect();
       this.started = true;
       return {
-        success: true,
-        error: new Error(
-          `Signify initialized with Keria endpoint: ${SignifyApi.KERIA_URL}`,
-        ),
+        success: true
       };
     } catch (err) {
       await this.signifyClient.boot();
@@ -41,7 +44,7 @@ class SignifyApi {
         await this.signifyClient.connect();
         this.started = true;
         return {
-          success: true,
+          success: true
         };
       } catch (e) {
         return {
@@ -133,6 +136,20 @@ class SignifyApi {
         error: new Error(
           `Resolving OOBI failed for URL: ${url}. \nError: ${e}`,
         ),
+      };
+    }
+  };
+
+  getAuthn = async (): Promise<ResponseData<Authenticater | null>> => {
+    try {
+      return {
+        success: true,
+        data: this.signifyClient.authn,
+      };
+    } catch (e) {
+      return {
+        success: false,
+        error: e,
       };
     }
   };

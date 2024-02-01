@@ -1,12 +1,11 @@
 import React from 'react';
 import govLogo from './assets/gov.png';
-import './App.css';
+import './App.scss';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function sendMessageToExtension(data: any) {
+function sendMessageToExtension(type: string, data: any) {
   window.postMessage(
     {
-      type: 'LOGIN_FROM_WEB',
+      type: type,
       data,
     },
     '*',
@@ -14,9 +13,27 @@ function sendMessageToExtension(data: any) {
 }
 
 const App = () => {
-  const handleLogin = async () => {
+  const handleCreateSession = async () => {
+    console.log('hey handleCreateSession');
     const enterpriseData = {};
-    sendMessageToExtension(enterpriseData);
+    sendMessageToExtension('LOGIN_FROM_WEB', enterpriseData);
+  };
+  const handleFetch = async () => {
+    console.log('hey handleFetch');
+    const headers = {
+      'Content-Type': 'application/json',
+      PUBLIC_AID: 'value',
+    };
+
+    const request = {
+      data: {
+        url: 'http://localhost:3001',
+        headers,
+        method: 'GET',
+        query: '',
+      },
+    };
+    sendMessageToExtension('HANDLE_FETCH', request);
   };
   return (
     <>
@@ -24,9 +41,12 @@ const App = () => {
         <img src={govLogo} className="logo" alt="Vite logo" />
       </div>
       <h1>Web app</h1>
-      <div className="card">
-        <button className="login-button" onClick={() => handleLogin()}>
-          <span>Login</span>
+      <div className="buttonsContainer">
+        <button className="button" onClick={() => handleCreateSession()}>
+          Init session
+        </button>
+        <button className="button" onClick={() => handleFetch()}>
+          Fetch
         </button>
       </div>
     </>
