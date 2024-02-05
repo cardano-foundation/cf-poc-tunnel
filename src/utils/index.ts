@@ -1,6 +1,8 @@
 import { uid } from 'uid';
-import { canonicalize } from 'json-canonicalize';
 
+type Header = {
+  [key: string]: any;
+};
 const isExpired = (date: string): boolean => {
   const dateObj = new Date(date);
   const currentDate = new Date();
@@ -54,10 +56,28 @@ const shortenText = (text: string, maxLength = 10) => {
   }
 };
 
+const serializeHeaders = (headers: Headers) => {
+  const headersObj:Header = {};
+  for (const [key, value] of headers.entries()) {
+    headersObj[key] = value;
+  }
+  return headersObj;
+}
+
+const parseHeaders = (serializedHeaders:Header) => {
+  const headers = new Headers();
+  for (const [key, value] of Object.entries(serializedHeaders)) {
+    headers.append(key, value);
+  }
+  return headers;
+}
+
 export {
   isExpired,
   getCurrentDate,
   generateAID,
   convertURLImageToBase64,
-  shortenText
+  shortenText,
+  serializeHeaders,
+  parseHeaders
 };

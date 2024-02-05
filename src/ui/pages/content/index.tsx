@@ -1,10 +1,11 @@
 window.addEventListener('message', (event) => {
   console.log('event.data');
+  console.log(event);
   console.log(event.data);
   chrome.runtime.sendMessage(event.data, (response) => {
-    if (response === 'OK') {
-      window.alert('Session request sent to the extension');
-    }
+    console.log('response');
+    console.log(response);
+
   });
 });
 

@@ -1,9 +1,6 @@
 import { uid } from 'uid';
 import { SignifyApi } from '@src/core/modules/signifyApi';
-import {
-  convertURLImageToBase64,
-  isExpired,
-} from '@src/utils';
+import {convertURLImageToBase64, isExpired, serializeHeaders} from '@src/utils';
 import { Logger } from '@src/utils/logger';
 
 const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
@@ -123,23 +120,29 @@ chrome.runtime.onInstalled.addListener(async () => {
   await logger.addLog(`✅ Signify initialized successfully`);
 });
 
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-  const pksAreWiped = await arePKsWiped();
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  processMessage(request).then((response)=> sendResponse(response));
+  return true;
+});
+
+async function processMessage(message) {
 
   switch (message.type) {
     case 'LOGIN_FROM_WEB': {
       const sessions = await chrome.storage.local.get(['sessions']);
 
       const tab = await getCurrentTab();
-      let hostname = (new URL(tab.url)).hostname;
-      const port = (new URL(tab.url)).port;
-      if (port.length){
-        hostname = `${hostname}:${port}`
+      let hostname = new URL(tab.url).hostname;
+      const port = new URL(tab.url).port;
+      if (port.length) {
+        hostname = `${hostname}:${port}`;
       }
+      hostname = hostname.replace(':','-');
       const logo = await convertURLImageToBase64(tab.favIconUrl);
 
       await logger.addLog(
-        `⏳ Hostname ${hostname} is trying to create a new session`,
+          `⏳ Hostname ${hostname} is trying to create a new session`,
       );
 
       try {
@@ -152,13 +155,17 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         response = await response.json();
         const oobiUrl = response.oobis[0];
         await logger.addLog(`⏳ Resolving OOBI URL...`);
+
         const resolvedOOBI = await signifyApi.resolveOOBI(oobiUrl);
+
         await logger.addLog(`✅ OOBI resolved successfully`);
 
         if (resolvedOOBI.success) {
           try {
             await signifyApi.createIdentifier(hostname);
-            await logger.addLog(`✅ AID created successfully with name ${hostname}`);
+            await logger.addLog(
+                `✅ AID created successfully with name ${hostname}`,
+            );
 
             const newSession = {
               id: uid(24),
@@ -177,73 +184,50 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
             await logger.addLog(
                 `✅ New session stored in db: ${JSON.stringify(ss)}`,
             );
-            sendResponse({ success: true });
+            return { success: true }
           } catch (e) {
             await logger.addLog(
                 `❌ Error trying to create an AID with name: ${hostname}`,
             );
+            return { success: false }
           }
         } else {
           await logger.addLog(
-              `❌ Error getting OOBI URL from server: ${SERVER_ENDPOINT}/oobi`,
+              `❌ Error while resolving the OOBI URL from server: ${SERVER_ENDPOINT}/oobi`,
           );
-          sendResponse({ success: false });
+          return { success: false }
         }
       } catch (e) {
         await logger.addLog(
-          `❌ Error getting OOBI URL from server: ${SERVER_ENDPOINT}/oobi`,
+            `❌ Error getting OOBI URL from server: ${SERVER_ENDPOINT}/oobi`,
         );
+        return { success: false }
       }
-
-      break;
     }
-    case 'SET_PRIVATE_KEY': {
-      const name = `${message.data.name}`;
-      const aid = await signifyApi.createIdentifier(name);
-
-      if (aid.success) {
-        await logger.addLog(`✅ AID created successfully`);
-        sendResponse({ success: true, data: aid.data });
-      } else {
-        await logger.addLog(aid.error);
-        sendResponse({ success: false, error: aid.error });
-      }
-      if (pksAreWiped) {
-        await handleWipedPks();
-      }
-      break;
-    }
-    case 'DELETE_PRIVATE_KEY':
-      delete privateKeys[message.data.pubKey];
-      break;
     case 'HANDLE_FETCH': {
-      console.log('HANDLE_FETCH: message');
-      console.log(message);
-      const dataToSign = message.data;
-      console.log('dataToSign');
-      console.log(dataToSign);
-
       try {
+        const dataToSign = message.data;
         const authn = await signifyApi.getAuthn();
-        console.log('authn');
-        console.log(authn);
         if (authn.success) {
           const url = dataToSign.data.url;
           const method = dataToSign.data.method;
           const headers = new Headers(dataToSign.data.headers);
           const tab = await getCurrentTab();
-          let hostname = (new URL(tab.url)).hostname;
-          const port = (new URL(tab.url)).port;
-          if (port.length){
-            hostname = `${hostname}:${port}`
+          let hostname = new URL(tab.url).hostname;
+          const port = new URL(tab.url).port;
+          if (port.length) {
+            hostname = `${hostname}:${port}`;
           }
-          const ephemeralAID = await signifyApi.getIdentifierByName(hostname);
+          hostname = hostname.replace(':','-');
 
-          console.log('ephemeralAID');
-          console.log(ephemeralAID);
+          const ephemeralAID = await signifyApi.getIdentifierByName(hostname);;
 
           if (ephemeralAID.success) {
-            headers.set('Signify-Resource', ephemeralAID.data.prefix);
+            headers.set('signify-resource', ephemeralAID.data.prefix);
+
+            await logger.addLog(
+                `✅ Ephemeral AID added to headers: ${ephemeralAID.data.prefix}`,
+            );
 
             try {
               const signedHeaders = authn.data?.sign(
@@ -252,35 +236,44 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                   new URL(url).pathname,
               );
 
-              console.log('signedHeaders');
-              console.log(signedHeaders);
+              await logger.addLog(
+                  `✅ Headers signed successfully: ${ephemeralAID.data.prefix}`,
+              );
+
+              if (signedHeaders) {
+                const serializedHeaders = serializeHeaders(signedHeaders);
+
+                await logger.addLog(
+                    `✅ Signed headers sent to the content script. Headers: ${JSON.stringify(serializedHeaders)}`,
+                );
+                return { success: true, data: {signedHeaders: serializedHeaders}}
+              }
             } catch (e) {
               await logger.addLog(
                   `❌ Error while signing.. headers: ${hostname}, method: ${method}, pathname: ${
                       new URL(url).pathname
-                  }`,
+                  }. Error: ${e}`,
               );
+              return { success: false };
             }
           } else {
             await logger.addLog(
-                `❌ Error getting ephemeral AID with name: ${hostname}`,
+                `❌ Error getting ephemeral AID with name: ${hostname}. Error: ${ephemeralAID.error}`,
             );
+            return { success: false };
           }
         } else {
           await logger.addLog(`❌ Error getting authn from signifyClient`);
+          return { success: false };
         }
-
       } catch (e) {
         await logger.addLog(
             `❌ Error getting Authenticater from signifyApi. Error: ${e}`,
         );
+        return { success: false };
       }
-
-      break;
     }
   }
-
-  return true;
-});
+}
 
 export { expirationTime };

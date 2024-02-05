@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import govLogo from './assets/gov.png';
 import './App.scss';
 
@@ -13,6 +13,15 @@ function sendMessageToExtension(type: string, data: any) {
 }
 
 const App = () => {
+
+  useEffect(() => {
+    window.addEventListener('signedHeadersEvent', (e) => {
+      const signedHeaders = e.detail;
+      console.log('signedHeaders in web');
+      console.log(signedHeaders);
+    });
+  });
+
   const handleCreateSession = async () => {
     console.log('hey handleCreateSession');
     const enterpriseData = {};
