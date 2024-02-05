@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import govLogo from './assets/gov.png';
 import './App.scss';
 
@@ -14,30 +14,32 @@ function sendMessageToExtension(type: string, data: any) {
 
 const App = () => {
 
+  const [headersToSign, setHeadersToSign] = useState({
+    'Content-Type': 'application/json',
+    PUBLIC_AID: 'value',
+  });
+  const [signedHeaders, setSignedHeaders] = useState({});
   useEffect(() => {
-    window.addEventListener('signedHeadersEvent', (e) => {
-      const signedHeaders = e.detail;
-      console.log('signedHeaders in web');
-      console.log(signedHeaders);
+    window.addEventListener('message', (e) => {
+      const hostname = (new URL(e.origin)).hostname;
+      if (hostname === window.location.hostname){
+        const message = e.data;
+        if (message !== null && message?.type === 'SIGNED_HEADERS'){
+          setSignedHeaders(message.data.signedHeaders);
+        }
+      }
     });
   });
 
   const handleCreateSession = async () => {
-    console.log('hey handleCreateSession');
     const enterpriseData = {};
     sendMessageToExtension('LOGIN_FROM_WEB', enterpriseData);
   };
   const handleFetch = async () => {
-    console.log('hey handleFetch');
-    const headers = {
-      'Content-Type': 'application/json',
-      PUBLIC_AID: 'value',
-    };
-
     const request = {
       data: {
         url: 'http://localhost:3001',
-        headers,
+        headers: headersToSign,
         method: 'GET',
         query: '',
       },
@@ -52,11 +54,20 @@ const App = () => {
       <h1>Web app</h1>
       <div className="buttonsContainer">
         <button className="button" onClick={() => handleCreateSession()}>
-          Init session
+          1. Init session
         </button>
+        <div className='separator'/>
         <button className="button" onClick={() => handleFetch()}>
-          Fetch
+          2. Sign Headers
         </button>
+      </div>
+      <div>
+        {Object.keys(signedHeaders).length ? <>
+          <h3>Signed Headers</h3>
+          <div className="jsonDisplay">
+            <pre>{JSON.stringify(signedHeaders, null, 2)}</pre>
+          </div>
+        </> : null}
       </div>
     </>
   );

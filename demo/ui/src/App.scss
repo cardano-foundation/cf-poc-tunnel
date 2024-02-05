@@ -39,6 +39,26 @@
   }
 }
 
+.separator {
+  height: 5px;
+  width: 400px;
+  border-radius: 50px;
+  margin: 20px;
+  background-color: whitesmoke;
+}
+.jsonDisplay  {
+  margin: 10px;
+  max-width: 600px;
+  padding: 20px;
+  border-radius: 20px;
+  background-color: #007bff;
+  pre {
+    text-align: left;
+    overflow-x: auto;
+  }
+}
+
+
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);

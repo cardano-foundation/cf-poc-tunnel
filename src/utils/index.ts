@@ -57,20 +57,20 @@ const shortenText = (text: string, maxLength = 10) => {
 };
 
 const serializeHeaders = (headers: Headers) => {
-  const headersObj:Header = {};
+  const headersObj: Header = {};
   for (const [key, value] of headers.entries()) {
     headersObj[key] = value;
   }
   return headersObj;
-}
+};
 
-const parseHeaders = (serializedHeaders:Header) => {
+const parseHeaders = (serializedHeaders: Header) => {
   const headers = new Headers();
   for (const [key, value] of Object.entries(serializedHeaders)) {
     headers.append(key, value);
   }
   return headers;
-}
+};
 
 export {
   isExpired,
@@ -79,5 +79,5 @@ export {
   convertURLImageToBase64,
   shortenText,
   serializeHeaders,
-  parseHeaders
+  parseHeaders,
 };

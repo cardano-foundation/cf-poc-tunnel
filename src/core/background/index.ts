@@ -1,6 +1,10 @@
 import { uid } from 'uid';
 import { SignifyApi } from '@src/core/modules/signifyApi';
-import {convertURLImageToBase64, isExpired, serializeHeaders} from '@src/utils';
+import {
+  convertURLImageToBase64,
+  isExpired,
+  serializeHeaders,
+} from '@src/utils';
 import { Logger } from '@src/utils/logger';
 
 const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
@@ -63,47 +67,6 @@ const checkSignify = async (): Promise<void> => {
   }
 };
 
-const arePKsWiped = async (): Promise<boolean> => {
-  try {
-    const result = await new Promise((resolve, reject) => {
-      chrome.storage.local.get(['sessions'], function (data) {
-        if (chrome.runtime.lastError) {
-          reject(chrome.runtime.lastError);
-        } else {
-          resolve(data);
-        }
-      });
-    });
-
-    if (!result.sessions) {
-      return true;
-    }
-
-    return !result.sessions
-      .filter(
-        (session) =>
-          session.expiryDate.length && !isExpired(session.expiryDate),
-      )
-      .every((session) => {
-        return Object.keys(privateKeys).includes(session.personalPubeid);
-      });
-  } catch (error) {
-    console.error('Error checking memory:', error);
-    return true;
-  }
-};
-
-const handleWipedPks = async (): Promise<void> => {
-  // Start process to get the private keys from the mobile
-  chrome.storage.local.get(['sessions'], function (result) {
-    const activeSessions = result.sessions.filter((session) => {
-      if (!session.expiryDate || session.expiryDate.length === 0) return false;
-      return !isExpired(session.expiryDate);
-    });
-    // TODO: ask to Keria to get all activeSessions (privKeys)
-  });
-};
-
 async function getCurrentTab() {
   const queryOptions = { active: true, currentWindow: true };
   const [tab] = await chrome.tabs.query(queryOptions);
@@ -120,14 +83,12 @@ chrome.runtime.onInstalled.addListener(async () => {
   await logger.addLog(`✅ Signify initialized successfully`);
 });
 
-
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  processMessage(request).then((response)=> sendResponse(response));
+  processMessage(request).then((response) => sendResponse(response));
   return true;
 });
 
 async function processMessage(message) {
-
   switch (message.type) {
     case 'LOGIN_FROM_WEB': {
       const sessions = await chrome.storage.local.get(['sessions']);
@@ -138,11 +99,11 @@ async function processMessage(message) {
       if (port.length) {
         hostname = `${hostname}:${port}`;
       }
-      hostname = hostname.replace(':','-');
+      hostname = hostname.replace(':', '-');
       const logo = await convertURLImageToBase64(tab.favIconUrl);
 
       await logger.addLog(
-          `⏳ Hostname ${hostname} is trying to create a new session`,
+        `⏳ Hostname ${hostname} is trying to create a new session`,
       );
 
       try {
@@ -164,7 +125,7 @@ async function processMessage(message) {
           try {
             await signifyApi.createIdentifier(hostname);
             await logger.addLog(
-                `✅ AID created successfully with name ${hostname}`,
+              `✅ AID created successfully with name ${hostname}`,
             );
 
             const newSession = {
@@ -182,26 +143,26 @@ async function processMessage(message) {
             await chrome.storage.local.set({ sessions: ss });
 
             await logger.addLog(
-                `✅ New session stored in db: ${JSON.stringify(ss)}`,
+              `✅ New session stored in db: ${JSON.stringify(ss)}`,
             );
-            return { success: true }
+            return { success: true };
           } catch (e) {
             await logger.addLog(
-                `❌ Error trying to create an AID with name: ${hostname}`,
+              `❌ Error trying to create an AID with name: ${hostname}`,
             );
-            return { success: false }
+            return { success: false };
           }
         } else {
           await logger.addLog(
-              `❌ Error while resolving the OOBI URL from server: ${SERVER_ENDPOINT}/oobi`,
+            `❌ Error while resolving the OOBI URL from server: ${SERVER_ENDPOINT}/oobi`,
           );
-          return { success: false }
+          return { success: false };
         }
       } catch (e) {
         await logger.addLog(
-            `❌ Error getting OOBI URL from server: ${SERVER_ENDPOINT}/oobi`,
+          `❌ Error getting OOBI URL from server: ${SERVER_ENDPOINT}/oobi`,
         );
-        return { success: false }
+        return { success: false };
       }
     }
     case 'HANDLE_FETCH': {
@@ -218,59 +179,68 @@ async function processMessage(message) {
           if (port.length) {
             hostname = `${hostname}:${port}`;
           }
-          hostname = hostname.replace(':','-');
+          hostname = hostname.replace(':', '-');
 
-          const ephemeralAID = await signifyApi.getIdentifierByName(hostname);;
+          const ephemeralAID = await signifyApi.getIdentifierByName(hostname);
 
           if (ephemeralAID.success) {
             headers.set('signify-resource', ephemeralAID.data.prefix);
 
             await logger.addLog(
-                `✅ Ephemeral AID added to headers: ${ephemeralAID.data.prefix}`,
+              `✅ Ephemeral AID added to headers: ${ephemeralAID.data.prefix}`,
             );
 
             try {
               const signedHeaders = authn.data?.sign(
-                  headers,
-                  method,
-                  new URL(url).pathname,
+                headers,
+                method,
+                new URL(url).pathname,
               );
 
               await logger.addLog(
-                  `✅ Headers signed successfully: ${ephemeralAID.data.prefix}`,
+                `✅ Headers signed successfully: ${ephemeralAID.data.prefix}`,
               );
 
               if (signedHeaders) {
                 const serializedHeaders = serializeHeaders(signedHeaders);
 
                 await logger.addLog(
-                    `✅ Signed headers sent to the content script. Headers: ${JSON.stringify(serializedHeaders)}`,
+                  `✅ Signed headers sent to the content script. Headers: ${JSON.stringify(
+                    serializedHeaders,
+                  )}`,
                 );
-                return { success: true, data: {signedHeaders: serializedHeaders}}
+
+                return {
+                  success: true,
+                  type: 'SIGNED_HEADERS',
+                  data: {
+                    signedHeaders: serializedHeaders,
+                  },
+                };
               }
             } catch (e) {
               await logger.addLog(
-                  `❌ Error while signing.. headers: ${hostname}, method: ${method}, pathname: ${
-                      new URL(url).pathname
-                  }. Error: ${e}`,
+                `❌ Error while signing.. headers: ${hostname}, method: ${method}, pathname: ${
+                  new URL(url).pathname
+                }. Error: ${e}`,
               );
-              return { success: false };
+              return { success: false, type: 'SIGNED_HEADERS' };
             }
           } else {
             await logger.addLog(
-                `❌ Error getting ephemeral AID with name: ${hostname}. Error: ${ephemeralAID.error}`,
+              `❌ Error getting ephemeral AID with name: ${hostname}. Error: ${ephemeralAID.error}`,
             );
-            return { success: false };
+            return { success: false, type: 'SIGNED_HEADERS' };
           }
         } else {
           await logger.addLog(`❌ Error getting authn from signifyClient`);
-          return { success: false };
+          return { success: false, type: 'SIGNED_HEADERS' };
         }
       } catch (e) {
         await logger.addLog(
-            `❌ Error getting Authenticater from signifyApi. Error: ${e}`,
+          `❌ Error getting Authenticater from signifyApi. Error: ${e}`,
         );
-        return { success: false };
+        return { success: false, type: 'SIGNED_HEADERS' };
       }
     }
   }
