@@ -145,24 +145,24 @@ async function processMessage(message) {
             await logger.addLog(
               `✅ New session stored in db: ${JSON.stringify(ss)}`,
             );
-            return { success: true };
+            return { success: true, type: 'SESSION_CREATED' };
           } catch (e) {
             await logger.addLog(
               `❌ Error trying to create an AID with name: ${hostname}`,
             );
-            return { success: false };
+            return { success: false, type: 'SESSION_CREATED' };
           }
         } else {
           await logger.addLog(
             `❌ Error while resolving the OOBI URL from server: ${SERVER_ENDPOINT}/oobi`,
           );
-          return { success: false };
+          return { success: false, type: 'SESSION_CREATED' };
         }
       } catch (e) {
         await logger.addLog(
           `❌ Error getting OOBI URL from server: ${SERVER_ENDPOINT}/oobi`,
         );
-        return { success: false };
+        return { success: false, type: 'SESSION_CREATED' };
       }
     }
     case 'HANDLE_FETCH': {
@@ -187,7 +187,7 @@ async function processMessage(message) {
             headers.set('signify-resource', ephemeralAID.data.prefix);
 
             await logger.addLog(
-              `✅ Ephemeral AID added to headers: ${ephemeralAID.data.prefix}`,
+              `✅ Ephemeral AID added to headers: ${JSON.stringify({'signify-resource': ephemeralAID.data.prefix})}`,
             );
 
             try {
@@ -198,14 +198,14 @@ async function processMessage(message) {
               );
 
               await logger.addLog(
-                `✅ Headers signed successfully: ${ephemeralAID.data.prefix}`,
+                `✍️ Headers signed successfully by ephemeral AID: ${ephemeralAID.data.prefix}`,
               );
 
               if (signedHeaders) {
                 const serializedHeaders = serializeHeaders(signedHeaders);
 
                 await logger.addLog(
-                  `✅ Signed headers sent to the content script. Headers: ${JSON.stringify(
+                  `📤 Signed headers sent to the content script. Headers: ${JSON.stringify(
                     serializedHeaders,
                   )}`,
                 );

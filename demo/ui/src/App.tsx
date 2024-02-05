@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import govLogo from './assets/gov.png';
 import './App.scss';
 
@@ -13,19 +13,28 @@ function sendMessageToExtension(type: string, data: any) {
 }
 
 const App = () => {
-
-  const [headersToSign, setHeadersToSign] = useState({
+  const [headersToSign] = useState({
     'Content-Type': 'application/json',
     PUBLIC_AID: 'value',
   });
+  const [sessionCreated, setSessionCreated] = useState(false);
   const [signedHeaders, setSignedHeaders] = useState({});
   useEffect(() => {
     window.addEventListener('message', (e) => {
-      const hostname = (new URL(e.origin)).hostname;
-      if (hostname === window.location.hostname){
+      const hostname = new URL(e.origin).hostname;
+      if (hostname === window.location.hostname) {
         const message = e.data;
-        if (message !== null && message?.type === 'SIGNED_HEADERS'){
-          setSignedHeaders(message.data.signedHeaders);
+        if (message !== null && message?.type) {
+          switch (message?.type) {
+            case 'SIGNED_HEADERS': {
+              setSignedHeaders(message.data.signedHeaders);
+              break;
+            }
+            case 'SESSION_CREATED': {
+              setSessionCreated(true);
+              break;
+            }
+          }
         }
       }
     });
@@ -54,21 +63,31 @@ const App = () => {
       <h1>Web app</h1>
       <div className="buttonsContainer">
         <button className="button" onClick={() => handleCreateSession()}>
-          1. Init session
+          1. Init session {sessionCreated ? '✅' : null}
         </button>
-        <div className='separator'/>
-        <button className="button" onClick={() => handleFetch()}>
-          2. Sign Headers
-        </button>
+        {sessionCreated ? (
+          <>
+            <button className="button" onClick={() => handleFetch()}>
+              2. Sign Headers {Object.keys(signedHeaders).length ? '✅' : null}
+            </button>
+          </>
+        ) : null}
       </div>
-      <div>
-        {Object.keys(signedHeaders).length ? <>
-          <h3>Signed Headers</h3>
-          <div className="jsonDisplay">
-            <pre>{JSON.stringify(signedHeaders, null, 2)}</pre>
-          </div>
-        </> : null}
-      </div>
+      {sessionCreated ? (
+        <>
+          {' '}
+          <div>
+            {Object.keys(signedHeaders).length ? (
+              <>
+                <h3>Signed Headers</h3>
+                <div className="jsonDisplay">
+                  <pre>{JSON.stringify(signedHeaders, null, 2)}</pre>
+                </div>
+              </>
+            ) : null}
+          </div>{' '}
+        </>
+      ) : null}
     </>
   );
 };
