@@ -205,7 +205,7 @@ async function processMessage(message) {
                 const serializedHeaders = serializeHeaders(signedHeaders);
 
                 await logger.addLog(
-                  `📤 Signed headers sent to the content script. Headers: ${JSON.stringify(
+                  `📤 Signed headers sent to the website. Headers: ${JSON.stringify(
                     serializedHeaders,
                   )}`,
                 );
