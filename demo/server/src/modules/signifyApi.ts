@@ -211,3 +211,16 @@ export const getServerSignifyController = async (): Promise<Controller> => {
   const client = await getSignifyClient();
   return client.controller;
 }
+
+export const getExchangesBySaid = async (said: string) => {
+  const client = await getSignifyClient();
+  const exchanges = await client.exchanges().get(said);
+  // const exchanges = await client.groups().getRequest(said)
+  return exchanges;
+}
+
+export const getCredentials = async () => {
+  const client = await getSignifyClient();
+  const credentials = await client.credentials().list();
+  return credentials;
+}

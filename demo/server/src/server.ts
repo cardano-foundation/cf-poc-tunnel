@@ -5,11 +5,18 @@ import { config } from './config';
 import router from './routes';
 import { log } from './log';
 import { initKeri, initSignify } from './modules/signifyApi';
+import session from 'express-session';
 
 const signifyName = config.signifyName;
 log({ signifyName });
 async function startServer() {
   const app = express();
+  // Use the session middleware
+  app.use(session({
+    secret: 'your-secret-key', // Change this to a strong, secure secret
+    resave: false,
+    saveUninitialized: true,
+  }));
   app.use('/static', express.static('static'));
   app.use(cors());
   app.use(bodyParser.json());

@@ -7,11 +7,13 @@ const keriaUrl = process.env.KERIA_URL as string;
 const keriaBootUrl = process.env.KERIA_BOOT_URL as string;
 const bran = process.env.BRAN as string;
 const signifyName = process.env.SIGNIFY_NAME as string;
+const sessionSecret = process.env.SESSION_SECRET;
 
 const config = {
   endpoint: endpoint,
   endpoints: [endpoint],
   port,
+  sessionSecret,
   keriaUrl,
   keriaBootUrl,
   bran,
@@ -22,7 +24,8 @@ const config = {
     resolveOOBI: "/resolve-oobi",
     schema: "/oobi/:id",
     disclosureAcdc: "/disclosure-acdc",
-    acdcRequirements: "/acdc-requirements"
+    acdcRequirements: "/acdc-requirements",
+    handleReqGrant: "/handle-req-grant/:said"
   },
   domainSchemaSaid : 'EGjD1gCLi9ecZSZp9zevkgZGyEX_MbOdmhBFt4o0wvdb',
   qviSchemaSaid: 'EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao',
