@@ -2,6 +2,10 @@ import React, { useEffect, useState } from 'react';
 import govLogo from './assets/gov.png';
 import './App.scss';
 
+type Header = {
+  [key: string]: any;
+};
+
 function sendMessageToExtension(type: string, data: any) {
   window.postMessage(
     {
@@ -42,7 +46,7 @@ const App = () => {
 
   const handleCreateSession = async () => {
     const enterpriseData = {};
-    sendMessageToExtension('LOGIN_FROM_WEB', enterpriseData);
+    sendMessageToExtension('CREATE_SESSION', enterpriseData);
   };
   const handleFetch = async () => {
     const request = {
@@ -51,9 +55,10 @@ const App = () => {
         headers: headersToSign,
         method: 'GET',
         query: '',
+        body: {},
       },
     };
-    sendMessageToExtension('HANDLE_FETCH', request);
+    sendMessageToExtension('SIGN_HEADERS', request);
   };
   return (
     <>

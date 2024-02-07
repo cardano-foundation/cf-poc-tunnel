@@ -72,7 +72,7 @@ function Connect() {
           )}
         </div>
         <p>
-          <strong>Portal: </strong> {session.name}
+          <strong>Portal: </strong> {session.name.replace('-',':')}
         </p>
         <p>
           <strong>Server Public eAID: </strong>

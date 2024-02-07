@@ -1,15 +1,12 @@
 import { uid } from 'uid';
 import { SignifyApi } from '@src/core/modules/signifyApi';
-import {
-  convertURLImageToBase64,
-  isExpired,
-  serializeHeaders,
-} from '@src/utils';
+import { convertURLImageToBase64, serializeHeaders } from '@src/utils';
 import { Logger } from '@src/utils/logger';
+import { Authenticater } from 'signify-ts';
+import { ResponseData } from '@src/core/modules/signifyApi.types';;
 
 const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
 const expirationTime = 1800000; // 30 min
-const privateKeys: { [pubKey: string]: any } = {};
 const signifyApi: SignifyApi = new SignifyApi();
 const logger = new Logger();
 
@@ -66,12 +63,94 @@ const checkSignify = async (): Promise<void> => {
     await signifyApi.start();
   }
 };
-
-async function getCurrentTab() {
+const getCurrentTabDetails = async (): Promise<{
+  hostname: string;
+  port: string;
+  pathname: string;
+  favIconUrl: string;
+}> => {
   const queryOptions = { active: true, currentWindow: true };
   const [tab] = await chrome.tabs.query(queryOptions);
-  return tab;
-}
+  const hostname = (new URL(tab.url)).hostname;
+  const port = (new URL(tab.url)).port;
+  const pathname = (new URL(tab.url)).pathname;
+  const favIconUrl = tab.favIconUrl || '';
+
+  return {
+    hostname,
+    port,
+    pathname,
+    favIconUrl
+  };
+};
+
+const signHeaders = async (
+  path: string,
+  method: string,
+  originalHeaders: any,
+  aidName: string,
+): Promise<ResponseData<Headers>> => {
+  try {
+    const ephemeralAID = await signifyApi.getIdentifierByName(aidName);
+
+    const signer = (await signifyApi.getSigner(ephemeralAID.data)).data;
+
+    const authenticator = new Authenticater(
+      signer.signers[0],
+      signer.signers[0].verfer,
+    );
+
+    if (ephemeralAID.success) {
+      const headers = new Headers(originalHeaders);
+
+      headers.set('signify-resource', ephemeralAID.data.prefix);
+      await logger.addLog(
+          `✅ Ephemeral AID added to headers: ${JSON.stringify({
+            'signify-resource': ephemeralAID.data.prefix,
+          })}`,
+      );
+
+      const timestamp = new Date().toISOString().replace('Z', '000+00:00');
+      headers.set(
+        'signify-timestamp',
+          timestamp,
+      );
+      await logger.addLog(
+          `✅ Timestamp added to headers: ${JSON.stringify({
+            'signify-timestamp': timestamp,
+          })}`,
+      );
+
+      try {
+        const signedHeaders = authenticator.sign(headers, method, path);
+
+        await logger.addLog(
+          `✍️ Headers signed successfully by ephemeral AID: ${ephemeralAID.data.prefix}`,
+        );
+
+        return {
+          success: true,
+          data: signedHeaders
+        };
+      } catch (e) {
+        return {
+          success: false,
+          error: `Error while signing.. headers: ${aidName}, method: ${method}, pathname: ${path}. Error: ${e}`,
+        };
+      }
+    } else {
+      return {
+        success: false,
+        error: `Error getting ephemeral AID with name: ${aidName}. Error: ${ephemeralAID.error}`,
+      };
+    }
+  } catch (e) {
+    return {
+      success: false,
+      error: e,
+    };
+  }
+};
 
 chrome.runtime.onInstalled.addListener(async () => {
   await logger.addLog(`✅ Extension successfully installed!`);
@@ -90,17 +169,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 async function processMessage(message) {
   switch (message.type) {
-    case 'LOGIN_FROM_WEB': {
+    case 'CREATE_SESSION': {
       const sessions = await chrome.storage.local.get(['sessions']);
 
-      const tab = await getCurrentTab();
-      let hostname = new URL(tab.url).hostname;
-      const port = new URL(tab.url).port;
+      let { hostname, port, favIconUrl } = await getCurrentTabDetails();
       if (port.length) {
         hostname = `${hostname}:${port}`;
       }
       hostname = hostname.replace(':', '-');
-      const logo = await convertURLImageToBase64(tab.favIconUrl);
+      const logo = await convertURLImageToBase64(favIconUrl);
 
       await logger.addLog(
         `⏳ Hostname ${hostname} is trying to create a new session`,
@@ -134,7 +211,6 @@ async function processMessage(message) {
               expiryDate: '',
               name: hostname,
               logo,
-              icon: tab.favIconUrl,
               oobi: resolvedOOBI?.data,
             };
 
@@ -165,80 +241,45 @@ async function processMessage(message) {
         return { success: false, type: 'SESSION_CREATED' };
       }
     }
-    case 'HANDLE_FETCH': {
-      try {
-        const dataToSign = message.data;
-        const authn = await signifyApi.getAuthn();
-        if (authn.success) {
-          const url = dataToSign.data.url;
-          const method = dataToSign.data.method;
-          const headers = new Headers(dataToSign.data.headers);
-          const tab = await getCurrentTab();
-          let hostname = new URL(tab.url).hostname;
-          const port = new URL(tab.url).port;
-          if (port.length) {
-            hostname = `${hostname}:${port}`;
-          }
-          hostname = hostname.replace(':', '-');
+    case 'SIGN_HEADERS': {
+      const dataToSign = message.data;
 
-          const ephemeralAID = await signifyApi.getIdentifierByName(hostname);
+      const url = dataToSign.data.url;
+      const method = dataToSign.data.method;
+      const headers = new Headers(dataToSign.data.headers);
 
-          if (ephemeralAID.success) {
-            headers.set('signify-resource', ephemeralAID.data.prefix);
+      let { hostname, port, pathname } = await getCurrentTabDetails();
 
-            await logger.addLog(
-              `✅ Ephemeral AID added to headers: ${JSON.stringify({'signify-resource': ephemeralAID.data.prefix})}`,
-            );
+      if (port.length) {
+        hostname = `${hostname}:${port}`;
+      }
+      hostname = hostname.replace(':', '-');
 
-            try {
-              const signedHeaders = authn.data?.sign(
-                headers,
-                method,
-                new URL(url).pathname,
-              );
+      const signedHeaders = await signHeaders(
+        pathname,
+        method,
+        headers,
+        hostname
+      );
 
-              await logger.addLog(
-                `✍️ Headers signed successfully by ephemeral AID: ${ephemeralAID.data.prefix}`,
-              );
-
-              if (signedHeaders) {
-                const serializedHeaders = serializeHeaders(signedHeaders);
-
-                await logger.addLog(
-                  `📤 Signed headers sent to the website. Headers: ${JSON.stringify(
-                    serializedHeaders,
-                  )}`,
-                );
-
-                return {
-                  success: true,
-                  type: 'SIGNED_HEADERS',
-                  data: {
-                    signedHeaders: serializedHeaders,
-                  },
-                };
-              }
-            } catch (e) {
-              await logger.addLog(
-                `❌ Error while signing.. headers: ${hostname}, method: ${method}, pathname: ${
-                  new URL(url).pathname
-                }. Error: ${e}`,
-              );
-              return { success: false, type: 'SIGNED_HEADERS' };
-            }
-          } else {
-            await logger.addLog(
-              `❌ Error getting ephemeral AID with name: ${hostname}. Error: ${ephemeralAID.error}`,
-            );
-            return { success: false, type: 'SIGNED_HEADERS' };
-          }
-        } else {
-          await logger.addLog(`❌ Error getting authn from signifyClient`);
-          return { success: false, type: 'SIGNED_HEADERS' };
-        }
-      } catch (e) {
+      if (signedHeaders.success) {
         await logger.addLog(
-          `❌ Error getting Authenticater from signifyApi. Error: ${e}`,
+            `📤 Signed headers sent to the website. Headers: ${JSON.stringify(
+                serializeHeaders(signedHeaders.data)
+            )}`,
+        );
+        return {
+          success: true,
+          type: 'SIGNED_HEADERS',
+          data: {
+            signedHeaders: serializeHeaders(signedHeaders.data)
+          },
+        };
+      } else {
+        await logger.addLog(
+          `❌ Error while signing.. headers: ${hostname}, method: ${method}, pathname: ${
+            new URL(url).pathname
+          }. Error: ${signedHeaders.error}`,
         );
         return { success: false, type: 'SIGNED_HEADERS' };
       }

@@ -5,11 +5,8 @@ import {
   SignifyClient,
   Tier,
 } from 'signify-ts';
-import { Logger } from '@src/utils/logger';
 import { Aid, ResponseData } from '@src/core/modules/signifyApi.types';
 import { EventResult } from 'signify-ts/src/keri/app/aiding';
-
-const logger = new Logger();
 
 class SignifyApi {
   private signifyClient!: SignifyClient;
