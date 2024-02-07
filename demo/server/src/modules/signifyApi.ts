@@ -1,5 +1,12 @@
-import { Authenticater, Controller, Serder, SignifyClient, ready as signifyReady, Tier } from "signify-ts";
-import { Aid } from "../types/signifyApi.types";
+import {
+  Authenticater,
+  Controller,
+  Serder,
+  SignifyClient,
+  ready as signifyReady,
+  Tier,
+} from 'signify-ts';
+import { Aid } from '../types/signifyApi.types';
 import { config } from '../config';
 import { log } from '../log';
 import { v4 as uuidv4 } from 'uuid';
@@ -32,7 +39,7 @@ export const getSignifyClient = async () => {
   return signifyClient;
 };
 
-export const getIdentifierByName = async(name: string): Promise<Aid> => {
+export const getIdentifierByName = async (name: string): Promise<Aid> => {
   const identifier = await signifyClient.identifiers().get(name);
   return identifier;
 };
@@ -200,14 +207,14 @@ export const getSigner = async (aid: Aid) => {
   const client = await getSignifyClient();
   const signer = await client.manager?.get(aid);
   return signer;
-}
+};
 
-export const getServerAuthn = async (): Promise<Authenticater| null> => {
+export const getServerAuthn = async (): Promise<Authenticater | null> => {
   const client = await getSignifyClient();
   return client.authn;
-}
+};
 
 export const getServerSignifyController = async (): Promise<Controller> => {
   const client = await getSignifyClient();
   return client.controller;
-}
+};
