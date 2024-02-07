@@ -1,11 +1,11 @@
-import { uid } from 'uid';
-import { SignifyApi } from '@src/core/modules/signifyApi';
+import { uid } from "uid";
+import { SignifyApi } from "@src/core/modules/signifyApi";
 import {
   convertURLImageToBase64,
   extractHostname,
   isExpired,
-} from '@src/utils';
-import { Logger } from '@src/utils/logger';
+} from "@src/utils";
+import { Logger } from "@src/utils/logger";
 
 const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
 const expirationTime = 1800000; // 30 min
@@ -15,49 +15,49 @@ const logger = new Logger();
 
 const mockSessions = [
   {
-    id: '1',
-    name: 'voting-app.org',
-    expiryDate: '2014-04-05',
-    serverPubeid: 'JJBD4S...9S23',
-    personalPubeid: 'KO7G10D4S...1JS5',
-    oobi: 'http://ac2in...1JS5',
-    acdc: 'ACac2in...1JS5DC',
+    id: "1",
+    name: "voting-app.org",
+    expiryDate: "2014-04-05",
+    serverPubeid: "JJBD4S...9S23",
+    personalPubeid: "KO7G10D4S...1JS5",
+    oobi: "http://ac2in...1JS5",
+    acdc: "ACac2in...1JS5DC",
   },
   {
-    id: '2',
-    name: 'webapp.com',
-    expiryDate: '',
-    serverPubeid: 'JJBD4S...9S23',
-    personalPubeid: '',
-    oobi: 'http://ac2in...1JS5',
-    acdc: 'ACac2in...1JS5DC',
+    id: "2",
+    name: "webapp.com",
+    expiryDate: "",
+    serverPubeid: "JJBD4S...9S23",
+    personalPubeid: "",
+    oobi: "http://ac2in...1JS5",
+    acdc: "ACac2in...1JS5DC",
   },
   {
-    id: '3',
-    name: 'platform2.gov',
-    expiryDate: '2015-06-10',
-    serverPubeid: 'JJBD4S...9S23',
-    personalPubeid: 'KO7G10D4S...1JS5',
-    oobi: 'http://ac2in...1JS5',
-    acdc: 'ACac2in...1JS5DC',
+    id: "3",
+    name: "platform2.gov",
+    expiryDate: "2015-06-10",
+    serverPubeid: "JJBD4S...9S23",
+    personalPubeid: "KO7G10D4S...1JS5",
+    oobi: "http://ac2in...1JS5",
+    acdc: "ACac2in...1JS5DC",
   },
   {
-    id: '4',
-    name: 'platform3.gov',
-    serverPubeid: 'JJBD4S...9S23',
-    personalPubeid: 'KO7G10D4S...1JS5',
-    expiryDate: '2019-07-10',
-    oobi: 'http://ac2in...1JS5',
-    acdc: 'ACac2in...1JS5DC',
+    id: "4",
+    name: "platform3.gov",
+    serverPubeid: "JJBD4S...9S23",
+    personalPubeid: "KO7G10D4S...1JS5",
+    expiryDate: "2019-07-10",
+    oobi: "http://ac2in...1JS5",
+    acdc: "ACac2in...1JS5DC",
   },
   {
-    id: '5',
-    name: 'platform4.gov',
-    expiryDate: '',
-    serverPubeid: 'JJBD4S...9S23',
-    personalPubeid: '',
-    oobi: 'http://ac2in...1JS5',
-    acdc: 'ACac2in...1JS5DC',
+    id: "5",
+    name: "platform4.gov",
+    expiryDate: "",
+    serverPubeid: "JJBD4S...9S23",
+    personalPubeid: "",
+    oobi: "http://ac2in...1JS5",
+    acdc: "ACac2in...1JS5DC",
   },
 ];
 
@@ -70,7 +70,7 @@ const checkSignify = async (): Promise<void> => {
 const arePKsWiped = async (): Promise<boolean> => {
   try {
     const result = await new Promise((resolve, reject) => {
-      chrome.storage.local.get(['sessions'], function (data) {
+      chrome.storage.local.get(["sessions"], function (data) {
         if (chrome.runtime.lastError) {
           reject(chrome.runtime.lastError);
         } else {
@@ -92,14 +92,14 @@ const arePKsWiped = async (): Promise<boolean> => {
         return Object.keys(privateKeys).includes(session.personalPubeid);
       });
   } catch (error) {
-    console.error('Error checking memory:', error);
+    console.error("Error checking memory:", error);
     return true;
   }
 };
 
 const handleWipedPks = async (): Promise<void> => {
   // Start process to get the private keys from the mobile
-  chrome.storage.local.get(['sessions'], function (result) {
+  chrome.storage.local.get(["sessions"], function (result) {
     const activeSessions = result.sessions.filter((session) => {
       if (!session.expiryDate || session.expiryDate.length === 0) return false;
       return !isExpired(session.expiryDate);
@@ -127,8 +127,8 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   const pksAreWiped = await arePKsWiped();
 
   switch (message.type) {
-    case 'LOGIN_FROM_WEB': {
-      const sessions = await chrome.storage.local.get(['sessions']);
+    case "LOGIN_FROM_WEB": {
+      const sessions = await chrome.storage.local.get(["sessions"]);
 
       const tab = await getCurrentTab();
       const hostname = extractHostname(tab.url);
@@ -140,8 +140,8 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
       try {
         let response = await fetch(`${SERVER_ENDPOINT}/oobi`, {
-          method: 'GET',
-          redirect: 'follow',
+          method: "GET",
+          redirect: "follow",
         });
         await logger.addLog(`✅ OOBI URL from ${SERVER_ENDPOINT}/oobi`);
 
@@ -154,8 +154,8 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         if (resolvedOOBI.success) {
           const newSession = {
             id: uid(24),
-            personalPubeid: '',
-            expiryDate: '',
+            personalPubeid: "",
+            expiryDate: "",
             name: hostname,
             logo,
             icon: tab.favIconUrl,
@@ -182,7 +182,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
       break;
     }
-    case 'SET_PRIVATE_KEY': {
+    case "SET_PRIVATE_KEY": {
       const name = `${message.data.name}`;
       const aid = await signifyApi.createIdentifier(name);
 
@@ -198,7 +198,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       }
       break;
     }
-    case 'DELETE_PRIVATE_KEY':
+    case "DELETE_PRIVATE_KEY":
       delete privateKeys[message.data.pubKey];
       break;
   }

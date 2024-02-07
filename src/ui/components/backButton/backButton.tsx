@@ -1,6 +1,6 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import './BackButton.scss';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import "./BackButton.scss";
 
 const BackButton: React.FC = () => {
   const navigate = useNavigate();

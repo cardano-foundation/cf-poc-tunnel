@@ -1,7 +1,7 @@
-import { randomPasscode, ready, SignifyClient, Tier } from 'signify-ts';
-import { Logger } from '@src/utils/logger';
-import { Aid, ResponseData } from '@src/core/modules/signifyApi.types';
-import { EventResult } from 'signify-ts/src/keri/app/aiding';
+import { randomPasscode, ready, SignifyClient, Tier } from "signify-ts";
+import { Logger } from "@src/utils/logger";
+import { Aid, ResponseData } from "@src/core/modules/signifyApi.types";
+import { EventResult } from "signify-ts/src/keri/app/aiding";
 
 const logger = new Logger();
 
@@ -10,7 +10,7 @@ class SignifyApi {
   public started: boolean;
   static readonly KERIA_URL = import.meta.env.VITE_KERIA_URL;
   static readonly KERIA_BOOT_URL = import.meta.env.VITE_KERIA_BOOT_ENDPOINT;
-  static readonly SIGNIFY_BRAN_STORAGE_KEY = 'SIGNIFY_BRAN';
+  static readonly SIGNIFY_BRAN_STORAGE_KEY = "SIGNIFY_BRAN";
 
   constructor() {
     this.started = false;
@@ -107,7 +107,7 @@ class SignifyApi {
       if (!this.started)
         return {
           success: false,
-          error: new Error('Signify not initialized'),
+          error: new Error("Signify not initialized"),
         };
 
       const oobiOperation = await this.signifyClient.oobis().resolve(url);

@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import './connect.scss';
-import { BackButton } from '@components/backButton';
-import { QRCode } from 'react-qrcode-logo';
-import { shortenText } from '@src/utils';
-import webLogo from '@assets/web.png';
+import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
+import "./connect.scss";
+import { BackButton } from "@components/backButton";
+import { QRCode } from "react-qrcode-logo";
+import { shortenText } from "@src/utils";
+import webLogo from "@assets/web.png";
 
 function Connect() {
   const location = useLocation();
   const [session] = useState(location.state?.session);
-  const [qrCodeValue] = useState('***');
+  const [qrCodeValue] = useState("***");
   const [isBlurred, setIsBlurred] = useState(true);
   const [showSpinner, setShowSpinner] = useState(false);
   if (!session) {
@@ -23,7 +23,7 @@ function Connect() {
 
     chrome.runtime.sendMessage(
       {
-        type: 'SET_PRIVATE_KEY',
+        type: "SET_PRIVATE_KEY",
         data: {
           ...session,
         },
@@ -48,22 +48,22 @@ function Connect() {
         <div>
           <div
             className={
-              isBlurred ? 'blurEffectHover blurEffect' : 'blurEffectHover'
+              isBlurred ? "blurEffectHover blurEffect" : "blurEffectHover"
             }
           >
-            {' '}
+            {" "}
             <QRCode
               value={qrCodeValue}
               size={192}
-              fgColor={'black'}
-              bgColor={'white'}
-              qrStyle={'squares'}
+              fgColor={"black"}
+              bgColor={"white"}
+              qrStyle={"squares"}
               logoImage={session.logo?.length ? session.logo : webLogo}
               logoWidth={60}
               logoHeight={60}
               logoOpacity={1}
               quietZone={10}
-            />{' '}
+            />{" "}
           </div>
           {showSpinner && (
             <div className="spinnerOverlay">
@@ -89,9 +89,9 @@ function Connect() {
           )}
         </p>
         <p>
-          <strong>OOBI: </strong>{' '}
-          {shortenText(session.oobi?.metadata?.oobi, 24)}{' '}
-          {session.oobi?.done ? ' ✅' : ''}
+          <strong>OOBI: </strong>{" "}
+          {shortenText(session.oobi?.metadata?.oobi, 24)}{" "}
+          {session.oobi?.done ? " ✅" : ""}
         </p>
         <p>
           <strong>ACDC: </strong> {session.acdc}

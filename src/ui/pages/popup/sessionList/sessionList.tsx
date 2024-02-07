@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Countdown } from '@components/countdown';
-import './sessionList.scss';
-import MobileConnectIcon from '../../../assets/mobile-connect-icon.svg';
-import webLogo from '../../../assets/web.png';
-import { isExpired } from '@src/utils';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Countdown } from "@components/countdown";
+import "./sessionList.scss";
+import MobileConnectIcon from "../../../assets/mobile-connect-icon.svg";
+import webLogo from "../../../assets/web.png";
+import { isExpired } from "@src/utils";
 
 interface Session {
   id: string;
@@ -26,7 +26,7 @@ function SessionList() {
   };
 
   useEffect(() => {
-    chrome.storage.local.get(['sessions'], function (result) {
+    chrome.storage.local.get(["sessions"], function (result) {
       setSessions(result.sessions);
     });
   }, []);
@@ -47,7 +47,7 @@ function SessionList() {
             <div className="sessionName">
               <div className="sessionLogo">
                 <img
-                  className={session.logo?.length ? '' : 'smallIcon'}
+                  className={session.logo?.length ? "" : "smallIcon"}
                   src={session.logo?.length ? session.logo : webLogo}
                   width={32}
                 />
@@ -72,8 +72,8 @@ function SessionList() {
             ) : null}
             <div className="buttonGroup">
               <span onClick={() => handleInfo(session)} className="infoButton">
-                {' '}
-                →{' '}
+                {" "}
+                →{" "}
               </span>
             </div>
           </li>
