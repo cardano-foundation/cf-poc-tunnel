@@ -151,7 +151,72 @@ const signHeaders = async (
     };
   }
 };
+const createSession = async (): Promise<ResponseData<null>> => {
 
+  const sessions = await chrome.storage.local.get(['sessions']);
+
+  let { hostname, port, favIconUrl } = await getCurrentTabDetails();
+  if (port.length) {
+    hostname = `${hostname}:${port}`;
+  }
+  hostname = hostname.replace(':', '-');
+  const logo = await convertURLImageToBase64(favIconUrl);
+
+  try {
+    let response = await fetch(`${SERVER_ENDPOINT}/oobi`, {
+      method: 'GET',
+      redirect: 'follow',
+    });
+    await logger.addLog(`✅ OOBI URL from ${SERVER_ENDPOINT}/oobi`);
+
+    response = await response.json();
+    const oobiUrl = response.oobis[0];
+    await logger.addLog(`⏳ Resolving OOBI URL...`);
+
+    const resolvedOOBI = await signifyApi.resolveOOBI(oobiUrl);
+
+    await logger.addLog(`✅ OOBI resolved successfully`);
+
+    if (resolvedOOBI.success) {
+      try {
+        await signifyApi.createIdentifier(hostname);
+
+        await logger.addLog(
+            `✅ AID created successfully with name ${hostname}`,
+        );
+
+        const ephemeralAID = await signifyApi.getIdentifierByName(hostname);
+
+        const newSession = {
+          id: uid(24),
+          personalPubeid: ephemeralAID.data.prefix,
+          expiryDate: '',
+          name: hostname,
+          logo,
+          oobi: resolvedOOBI?.data,
+        };
+
+        const ss = [newSession, ...sessions.sessions];
+
+        await chrome.storage.local.set({ sessions: ss });
+
+        await logger.addLog(
+            `🗃 New session stored in db: ${JSON.stringify(ss)}`,
+        );
+        return { success: true };
+      } catch (e) {
+        return { success: false, error: `Error trying to create an AID with name: ${hostname}` };
+      }
+    } else {
+      return { success: false, error: ` Error while resolving the OOBI URL from server: ${SERVER_ENDPOINT}/oobi` };
+    }
+  } catch (e) {
+    await logger.addLog(
+        `❌ Error getting OOBI URL from server: ${SERVER_ENDPOINT}/oobi`,
+    );
+    return { success: false, type: 'SESSION_CREATED' };
+  }
+}
 chrome.runtime.onInstalled.addListener(async () => {
   await logger.addLog(`✅ Extension successfully installed!`);
   await chrome.storage.local.set({
@@ -170,75 +235,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 async function processMessage(message) {
   switch (message.type) {
     case 'CREATE_SESSION': {
-      const sessions = await chrome.storage.local.get(['sessions']);
 
-      let { hostname, port, favIconUrl } = await getCurrentTabDetails();
-      if (port.length) {
-        hostname = `${hostname}:${port}`;
-      }
-      hostname = hostname.replace(':', '-');
-      const logo = await convertURLImageToBase64(favIconUrl);
+      const session = await createSession();
 
-      await logger.addLog(
-        `⏳ Hostname ${hostname} is trying to create a new session`,
-      );
-
-      try {
-        let response = await fetch(`${SERVER_ENDPOINT}/oobi`, {
-          method: 'GET',
-          redirect: 'follow',
-        });
-        await logger.addLog(`✅ OOBI URL from ${SERVER_ENDPOINT}/oobi`);
-
-        response = await response.json();
-        const oobiUrl = response.oobis[0];
-        await logger.addLog(`⏳ Resolving OOBI URL...`);
-
-        const resolvedOOBI = await signifyApi.resolveOOBI(oobiUrl);
-
-        await logger.addLog(`✅ OOBI resolved successfully`);
-
-        if (resolvedOOBI.success) {
-          try {
-            await signifyApi.createIdentifier(hostname);
-            await logger.addLog(
-              `✅ AID created successfully with name ${hostname}`,
-            );
-
-            const newSession = {
-              id: uid(24),
-              personalPubeid: '',
-              expiryDate: '',
-              name: hostname,
-              logo,
-              oobi: resolvedOOBI?.data,
-            };
-
-            const ss = [newSession, ...sessions.sessions];
-
-            await chrome.storage.local.set({ sessions: ss });
-
-            await logger.addLog(
-              `✅ New session stored in db: ${JSON.stringify(ss)}`,
-            );
-            return { success: true, type: 'SESSION_CREATED' };
-          } catch (e) {
-            await logger.addLog(
-              `❌ Error trying to create an AID with name: ${hostname}`,
-            );
-            return { success: false, type: 'SESSION_CREATED' };
-          }
-        } else {
-          await logger.addLog(
-            `❌ Error while resolving the OOBI URL from server: ${SERVER_ENDPOINT}/oobi`,
-          );
-          return { success: false, type: 'SESSION_CREATED' };
-        }
-      } catch (e) {
+      if (session.success){
         await logger.addLog(
-          `❌ Error getting OOBI URL from server: ${SERVER_ENDPOINT}/oobi`,
+            `✅ Session created successfully`,
         );
-        return { success: false, type: 'SESSION_CREATED' };
+        return { ...session, type: 'SESSION_CREATED' };
+      } else {
+        await logger.addLog(
+            `❌ ${session.error}`,
+        );
+        return { ...session, type: 'SESSION_CREATED' };
       }
     }
     case 'SIGN_HEADERS': {
