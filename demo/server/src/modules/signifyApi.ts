@@ -1,9 +1,16 @@
-import { Authenticater, Controller, Serder, SignifyClient, ready as signifyReady, Tier } from "signify-ts";
+import {
+  Authenticater,
+  Controller,
+  Serder,
+  SignifyClient,
+  ready as signifyReady,
+  Tier,
+} from "signify-ts";
 import { Aid } from "../types/signifyApi.types";
-import { config } from '../config';
-import { log } from '../log';
-import { v4 as uuidv4 } from 'uuid';
-import { ERROR_MESSAGE } from '../utils/constants';
+import { config } from "../config";
+import { log } from "../log";
+import { v4 as uuidv4 } from "uuid";
+import { ERROR_MESSAGE } from "../utils/constants";
 
 const { keriaUrl, keriaBootUrl } = config;
 let signifyClient: SignifyClient;
@@ -32,7 +39,7 @@ export const getSignifyClient = async () => {
   return signifyClient;
 };
 
-export const getIdentifierByName = async(name: string): Promise<Aid> => {
+export const getIdentifierByName = async (name: string): Promise<Aid> => {
   const identifier = await signifyClient.identifiers().get(name);
   return identifier;
 };
@@ -42,7 +49,7 @@ export const createIdentifier = async (name: string) => {
   await op.op();
   await signifyClient
     .identifiers()
-    .addEndRole(name, 'agent', signifyClient.agent!.pre);
+    .addEndRole(name, "agent", signifyClient.agent!.pre);
   const aid = await getIdentifierByName(name);
   return aid;
 };
@@ -74,7 +81,7 @@ export const waitAndGetDoneOp = async (
 export const createRegistry = async (name: string) => {
   const result = await signifyClient
     .registries()
-    .create({ name, registryName: 'domainRgk' });
+    .create({ name, registryName: "domainRgk" });
   await result.op();
   const registries = await signifyClient.registries().list(name);
   return registries[0].regk;
@@ -99,7 +106,7 @@ export const issueDomainCredential = async (
       data: vcdata,
     });
     await waitAndGetDoneOp(result.op, 15000, 250);
-    const dateTime = new Date().toISOString().replace('Z', '000+00:00');
+    const dateTime = new Date().toISOString().replace("Z", "000+00:00");
 
     const [grant, gsigs, gend] = await signifyClient.ipex().grant({
       senderName: issuer,
@@ -111,7 +118,7 @@ export const issueDomainCredential = async (
     });
     await signifyClient
       .exchanges()
-      .sendFromEvents(issuer, 'credential', grant, gsigs, gend, [holder]);
+      .sendFromEvents(issuer, "credential", grant, gsigs, gend, [holder]);
   } catch (error) {
     log(error);
   }
@@ -126,10 +133,10 @@ const getServerAcdc = async (
     await signifyClient.credentials().list({
       filter: {
         ...(schemaSaid
-          ? { '-s': schemaSaid }
-          : { '-s': config.domainSchemaSaid }),
-        ...(issuer ? { '-i': issuer } : {}),
-        '-a-i': owner,
+          ? { "-s": schemaSaid }
+          : { "-s": config.domainSchemaSaid }),
+        ...(issuer ? { "-i": issuer } : {}),
+        "-a-i": owner,
       },
     })
   )[0];
@@ -145,7 +152,7 @@ export const disclosureAcdc = async (
   if (!acdc) {
     throw new Error(ERROR_MESSAGE.ACDC_NOT_FOUND);
   }
-  const datetime = new Date().toISOString().replace('Z', '000+00:00');
+  const datetime = new Date().toISOString().replace("Z", "000+00:00");
   const [grant2, gsigs2, gend2] = await signifyClient.ipex().grant({
     senderName: config.signifyName,
     recipient: verifierPrefix,
@@ -159,7 +166,7 @@ export const disclosureAcdc = async (
   });
   await signifyClient
     .exchanges()
-    .sendFromEvents(config.signifyName, 'presentation', grant2, gsigs2, gend2, [
+    .sendFromEvents(config.signifyName, "presentation", grant2, gsigs2, gend2, [
       verifierPrefix,
     ]);
   return acdc;
@@ -172,9 +179,9 @@ export const initKeri = async () => {
   if (!identifier) {
     identifier = await createIdentifier(mainAidName);
   }
-  const oobi = await getOOBIs(mainAidName, 'agent');
+  const oobi = await getOOBIs(mainAidName, "agent");
   // For the development purpose, the endpoint needs to be accessible from keria
-  const schemaUrl = config.endpoint + '/oobi/' + schemaSaid;
+  const schemaUrl = config.endpoint + "/oobi/" + schemaSaid;
   await resolveOOBI(schemaUrl);
 
   let credDomain = await getServerAcdc(identifier.prefix, schemaSaid);
@@ -200,14 +207,14 @@ export const getSigner = async (aid: Aid) => {
   const client = await getSignifyClient();
   const signer = await client.manager?.get(aid);
   return signer;
-}
+};
 
-export const getServerAuthn = async (): Promise<Authenticater| null> => {
+export const getServerAuthn = async (): Promise<Authenticater | null> => {
   const client = await getSignifyClient();
   return client.authn;
-}
+};
 
 export const getServerSignifyController = async (): Promise<Controller> => {
   const client = await getSignifyClient();
   return client.controller;
-}
+};

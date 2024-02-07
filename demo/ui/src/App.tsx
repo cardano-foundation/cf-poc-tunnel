@@ -1,15 +1,15 @@
-import React from 'react';
-import govLogo from './assets/gov.png';
-import './App.css';
+import React from "react";
+import govLogo from "./assets/gov.png";
+import "./App.css";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function sendMessageToExtension(data: any) {
   window.postMessage(
     {
-      type: 'LOGIN_FROM_WEB',
+      type: "LOGIN_FROM_WEB",
       data,
     },
-    '*',
+    "*",
   );
 }
 
