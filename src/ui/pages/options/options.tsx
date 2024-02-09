@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import './Options.scss';
-import { useAuth } from '@components/router/authProvider';
-import { LogEntry, Logger } from '@src/utils/logger';
+import React, { useEffect, useState } from "react";
+import "./Options.scss";
+import { useAuth } from "@components/router/authProvider";
+import { LogEntry, Logger } from "@src/utils/logger";
 
 const Options = () => {
-  const [endpoint, setEndpoint] = useState<string>('');
+  const [endpoint, setEndpoint] = useState<string>("");
   const { isLoggedIn, isLoggedInFromStorage, logout, login } = useAuth();
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
@@ -22,7 +22,7 @@ const Options = () => {
       const sortedLogs = lgs.sort((a, b) => b.timestamp - a.timestamp);
       setLogs(sortedLogs);
     } catch (error) {
-      console.error('Error updating logs:', error);
+      console.error("Error updating logs:", error);
     }
   };
 
@@ -36,16 +36,16 @@ const Options = () => {
   }, []);
 
   useEffect(() => {
-    window.addEventListener('mousemove', checkIsLogged);
-    window.addEventListener('keydown', checkIsLogged);
-    window.addEventListener('scroll', checkIsLogged);
-    window.addEventListener('click', checkIsLogged);
+    window.addEventListener("mousemove", checkIsLogged);
+    window.addEventListener("keydown", checkIsLogged);
+    window.addEventListener("scroll", checkIsLogged);
+    window.addEventListener("click", checkIsLogged);
 
     return () => {
-      window.removeEventListener('mousemove', checkIsLogged);
-      window.removeEventListener('keydown', checkIsLogged);
-      window.removeEventListener('scroll', checkIsLogged);
-      window.removeEventListener('click', checkIsLogged);
+      window.removeEventListener("mousemove", checkIsLogged);
+      window.removeEventListener("keydown", checkIsLogged);
+      window.removeEventListener("scroll", checkIsLogged);
+      window.removeEventListener("click", checkIsLogged);
     };
   }, [isLoggedIn]);
 
@@ -95,12 +95,12 @@ const Options = () => {
                 {logs.map((log, index) => (
                   <div
                     style={{
-                      backgroundColor: index % 2 === 0 ? '#f2f2f2' : '#e4e4e4',
-                      color: log.error ? '#B20000' : '',
-                      marginBottom: '5px',
-                      padding: '10px',
-                      maxWidth: '570px',
-                      overflowX: 'auto',
+                      backgroundColor: index % 2 === 0 ? "#f2f2f2" : "#e4e4e4",
+                      color: log.error ? "#B20000" : "",
+                      marginBottom: "5px",
+                      padding: "10px",
+                      maxWidth: "570px",
+                      overflowX: "auto",
                     }}
                     key={index}
                   >

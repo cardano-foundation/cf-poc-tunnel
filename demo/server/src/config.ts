@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 dotenv.config();
 
 const port = process.env.PORT ? Number(process.env.PORT) : 3001;
@@ -17,15 +17,15 @@ const config = {
   bran,
   signifyName,
   path: {
-    ping: '/ping',
-    oobi: '/oobi',
-    resolveOOBI: '/resolve-oobi',
-    schema: '/oobi/:id',
-    disclosureAcdc: '/disclosure-acdc',
-    acdcRequirements: '/acdc-requirements',
+    ping: "/ping",
+    oobi: "/oobi",
+    resolveOOBI: "/resolve-oobi",
+    schema: "/oobi/:id",
+    disclosureAcdc: "/disclosure-acdc",
+    acdcRequirements: "/acdc-requirements",
   },
-  domainSchemaSaid: 'EGjD1gCLi9ecZSZp9zevkgZGyEX_MbOdmhBFt4o0wvdb',
-  qviSchemaSaid: 'EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao',
+  domainSchemaSaid: "EGjD1gCLi9ecZSZp9zevkgZGyEX_MbOdmhBFt4o0wvdb",
+  qviSchemaSaid: "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
 };
 
 export { config };

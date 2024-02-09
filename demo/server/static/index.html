@@ -51,7 +51,7 @@
         padding: 10px;
         border-radius: 5px;
         margin-top: 10px;
-        font-family: 'Courier New', Courier, monospace;
+        font-family: "Courier New", Courier, monospace;
       }
     </style>
   </head>
@@ -73,11 +73,11 @@
     </main>
 
     <script>
-      let html = '';
+      let html = "";
       const routes = [
         {
-          name: 'Login API',
-          path: '/login',
+          name: "Login API",
+          path: "/login",
         },
         // Agrega más rutas según sea necesario
       ];
@@ -95,7 +95,7 @@
                                 <p>No se pudo obtener la respuesta del endpoint '${route.path}'.</p>`;
           }
         }
-        document.getElementById('app').innerHTML = html;
+        document.getElementById("app").innerHTML = html;
       }
 
       initApp();

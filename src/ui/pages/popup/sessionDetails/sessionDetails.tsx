@@ -1,9 +1,9 @@
-import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import './sessionDetails.scss';
-import { BackButton } from '@components/backButton';
-import MobileConnectIcon from '@assets/mobile-connect-icon.svg';
-import { shortenText } from '@src/utils';
+import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import "./sessionDetails.scss";
+import { BackButton } from "@components/backButton";
+import MobileConnectIcon from "@assets/mobile-connect-icon.svg";
+import { shortenText } from "@src/utils";
 
 function SessionDetails() {
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ function SessionDetails() {
   };
 
   const deleteSession = () => {
-    chrome.storage.local.get(['sessions'], function (result) {
+    chrome.storage.local.get(["sessions"], function (result) {
       const ss = result.sessions.filter((s) => session.id !== s.id);
 
       chrome.storage.local.set({ sessions: ss }, function () {
@@ -42,21 +42,21 @@ function SessionDetails() {
                 <>
                   <div className="loginLabel" onClick={handleLogin}>
                     <img src={MobileConnectIcon} width={20} /> Login with your
-                    wallet{' '}
+                    wallet{" "}
                   </div>
                 </>
               )}
-            </strong>{' '}
+            </strong>{" "}
             {session.expiryDate}
           </p>
           <p>
-            <strong>Personal Public eAID:</strong>{' '}
+            <strong>Personal Public eAID:</strong>{" "}
             {shortenText(session.personalPubeid, 24)}
           </p>
           <p>
             <strong>OOBI: </strong>
             {shortenText(session.oobi?.metadata?.oobi, 32)}
-            {session.oobi?.done ? ' ✅' : ''}
+            {session.oobi?.done ? " ✅" : ""}
           </p>
         </div>
         <button className="deleteButton" onClick={() => deleteSession()}>

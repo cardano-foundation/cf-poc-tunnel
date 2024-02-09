@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import govLogo from './assets/gov.png';
-import './App.scss';
+import React, { useEffect, useState } from "react";
+import govLogo from "./assets/gov.png";
+import "./App.scss";
 
 type Header = {
   [key: string]: any;
@@ -12,29 +12,29 @@ function sendMessageToExtension(type: string, data: any) {
       type: type,
       data,
     },
-    '*',
+    "*",
   );
 }
 
 const App = () => {
   const [headersToSign] = useState({
-    'Content-Type': 'application/json',
-    PUBLIC_AID: 'value',
+    "Content-Type": "application/json",
+    PUBLIC_AID: "value",
   });
   const [sessionCreated, setSessionCreated] = useState(false);
   const [signedHeaders, setSignedHeaders] = useState({});
   useEffect(() => {
-    window.addEventListener('message', (e) => {
+    window.addEventListener("message", (e) => {
       const hostname = new URL(e.origin).hostname;
       if (hostname === window.location.hostname) {
         const message = e.data;
         if (message !== null && message?.type) {
           switch (message?.type) {
-            case 'SIGNED_HEADERS': {
+            case "SIGNED_HEADERS": {
               setSignedHeaders(message.data.signedHeaders);
               break;
             }
-            case 'SESSION_CREATED': {
+            case "SESSION_CREATED": {
               setSessionCreated(true);
               break;
             }
@@ -46,19 +46,19 @@ const App = () => {
 
   const handleCreateSession = async () => {
     const enterpriseData = {};
-    sendMessageToExtension('CREATE_SESSION', enterpriseData);
+    sendMessageToExtension("CREATE_SESSION", enterpriseData);
   };
   const handleFetch = async () => {
     const request = {
       data: {
-        url: 'http://localhost:3001',
+        url: "http://localhost:3001",
         headers: headersToSign,
-        method: 'GET',
-        query: '',
+        method: "GET",
+        query: "",
         body: {},
       },
     };
-    sendMessageToExtension('SIGN_HEADERS', request);
+    sendMessageToExtension("SIGN_HEADERS", request);
   };
   return (
     <>
@@ -68,19 +68,19 @@ const App = () => {
       <h1>Web app</h1>
       <div className="buttonsContainer">
         <button className="button" onClick={() => handleCreateSession()}>
-          1. Init session {sessionCreated ? '✅' : null}
+          1. Init session {sessionCreated ? "✅" : null}
         </button>
         {sessionCreated ? (
           <>
             <button className="button" onClick={() => handleFetch()}>
-              2. Sign Headers {Object.keys(signedHeaders).length ? '✅' : null}
+              2. Sign Headers {Object.keys(signedHeaders).length ? "✅" : null}
             </button>
           </>
         ) : null}
       </div>
       {sessionCreated ? (
         <>
-          {' '}
+          {" "}
           <div>
             {Object.keys(signedHeaders).length ? (
               <>
@@ -90,7 +90,7 @@ const App = () => {
                 </div>
               </>
             ) : null}
-          </div>{' '}
+          </div>{" "}
         </>
       ) : null}
     </>

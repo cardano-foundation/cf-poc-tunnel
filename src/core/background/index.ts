@@ -1,9 +1,9 @@
-import { uid } from 'uid';
-import { SignifyApi } from '@src/core/modules/signifyApi';
-import { convertURLImageToBase64, serializeHeaders } from '@src/utils';
-import { Logger } from '@src/utils/logger';
-import { Authenticater } from 'signify-ts';
-import { ResponseData } from '@src/core/modules/signifyApi.types';
+import { uid } from "uid";
+import { SignifyApi } from "@src/core/modules/signifyApi";
+import { convertURLImageToBase64, serializeHeaders } from "@src/utils";
+import { Logger } from "@src/utils/logger";
+import { Authenticater } from "signify-ts";
+import { ResponseData } from "@src/core/modules/signifyApi.types";
 
 const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
 const expirationTime = 1800000; // 30 min
@@ -12,49 +12,49 @@ const logger = new Logger();
 
 const mockSessions = [
   {
-    id: '1',
-    name: 'voting-app.org',
-    expiryDate: '2014-04-05',
-    serverPubeid: 'JJBD4S...9S23',
-    personalPubeid: 'KO7G10D4S...1JS5',
-    oobi: 'http://ac2in...1JS5',
-    acdc: 'ACac2in...1JS5DC',
+    id: "1",
+    name: "voting-app.org",
+    expiryDate: "2014-04-05",
+    serverPubeid: "JJBD4S...9S23",
+    personalPubeid: "KO7G10D4S...1JS5",
+    oobi: "http://ac2in...1JS5",
+    acdc: "ACac2in...1JS5DC",
   },
   {
-    id: '2',
-    name: 'webapp.com',
-    expiryDate: '',
-    serverPubeid: 'JJBD4S...9S23',
-    personalPubeid: '',
-    oobi: 'http://ac2in...1JS5',
-    acdc: 'ACac2in...1JS5DC',
+    id: "2",
+    name: "webapp.com",
+    expiryDate: "",
+    serverPubeid: "JJBD4S...9S23",
+    personalPubeid: "",
+    oobi: "http://ac2in...1JS5",
+    acdc: "ACac2in...1JS5DC",
   },
   {
-    id: '3',
-    name: 'platform2.gov',
-    expiryDate: '2015-06-10',
-    serverPubeid: 'JJBD4S...9S23',
-    personalPubeid: 'KO7G10D4S...1JS5',
-    oobi: 'http://ac2in...1JS5',
-    acdc: 'ACac2in...1JS5DC',
+    id: "3",
+    name: "platform2.gov",
+    expiryDate: "2015-06-10",
+    serverPubeid: "JJBD4S...9S23",
+    personalPubeid: "KO7G10D4S...1JS5",
+    oobi: "http://ac2in...1JS5",
+    acdc: "ACac2in...1JS5DC",
   },
   {
-    id: '4',
-    name: 'platform3.gov',
-    serverPubeid: 'JJBD4S...9S23',
-    personalPubeid: 'KO7G10D4S...1JS5',
-    expiryDate: '2019-07-10',
-    oobi: 'http://ac2in...1JS5',
-    acdc: 'ACac2in...1JS5DC',
+    id: "4",
+    name: "platform3.gov",
+    serverPubeid: "JJBD4S...9S23",
+    personalPubeid: "KO7G10D4S...1JS5",
+    expiryDate: "2019-07-10",
+    oobi: "http://ac2in...1JS5",
+    acdc: "ACac2in...1JS5DC",
   },
   {
-    id: '5',
-    name: 'platform4.gov',
-    expiryDate: '',
-    serverPubeid: 'JJBD4S...9S23',
-    personalPubeid: '',
-    oobi: 'http://ac2in...1JS5',
-    acdc: 'ACac2in...1JS5DC',
+    id: "5",
+    name: "platform4.gov",
+    expiryDate: "",
+    serverPubeid: "JJBD4S...9S23",
+    personalPubeid: "",
+    oobi: "http://ac2in...1JS5",
+    acdc: "ACac2in...1JS5DC",
   },
 ];
 
@@ -74,7 +74,7 @@ const getCurrentTabDetails = async (): Promise<{
   const hostname = new URL(tab.url).hostname;
   const port = new URL(tab.url).port;
   const pathname = new URL(tab.url).pathname;
-  const favIconUrl = tab.favIconUrl || '';
+  const favIconUrl = tab.favIconUrl || "";
 
   return {
     hostname,
@@ -103,18 +103,18 @@ const signHeaders = async (
     if (ephemeralAID.success) {
       const headers = new Headers(originalHeaders);
 
-      headers.set('signify-resource', ephemeralAID.data.prefix);
+      headers.set("signify-resource", ephemeralAID.data.prefix);
       await logger.addLog(
         `✅ Ephemeral AID added to headers: ${JSON.stringify({
-          'signify-resource': ephemeralAID.data.prefix,
+          "signify-resource": ephemeralAID.data.prefix,
         })}`,
       );
 
-      const timestamp = new Date().toISOString().replace('Z', '000+00:00');
-      headers.set('signify-timestamp', timestamp);
+      const timestamp = new Date().toISOString().replace("Z", "000+00:00");
+      headers.set("signify-timestamp", timestamp);
       await logger.addLog(
         `✅ Timestamp added to headers: ${JSON.stringify({
-          'signify-timestamp': timestamp,
+          "signify-timestamp": timestamp,
         })}`,
       );
 
@@ -149,19 +149,19 @@ const signHeaders = async (
   }
 };
 const createSession = async (): Promise<ResponseData<null>> => {
-  const sessions = await chrome.storage.local.get(['sessions']);
+  const sessions = await chrome.storage.local.get(["sessions"]);
 
   let { hostname, port, favIconUrl } = await getCurrentTabDetails();
   if (port.length) {
     hostname = `${hostname}:${port}`;
   }
-  hostname = hostname.replace(':', '-');
+  hostname = hostname.replace(":", "-");
   const logo = await convertURLImageToBase64(favIconUrl);
 
   try {
     let response = await fetch(`${SERVER_ENDPOINT}/oobi`, {
-      method: 'GET',
-      redirect: 'follow',
+      method: "GET",
+      redirect: "follow",
     });
     await logger.addLog(`✅ OOBI URL from ${SERVER_ENDPOINT}/oobi`);
 
@@ -186,7 +186,7 @@ const createSession = async (): Promise<ResponseData<null>> => {
         const newSession = {
           id: uid(24),
           personalPubeid: ephemeralAID.data.prefix,
-          expiryDate: '',
+          expiryDate: "",
           name: hostname,
           logo,
           oobi: resolvedOOBI?.data,
@@ -216,7 +216,7 @@ const createSession = async (): Promise<ResponseData<null>> => {
     await logger.addLog(
       `❌ Error getting OOBI URL from server: ${SERVER_ENDPOINT}/oobi`,
     );
-    return { success: false, type: 'SESSION_CREATED' };
+    return { success: false, type: "SESSION_CREATED" };
   }
 };
 chrome.runtime.onInstalled.addListener(async () => {
@@ -236,18 +236,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 async function processMessage(message) {
   switch (message.type) {
-    case 'CREATE_SESSION': {
+    case "CREATE_SESSION": {
       const session = await createSession();
 
       if (session.success) {
         await logger.addLog(`✅ Session created successfully`);
-        return { ...session, type: 'SESSION_CREATED' };
+        return { ...session, type: "SESSION_CREATED" };
       } else {
         await logger.addLog(`❌ ${session.error}`);
-        return { ...session, type: 'SESSION_CREATED' };
+        return { ...session, type: "SESSION_CREATED" };
       }
     }
-    case 'SIGN_HEADERS': {
+    case "SIGN_HEADERS": {
       const dataToSign = message.data;
 
       const url = dataToSign.data.url;
@@ -259,7 +259,7 @@ async function processMessage(message) {
       if (port.length) {
         hostname = `${hostname}:${port}`;
       }
-      hostname = hostname.replace(':', '-');
+      hostname = hostname.replace(":", "-");
 
       const signedHeaders = await signHeaders(
         pathname,
@@ -276,7 +276,7 @@ async function processMessage(message) {
         );
         return {
           success: true,
-          type: 'SIGNED_HEADERS',
+          type: "SIGNED_HEADERS",
           data: {
             signedHeaders: serializeHeaders(signedHeaders.data),
           },
@@ -287,7 +287,7 @@ async function processMessage(message) {
             new URL(url).pathname
           }. Error: ${signedHeaders.error}`,
         );
-        return { success: false, type: 'SIGNED_HEADERS' };
+        return { success: false, type: "SIGNED_HEADERS" };
       }
     }
   }

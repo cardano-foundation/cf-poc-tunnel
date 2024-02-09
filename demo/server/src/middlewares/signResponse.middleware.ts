@@ -1,7 +1,7 @@
-import { Request, Response } from 'express';
-import { getIdentifierByName, getSigner } from '../modules/signifyApi';
-import { config } from '../config';
-import { Authenticater } from 'signify-ts';
+import { Request, Response } from "express";
+import { getIdentifierByName, getSigner } from "../modules/signifyApi";
+import { config } from "../config";
+import { Authenticater } from "signify-ts";
 
 export const signResponse = async (req: Request, res: Response, next) => {
   const serverAID = await getIdentifierByName(config.signifyName);
@@ -18,21 +18,21 @@ export const signResponse = async (req: Request, res: Response, next) => {
   res.send = function (body) {
     const originalHeaders = res.getHeaders();
     const headers = new Headers(originalHeaders);
-    headers.set('Signify-Resource', serverAID.prefix);
+    headers.set("Signify-Resource", serverAID.prefix);
     headers.set(
-      'Signify-Timestamp',
-      new Date().toISOString().replace('Z', '000+00:00'),
+      "Signify-Timestamp",
+      new Date().toISOString().replace("Z", "000+00:00"),
     );
-    headers.set('Content-Type', 'application/json');
-    if (typeof body === 'string') {
-      headers.set('Content-Length', String(body.length));
+    headers.set("Content-Type", "application/json");
+    if (typeof body === "string") {
+      headers.set("Content-Length", String(body.length));
     } else {
-      headers.set('Content-Length', String(JSON.stringify(body.length)));
+      headers.set("Content-Length", String(JSON.stringify(body.length)));
     }
     const signedHeaders = authenticator?.sign(
       headers,
       req.method,
-      req.path.split('?')[0],
+      req.path.split("?")[0],
     );
     signedHeaders?.forEach((value, key) => {
       res.set(key, value);

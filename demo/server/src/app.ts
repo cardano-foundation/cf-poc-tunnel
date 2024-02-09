@@ -1,9 +1,9 @@
-import fastify from 'fastify';
-import cors from '@fastify/cors';
-import router from './router';
+import fastify from "fastify";
+import cors from "@fastify/cors";
+import router from "./router";
 const server = fastify({
   // Logger only for production
-  logger: !!(process.env.NODE_ENV !== 'development'),
+  logger: !!(process.env.NODE_ENV !== "development"),
 });
 
 server.register(cors, () => {

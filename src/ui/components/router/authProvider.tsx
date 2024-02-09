@@ -4,7 +4,7 @@ import React, {
   useState,
   useEffect,
   ReactNode,
-} from 'react';
+} from "react";
 
 interface AuthContextType {
   isLoggedIn: boolean;
@@ -21,7 +21,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === null) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
@@ -37,7 +37,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
   useEffect(() => {
     chrome.storage.local.get(
-      ['isLoggedIn', 'latestActivity'],
+      ["isLoggedIn", "latestActivity"],
       function (result) {
         const now = Date.now();
         const inactiveTime = now - (result.latestActivity || 0);
@@ -62,21 +62,21 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   useEffect(() => {
-    window.addEventListener('mousemove', resetLogoutTimer);
-    window.addEventListener('keydown', resetLogoutTimer);
-    window.addEventListener('scroll', resetLogoutTimer);
-    window.addEventListener('click', resetLogoutTimer);
+    window.addEventListener("mousemove", resetLogoutTimer);
+    window.addEventListener("keydown", resetLogoutTimer);
+    window.addEventListener("scroll", resetLogoutTimer);
+    window.addEventListener("click", resetLogoutTimer);
 
     return () => {
-      window.removeEventListener('mousemove', resetLogoutTimer);
-      window.removeEventListener('keydown', resetLogoutTimer);
-      window.removeEventListener('scroll', resetLogoutTimer);
-      window.removeEventListener('click', resetLogoutTimer);
+      window.removeEventListener("mousemove", resetLogoutTimer);
+      window.removeEventListener("keydown", resetLogoutTimer);
+      window.removeEventListener("scroll", resetLogoutTimer);
+      window.removeEventListener("click", resetLogoutTimer);
     };
   }, [isLoggedIn]);
 
   const isLoggedInFromStorage = async (): Promise<boolean> => {
-    const result = await chrome.storage.local.get(['isLoggedIn']);
+    const result = await chrome.storage.local.get(["isLoggedIn"]);
     return result.isLoggedIn;
   };
   const login = async () => {
