@@ -50,7 +50,8 @@ function SessionDetails() {
             {session.expiryDate}
           </p>
           <p>
-            <strong>Personal Public eAID:</strong> {shortenText(session.personalPubeid, 24)}
+            <strong>Personal Public eAID:</strong>{' '}
+            {shortenText(session.personalPubeid, 24)}
           </p>
           <p>
             <strong>OOBI: </strong>

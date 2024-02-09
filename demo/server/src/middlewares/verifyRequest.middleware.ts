@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import {getIdentifierByName, getSigner} from '../modules/signifyApi';
-import {config} from "../config";
-import {Authenticater} from "signify-ts";
+import { getIdentifierByName, getSigner } from '../modules/signifyApi';
+import { config } from '../config';
+import { Authenticater } from 'signify-ts';
 
 export const verifyRequest = async (req: Request, res: Response, next) => {
   const serverAID = await getIdentifierByName(config.signifyName);
@@ -9,8 +9,8 @@ export const verifyRequest = async (req: Request, res: Response, next) => {
   const signer = await getSigner(serverAID);
 
   const authenticator = new Authenticater(
-      signer.signers[0],
-      signer.signers[0].verfer,
+    signer.signers[0],
+    signer.signers[0].verfer,
   );
 
   try {

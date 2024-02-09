@@ -3,7 +3,7 @@ import { SignifyApi } from '@src/core/modules/signifyApi';
 import { convertURLImageToBase64, serializeHeaders } from '@src/utils';
 import { Logger } from '@src/utils/logger';
 import { Authenticater } from 'signify-ts';
-import { ResponseData } from '@src/core/modules/signifyApi.types';;
+import { ResponseData } from '@src/core/modules/signifyApi.types';
 
 const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
 const expirationTime = 1800000; // 30 min
@@ -71,16 +71,16 @@ const getCurrentTabDetails = async (): Promise<{
 }> => {
   const queryOptions = { active: true, currentWindow: true };
   const [tab] = await chrome.tabs.query(queryOptions);
-  const hostname = (new URL(tab.url)).hostname;
-  const port = (new URL(tab.url)).port;
-  const pathname = (new URL(tab.url)).pathname;
+  const hostname = new URL(tab.url).hostname;
+  const port = new URL(tab.url).port;
+  const pathname = new URL(tab.url).pathname;
   const favIconUrl = tab.favIconUrl || '';
 
   return {
     hostname,
     port,
     pathname,
-    favIconUrl
+    favIconUrl,
   };
 };
 
@@ -105,20 +105,17 @@ const signHeaders = async (
 
       headers.set('signify-resource', ephemeralAID.data.prefix);
       await logger.addLog(
-          `✅ Ephemeral AID added to headers: ${JSON.stringify({
-            'signify-resource': ephemeralAID.data.prefix,
-          })}`,
+        `✅ Ephemeral AID added to headers: ${JSON.stringify({
+          'signify-resource': ephemeralAID.data.prefix,
+        })}`,
       );
 
       const timestamp = new Date().toISOString().replace('Z', '000+00:00');
-      headers.set(
-        'signify-timestamp',
-          timestamp,
-      );
+      headers.set('signify-timestamp', timestamp);
       await logger.addLog(
-          `✅ Timestamp added to headers: ${JSON.stringify({
-            'signify-timestamp': timestamp,
-          })}`,
+        `✅ Timestamp added to headers: ${JSON.stringify({
+          'signify-timestamp': timestamp,
+        })}`,
       );
 
       try {
@@ -130,7 +127,7 @@ const signHeaders = async (
 
         return {
           success: true,
-          data: signedHeaders
+          data: signedHeaders,
         };
       } catch (e) {
         return {
@@ -152,7 +149,6 @@ const signHeaders = async (
   }
 };
 const createSession = async (): Promise<ResponseData<null>> => {
-
   const sessions = await chrome.storage.local.get(['sessions']);
 
   let { hostname, port, favIconUrl } = await getCurrentTabDetails();
@@ -182,7 +178,7 @@ const createSession = async (): Promise<ResponseData<null>> => {
         await signifyApi.createIdentifier(hostname);
 
         await logger.addLog(
-            `✅ AID created successfully with name ${hostname}`,
+          `✅ AID created successfully with name ${hostname}`,
         );
 
         const ephemeralAID = await signifyApi.getIdentifierByName(hostname);
@@ -201,22 +197,28 @@ const createSession = async (): Promise<ResponseData<null>> => {
         await chrome.storage.local.set({ sessions: ss });
 
         await logger.addLog(
-            `🗃 New session stored in db: ${JSON.stringify(ss)}`,
+          `🗃 New session stored in db: ${JSON.stringify(ss)}`,
         );
         return { success: true };
       } catch (e) {
-        return { success: false, error: `Error trying to create an AID with name: ${hostname}` };
+        return {
+          success: false,
+          error: `Error trying to create an AID with name: ${hostname}`,
+        };
       }
     } else {
-      return { success: false, error: ` Error while resolving the OOBI URL from server: ${SERVER_ENDPOINT}/oobi` };
+      return {
+        success: false,
+        error: ` Error while resolving the OOBI URL from server: ${SERVER_ENDPOINT}/oobi`,
+      };
     }
   } catch (e) {
     await logger.addLog(
-        `❌ Error getting OOBI URL from server: ${SERVER_ENDPOINT}/oobi`,
+      `❌ Error getting OOBI URL from server: ${SERVER_ENDPOINT}/oobi`,
     );
     return { success: false, type: 'SESSION_CREATED' };
   }
-}
+};
 chrome.runtime.onInstalled.addListener(async () => {
   await logger.addLog(`✅ Extension successfully installed!`);
   await chrome.storage.local.set({
@@ -235,18 +237,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 async function processMessage(message) {
   switch (message.type) {
     case 'CREATE_SESSION': {
-
       const session = await createSession();
 
-      if (session.success){
-        await logger.addLog(
-            `✅ Session created successfully`,
-        );
+      if (session.success) {
+        await logger.addLog(`✅ Session created successfully`);
         return { ...session, type: 'SESSION_CREATED' };
       } else {
-        await logger.addLog(
-            `❌ ${session.error}`,
-        );
+        await logger.addLog(`❌ ${session.error}`);
         return { ...session, type: 'SESSION_CREATED' };
       }
     }
@@ -268,20 +265,20 @@ async function processMessage(message) {
         pathname,
         method,
         headers,
-        hostname
+        hostname,
       );
 
       if (signedHeaders.success) {
         await logger.addLog(
-            `📤 Signed headers sent to the website. Headers: ${JSON.stringify(
-                serializeHeaders(signedHeaders.data)
-            )}`,
+          `📤 Signed headers sent to the website. Headers: ${JSON.stringify(
+            serializeHeaders(signedHeaders.data),
+          )}`,
         );
         return {
           success: true,
           type: 'SIGNED_HEADERS',
           data: {
-            signedHeaders: serializeHeaders(signedHeaders.data)
+            signedHeaders: serializeHeaders(signedHeaders.data),
           },
         };
       } else {

@@ -75,12 +75,12 @@ function Connect() {
           )}
         </div>
         <p>
-          <strong>Portal: </strong> {session.name.replace('-',':')}
+          <strong>Portal: </strong> {session.name.replace('-', ':')}
         </p>
         <p>
           <strong>Personal Public eAID: </strong>
           {session.personalPubeid.length ? (
-              shortenText(session.personalPubeid, 24)
+            shortenText(session.personalPubeid, 24)
           ) : (
             <span className="generateLabel" onClick={handleGenerateEaid}>
               Generate eAID
