@@ -90,22 +90,11 @@ class SignifyApi {
 
   getIdentifierByName = async (name: string): Promise<ResponseData<any>> => {
     try {
-      const ids = await this.signifyClient.identifiers();
-      const idsList = await ids.list();
-
-      console.log('ids.list()');
-      console.log(idsList);
-      const aid = idsList.aids.find((id) => id.name === name);
-      console.log('aid');
-      console.log(aid);
       return {
         success: true,
-        //data: aid
         data: await this.signifyClient.identifiers().get(name),
       };
     } catch (e) {
-      console.log('e');
-      console.log(e);
       return {
         success: false,
         error: e,

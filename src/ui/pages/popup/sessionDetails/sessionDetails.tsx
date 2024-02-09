@@ -50,18 +50,12 @@ function SessionDetails() {
             {session.expiryDate}
           </p>
           <p>
-            <strong>Server Public eAID:</strong> {session.serverPubeid}
-          </p>
-          <p>
-            <strong>Personal Public eAID:</strong> {session.personalPubeid}
+            <strong>Personal Public eAID:</strong> {shortenText(session.personalPubeid, 24)}
           </p>
           <p>
             <strong>OOBI: </strong>
             {shortenText(session.oobi?.metadata?.oobi, 32)}
             {session.oobi?.done ? ' ✅' : ''}
-          </p>
-          <p>
-            <strong>Enterprise ACDC: </strong>
           </p>
         </div>
         <button className="deleteButton" onClick={() => deleteSession()}>

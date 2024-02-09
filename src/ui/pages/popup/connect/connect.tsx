@@ -37,6 +37,9 @@ function Connect() {
     );
   };
 
+  console.log('session');
+  console.log(session);
+
   return (
     <div className="sessionDetails">
       <BackButton />
@@ -75,13 +78,9 @@ function Connect() {
           <strong>Portal: </strong> {session.name.replace('-',':')}
         </p>
         <p>
-          <strong>Server Public eAID: </strong>
-          {session.serverPubeid}
-        </p>
-        <p>
           <strong>Personal Public eAID: </strong>
           {session.personalPubeid.length ? (
-            session.personalPubeid
+              shortenText(session.personalPubeid, 24)
           ) : (
             <span className="generateLabel" onClick={handleGenerateEaid}>
               Generate eAID
@@ -92,9 +91,6 @@ function Connect() {
           <strong>OOBI: </strong>{' '}
           {shortenText(session.oobi?.metadata?.oobi, 24)}{' '}
           {session.oobi?.done ? ' ✅' : ''}
-        </p>
-        <p>
-          <strong>ACDC: </strong> {session.acdc}
         </p>
       </div>
     </div>
