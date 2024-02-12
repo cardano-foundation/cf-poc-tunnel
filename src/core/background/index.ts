@@ -108,9 +108,6 @@ const signHeaders = async (
         headers.append(key, value);
       });
 
-      console.log("headers in signHeaders");
-      console.log(headers)
-
       headers.set("signify-resource", ephemeralAID.data.prefix);
       await logger.addLog(
         `✅ Ephemeral AID added to headers: ${JSON.stringify({
@@ -247,25 +244,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 async function processMessage(message) {
   if (!message) return;
 
-  console.log('processMessage in SW');
-  console.log(message);
-
   switch (message.type) {
     case "CREATE_SESSION": {
       const session = await createSession();
 
       if (session.success) {
         await logger.addLog(`✅ Session created successfully`);
-        return { ...session, type: "SESSION_CREATED", id: message.id };
+        return { type: "SESSION_CREATED", id: message.id, data: session };
       } else {
         await logger.addLog(`❌ ${session.error}`);
-        return { ...session, type: "SESSION_CREATED", id: message.id };
+        return { type: "SESSION_CREATED", id: message.id, data: session };
       }
     }
     case "SIGN_HEADERS": {
-
-      console.log("lets sign in SW!!!")
-      console.log(message.data);
       const pathname = message.data.path;
       const method = message.data.method;
       const headers = message.data.headers;
@@ -276,16 +267,12 @@ async function processMessage(message) {
       }
       hostname = hostname.replace(":", "-");
 
-      console.log('hey0');
       const signedHeaders = await signHeaders(
         pathname,
         method,
         headers,
         hostname,
       );
-
-      console.log('signedHeaders');
-      console.log(signedHeaders);
 
       if (signedHeaders.success) {
         await logger.addLog(

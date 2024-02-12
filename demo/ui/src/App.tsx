@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import govLogo from "./assets/gov.png";
 import "./App.scss";
 import { createAxiosClient, ExtensionMessageType } from "./axiosClient";
-import { sendMessageToExtension } from "./utils/extensionCommunication";
+import {listenForExtensionMessage, sendMessageToExtension} from "./utils/extensionCommunication";
 
 const App: React.FC = () => {
   const [sessionCreated, setSessionCreated] = useState(false);
@@ -11,33 +11,22 @@ const App: React.FC = () => {
     {},
   );
 
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.origin === window.location.origin) {
-        const message = event.data;
-        switch (message?.type) {
-          case ExtensionMessageType.SIGNED_HEADERS:
-            setSignedHeaders(message.data.signedHeaders);
-            break;
-          case ExtensionMessageType.SESSION_CREATED:
-            setSessionCreated(true);
-            break;
-          default:
-            break;
-        }
-      }
-    };
-
-    window.addEventListener("message", handleMessage);
-    return () => {
-      window.removeEventListener("message", handleMessage);
-    };
-  }, []);
-
   const handleCreateSession = async () => {
     const enterpriseData = {};
-    sendMessageToExtension(ExtensionMessageType.CREATE_SESSION, enterpriseData);
+    const message = sendMessageToExtension(
+        ExtensionMessageType.CREATE_SESSION,
+        enterpriseData,
+    );
+    const {success} = await listenForExtensionMessage<Record<string, string>>(
+        ExtensionMessageType.SESSION_CREATED,
+        message.id,
+    );
+
+    if (success) {
+      setSessionCreated(true);
+    }
   };
+
 
   const handleFetch = async () => {
     try {
@@ -45,7 +34,13 @@ const App: React.FC = () => {
       const response = await axiosClient.get("/ping");
       console.log("Data:", response.data);
     } catch (error) {
-      console.error("Error on fetch:", error);
+      const serializedHeads = {};
+      if (error.config.headers) {
+        Object.entries(error.config.headers).forEach(([key, value]) => {
+          serializedHeads[key] = value;
+        });
+        setSignedHeaders(serializedHeads);
+      }
     }
   };
 

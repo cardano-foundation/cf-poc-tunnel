@@ -76,8 +76,6 @@ const createAxiosClient = (apiURL: string): AxiosInstance => {
 
   client.interceptors.response.use(
     async (response: AxiosResponse) => {
-      console.log("client.interceptors.response");
-      console.log(response);
       const message = sendMessageToExtension(ExtensionMessageType.VERIFY_HEADERS, {
         headers: response.headers,
       });
