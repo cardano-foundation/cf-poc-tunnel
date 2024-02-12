@@ -78,7 +78,7 @@ function Connect() {
           <strong>Portal: </strong> {session.name.replace("-", ":")}
         </p>
         <p>
-          <strong>Personal Public eAID: </strong>
+          <strong>Tunnel AID: </strong>
           {session.tunnelAid.length ? (
             shortenText(session.tunnelAid, 24)
           ) : (
