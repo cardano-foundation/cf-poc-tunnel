@@ -149,7 +149,6 @@ const signHeaders = async (
   }
 };
 const createSession = async (): Promise<ResponseData<null>> => {
-  const sessions = await chrome.storage.local.get(["sessions"]);
 
   let { hostname, port, favIconUrl } = await getCurrentTabDetails();
   if (port.length) {
@@ -192,12 +191,14 @@ const createSession = async (): Promise<ResponseData<null>> => {
           oobi: resolvedOOBI?.data,
         };
 
-        const ss = [newSession, ...sessions.sessions];
+        const { sessions } = await chrome.storage.local.get(["sessions"]);
+        const sessionsArray = sessions || [];
+        sessionsArray.push(newSession);
 
-        await chrome.storage.local.set({ sessions: ss });
+        await chrome.storage.local.set({ sessions: sessionsArray });
 
         await logger.addLog(
-          `🗃 New session stored in db: ${JSON.stringify(ss)}`,
+          `🗃 New session stored in db: ${JSON.stringify(sessionsArray)}`,
         );
         return { success: true };
       } catch (e) {
