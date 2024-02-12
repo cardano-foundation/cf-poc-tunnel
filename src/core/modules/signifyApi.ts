@@ -137,20 +137,6 @@ class SignifyApi {
     }
   };
 
-  getAuthn = async (): Promise<ResponseData<Authenticater | null>> => {
-    try {
-      return {
-        success: true,
-        data: this.signifyClient.authn,
-      };
-    } catch (e) {
-      return {
-        success: false,
-        error: e,
-      };
-    }
-  };
-
   getSigner = async (aid: Aid): Promise<ResponseData<any>> => {
     try {
       return {
