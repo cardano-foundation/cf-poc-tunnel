@@ -93,14 +93,14 @@ const signHeaders = async (
   try {
     const ephemeralAID = await signifyApi.getIdentifierByName(aidName);
 
-    const signer = (await signifyApi.getSigner(ephemeralAID.data)).data;
-
-    const authenticator = new Authenticater(
-      signer.signers[0],
-      signer.signers[0].verfer,
-    );
-
     if (ephemeralAID.success) {
+      const signer = (await signifyApi.getSigner(ephemeralAID.data)).data;
+
+      const authenticator = new Authenticater(
+        signer.signers[0],
+        signer.signers[0].verfer,
+      );
+
       const headers = new Headers(originalHeaders);
 
       headers.set("signify-resource", ephemeralAID.data.prefix);
