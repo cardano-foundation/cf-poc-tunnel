@@ -15,10 +15,13 @@ const sendMessageToExtension = (type: string, data: any) => {
   return message;
 };
 
-const listenForExtensionMessage = <T>(type: string, expectedId: string): Promise<T> => {
+const listenForExtensionMessage = <T>(
+  type: string,
+  expectedId: string,
+): Promise<T> => {
   return new Promise((resolve, reject) => {
     const handler = (event: MessageEvent<ExtensionMessage>) => {
-      console.log('event.data');
+      console.log("event.data");
       console.log(event.data);
       if (event.data.id === expectedId && event.data.type === type) {
         console.log("event.data");

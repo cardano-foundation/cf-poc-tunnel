@@ -33,8 +33,7 @@ const createAxiosClient = (apiURL: string): AxiosInstance => {
   const client = axios.create({
     baseURL: apiURL,
     headers: {
-      "Content-Type": "application/json",
-      PUBLIC_AID: "value",
+      "Content-Type": "application/json"
     },
   });
 
@@ -46,9 +45,8 @@ const createAxiosClient = (apiURL: string): AxiosInstance => {
           serializedHeaders[key] = value;
         });
       }
+
       const canonicalizedHeaders = canonicalize(serializedHeaders);
-      console.log("canonicalizedHeaders");
-      console.log(canonicalizedHeaders);
 
       const message = sendMessageToExtension(
         ExtensionMessageType.SIGN_HEADERS,
@@ -60,26 +58,15 @@ const createAxiosClient = (apiURL: string): AxiosInstance => {
         },
       );
 
-      console.log("client.interceptors.request");
-      /*const signedHeaders = await listenForExtensionMessage<
-        Record<string, string>
-      >(ExtensionMessageType.SIGNED_HEADERS);
-       */
-      const signedHeaders2 = await listenForExtensionMessage<
+      const { signedHeaders } = await listenForExtensionMessage<
         Record<string, string>
       >(ExtensionMessageType.SIGNED_HEADERS, message.id);
 
-      console.log("signedHeaders22");
-      console.log(signedHeaders2);
+      config.headers = {
+        ...config.headers,
+        ...signedHeaders,
+      } as AxiosRequestHeaders;
 
-      /*
-              console.log('signedHeaders');
-              console.log(signedHeaders);
-              config.headers = {
-                ...config.headers,
-                ...signedHeaders,
-              } as AxiosRequestHeaders;
-              */
       return config;
     },
     (error) => {
@@ -91,12 +78,12 @@ const createAxiosClient = (apiURL: string): AxiosInstance => {
     async (response: AxiosResponse) => {
       console.log("client.interceptors.response");
       console.log(response);
-      sendMessageToExtension(ExtensionMessageType.VERIFY_HEADERS, {
+      const message = sendMessageToExtension(ExtensionMessageType.VERIFY_HEADERS, {
         headers: response.headers,
       });
 
       const verificationResult = await listenForExtensionMessage<boolean>(
-        ExtensionMessageType.HEADERS_VERIFIED,
+        ExtensionMessageType.HEADERS_VERIFIED, message.id
       );
 
       if (!verificationResult) {
