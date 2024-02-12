@@ -51,7 +51,7 @@ function SessionDetails() {
           </p>
           <p>
             <strong>Tunnel AID:</strong>{" "}
-            {shortenText(session.personalPubeid, 24)}
+            {shortenText(session.tunnelAid, 24)}
           </p>
           <p>
             <strong>OOBI: </strong>

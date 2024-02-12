@@ -1,61 +1,54 @@
+// src/App.tsx
 import React, { useEffect, useState } from "react";
 import govLogo from "./assets/gov.png";
 import "./App.scss";
+import { createAxiosClient, ExtensionMessageType } from "./axiosClient";
+import { sendMessageToExtension } from "./utils/extensionCommunication";
 
-function sendMessageToExtension(type: string, data: any) {
-  window.postMessage(
-    {
-      type: type,
-      data,
-    },
-    "*",
-  );
-}
-
-const App = () => {
-  const [headersToSign] = useState({
-    "Content-Type": "application/json",
-    PUBLIC_AID: "value",
-  });
+const App: React.FC = () => {
   const [sessionCreated, setSessionCreated] = useState(false);
-  const [signedHeaders, setSignedHeaders] = useState({});
+  const [signedHeaders, setSignedHeaders] = useState<Record<string, string>>(
+    {},
+  );
+
   useEffect(() => {
-    window.addEventListener("message", (e) => {
-      const hostname = new URL(e.origin).hostname;
-      if (hostname === window.location.hostname) {
-        const message = e.data;
-        if (message !== null && message?.type) {
-          switch (message?.type) {
-            case "SIGNED_HEADERS": {
-              setSignedHeaders(message.data.signedHeaders);
-              break;
-            }
-            case "SESSION_CREATED": {
-              setSessionCreated(true);
-              break;
-            }
-          }
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin === window.location.origin) {
+        const message = event.data;
+        switch (message?.type) {
+          case ExtensionMessageType.SIGNED_HEADERS:
+            setSignedHeaders(message.data.signedHeaders);
+            break;
+          case ExtensionMessageType.SESSION_CREATED:
+            setSessionCreated(true);
+            break;
+          default:
+            break;
         }
       }
-    });
-  });
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
+  }, []);
 
   const handleCreateSession = async () => {
     const enterpriseData = {};
-    sendMessageToExtension("CREATE_SESSION", enterpriseData);
+    sendMessageToExtension(ExtensionMessageType.CREATE_SESSION, enterpriseData);
   };
+
   const handleFetch = async () => {
-    const request = {
-      data: {
-        url: "http://localhost:3001",
-        headers: headersToSign,
-        method: "GET",
-        query: "",
-        body: {},
-      },
-    };
-    sendMessageToExtension("SIGN_HEADERS", request);
+    try {
+      const axiosClient = createAxiosClient("http://localhost:3001");
+      const response = await axiosClient.get("/ping");
+      console.log("Data:", response.data);
+    } catch (error) {
+      console.error("Error on fetch:", error);
+    }
   };
+
   return (
     <>
       <div>

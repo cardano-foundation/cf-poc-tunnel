@@ -79,8 +79,8 @@ function Connect() {
         </p>
         <p>
           <strong>Personal Public eAID: </strong>
-          {session.personalPubeid.length ? (
-            shortenText(session.personalPubeid, 24)
+          {session.tunnelAid.length ? (
+            shortenText(session.tunnelAid, 24)
           ) : (
             <span className="generateLabel" onClick={handleGenerateEaid}>
               Generate eAID

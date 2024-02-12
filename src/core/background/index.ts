@@ -16,46 +16,46 @@ const mockSessions = [
     name: "voting-app.org",
     expiryDate: "2014-04-05",
     serverPubeid: "JJBD4S...9S23",
-    personalPubeid: "KO7G10D4S...1JS5",
+    tunnelAid: "KO7G10D4S...1JS5",
     oobi: "http://ac2in...1JS5",
-    acdc: "ACac2in...1JS5DC",
+    createdAt: 1
   },
   {
     id: "2",
     name: "webapp.com",
     expiryDate: "",
     serverPubeid: "JJBD4S...9S23",
-    personalPubeid: "",
+    tunnelAid: "",
     oobi: "http://ac2in...1JS5",
-    acdc: "ACac2in...1JS5DC",
+    createdAt: 2
   },
   {
     id: "3",
     name: "platform2.gov",
     expiryDate: "2015-06-10",
     serverPubeid: "JJBD4S...9S23",
-    personalPubeid: "KO7G10D4S...1JS5",
+    tunnelAid: "KO7G10D4S...1JS5",
     oobi: "http://ac2in...1JS5",
-    acdc: "ACac2in...1JS5DC",
+    createdAt: 3
   },
   {
     id: "4",
     name: "platform3.gov",
     serverPubeid: "JJBD4S...9S23",
-    personalPubeid: "KO7G10D4S...1JS5",
+    tunnelAid: "KO7G10D4S...1JS5",
     expiryDate: "2019-07-10",
     oobi: "http://ac2in...1JS5",
-    acdc: "ACac2in...1JS5DC",
+    createdAt: 4
   },
   {
     id: "5",
     name: "platform4.gov",
     expiryDate: "",
     serverPubeid: "JJBD4S...9S23",
-    personalPubeid: "",
+    tunnelAid: "",
     oobi: "http://ac2in...1JS5",
-    acdc: "ACac2in...1JS5DC",
-  },
+    createdAt: 5
+  }
 ];
 
 const checkSignify = async (): Promise<void> => {
@@ -87,10 +87,11 @@ const getCurrentTabDetails = async (): Promise<{
 const signHeaders = async (
   path: string,
   method: string,
-  originalHeaders: any,
+  headersToSign: any,
   aidName: string,
 ): Promise<ResponseData<Headers>> => {
   try {
+
     const ephemeralAID = await signifyApi.getIdentifierByName(aidName);
 
     if (ephemeralAID.success) {
@@ -101,7 +102,14 @@ const signHeaders = async (
         signer.signers[0].verfer,
       );
 
-      const headers = new Headers(originalHeaders);
+      const headersObj = JSON.parse(headersToSign);
+      const headers = new Headers();
+      Object.entries(headersObj).forEach(([key, value]) => {
+        headers.append(key, value);
+      });
+
+      console.log("headers in signHeaders");
+      console.log(headers)
 
       headers.set("signify-resource", ephemeralAID.data.prefix);
       await logger.addLog(
@@ -184,11 +192,12 @@ const createSession = async (): Promise<ResponseData<null>> => {
 
         const newSession = {
           id: uid(24),
-          personalPubeid: ephemeralAID.data.prefix,
+          tunnelAid: ephemeralAID.data.prefix,
           expiryDate: "",
           name: hostname,
           logo,
           oobi: resolvedOOBI?.data,
+          createdAt: Date.now()
         };
 
         const { sessions } = await chrome.storage.local.get(["sessions"]);
@@ -236,38 +245,47 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 async function processMessage(message) {
+  if (!message) return;
+
+  console.log('processMessage in SW');
+  console.log(message);
+
   switch (message.type) {
     case "CREATE_SESSION": {
       const session = await createSession();
 
       if (session.success) {
         await logger.addLog(`✅ Session created successfully`);
-        return { ...session, type: "SESSION_CREATED" };
+        return { ...session, type: "SESSION_CREATED", id: message.id };
       } else {
         await logger.addLog(`❌ ${session.error}`);
-        return { ...session, type: "SESSION_CREATED" };
+        return { ...session, type: "SESSION_CREATED", id: message.id };
       }
     }
     case "SIGN_HEADERS": {
-      const dataToSign = message.data;
 
-      const url = dataToSign.data.url;
-      const method = dataToSign.data.method;
-      const headers = new Headers(dataToSign.data.headers);
+      console.log("lets sign in SW!!!")
+      console.log(message.data);
+      const pathname = message.data.path;
+      const method = message.data.method;
+      const headers = message.data.headers;
 
-      let { hostname, port, pathname } = await getCurrentTabDetails();
-
+      let { hostname, port } = await getCurrentTabDetails();
       if (port.length) {
         hostname = `${hostname}:${port}`;
       }
       hostname = hostname.replace(":", "-");
 
+      console.log('hey0');
       const signedHeaders = await signHeaders(
         pathname,
         method,
         headers,
         hostname,
       );
+
+      console.log('signedHeaders');
+      console.log(signedHeaders);
 
       if (signedHeaders.success) {
         await logger.addLog(
@@ -278,17 +296,16 @@ async function processMessage(message) {
         return {
           success: true,
           type: "SIGNED_HEADERS",
+          id: message.id,
           data: {
             signedHeaders: serializeHeaders(signedHeaders.data),
           },
         };
       } else {
         await logger.addLog(
-          `❌ Error while signing.. headers: ${hostname}, method: ${method}, pathname: ${
-            new URL(url).pathname
-          }. Error: ${signedHeaders.error}`,
+          `❌ Error while signing. Error: ${signedHeaders.error}`,
         );
-        return { success: false, type: "SIGNED_HEADERS" };
+        return { success: false, type: "SIGNED_HEADERS", id: message.id, };
       }
     }
   }
