@@ -2,10 +2,6 @@ import React, { useEffect, useState } from "react";
 import govLogo from "./assets/gov.png";
 import "./App.scss";
 
-type Header = {
-  [key: string]: any;
-};
-
 function sendMessageToExtension(type: string, data: any) {
   window.postMessage(
     {
