@@ -54,9 +54,8 @@ const signHeaders = async (
         signer.signers[0].verfer,
       );
 
-      const headersObj = JSON.parse(headersToSign);
       const headers = new Headers();
-      Object.entries(headersObj).forEach(([key, value]) => {
+      Object.entries(headersToSign).forEach(([key, value]) => {
         headers.append(key, value);
       });
 
@@ -228,8 +227,7 @@ async function processMessage(message) {
             serializeHeaders(signedHeaders.data),
           )}`,
         );
-        console.log('serializeHeaders(signedHeaders.data)');
-        console.log(serializeHeaders(signedHeaders.data));
+
         return {
           success: true,
           type: "SIGNED_HEADERS",
