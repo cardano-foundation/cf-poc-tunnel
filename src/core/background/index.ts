@@ -228,6 +228,8 @@ async function processMessage(message) {
             serializeHeaders(signedHeaders.data),
           )}`,
         );
+        console.log('serializeHeaders(signedHeaders.data)');
+        console.log(serializeHeaders(signedHeaders.data));
         return {
           success: true,
           type: "SIGNED_HEADERS",

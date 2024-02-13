@@ -57,7 +57,7 @@ const App: React.FC = () => {
         {sessionCreated ? (
           <>
             <button className="button" onClick={() => handleFetch()}>
-              2. Sign Headers {Object.keys(signedHeaders).length ? "✅" : null}
+              2. Call backend {Object.keys(signedHeaders).length ? "✅" : null}
             </button>
           </>
         ) : null}
