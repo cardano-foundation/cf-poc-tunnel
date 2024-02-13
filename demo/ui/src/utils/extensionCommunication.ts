@@ -5,8 +5,10 @@ export interface ExtensionMessage {
   data: any;
 }
 
-const sendMessageToExtension = (type: string, data: any) => {
-  const id = `${type}:${uuidv4()}`;
+const generateMessageId = (type: string) => {
+  return `${type}:${uuidv4()}`;
+};
+const sendMessageToExtension = (id: string, type: string, data: any) => {
   const message = { id, type, data };
   window.postMessage(message, "*");
   return message;
@@ -31,4 +33,4 @@ const listenForExtensionMessage = <T>(
   });
 };
 
-export { sendMessageToExtension, listenForExtensionMessage };
+export { sendMessageToExtension, listenForExtensionMessage, generateMessageId };

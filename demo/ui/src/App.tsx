@@ -3,7 +3,11 @@ import React, { useEffect, useState } from "react";
 import govLogo from "./assets/gov.png";
 import "./App.scss";
 import { createAxiosClient, ExtensionMessageType } from "./axiosClient";
-import {listenForExtensionMessage, sendMessageToExtension} from "./utils/extensionCommunication";
+import {
+  generateMessageId,
+  listenForExtensionMessage,
+  sendMessageToExtension,
+} from "./utils/extensionCommunication";
 
 const App: React.FC = () => {
   const [sessionCreated, setSessionCreated] = useState(false);
@@ -13,20 +17,26 @@ const App: React.FC = () => {
 
   const handleCreateSession = async () => {
     const enterpriseData = {};
-    const message = sendMessageToExtension(
-        ExtensionMessageType.CREATE_SESSION,
-        enterpriseData,
+
+    const messageId = generateMessageId(ExtensionMessageType.CREATE_SESSION);
+
+    const extMessage = listenForExtensionMessage<Record<string, string>>(
+      ExtensionMessageType.SESSION_CREATED,
+      messageId,
     );
-    const {success} = await listenForExtensionMessage<Record<string, string>>(
-        ExtensionMessageType.SESSION_CREATED,
-        message.id,
+
+    sendMessageToExtension(
+      messageId,
+      ExtensionMessageType.CREATE_SESSION,
+      enterpriseData,
     );
+
+    const { success } = await extMessage;
 
     if (success) {
       setSessionCreated(true);
     }
   };
-
 
   const handleFetch = async () => {
     try {

@@ -5,6 +5,7 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 import {
+  generateMessageId,
   listenForExtensionMessage,
   sendMessageToExtension,
 } from "./utils/extensionCommunication";
@@ -32,7 +33,7 @@ const createAxiosClient = (apiURL: string): AxiosInstance => {
   const client = axios.create({
     baseURL: apiURL,
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
   });
 
@@ -45,20 +46,21 @@ const createAxiosClient = (apiURL: string): AxiosInstance => {
         });
       }
 
-      const message = sendMessageToExtension(
-        ExtensionMessageType.SIGN_HEADERS,
-        {
-          headers: serializedHeaders,
-          baseURL: config.baseURL,
-          path: config.url,
-          method: config.method,
-        },
+      const messageId = generateMessageId(ExtensionMessageType.SIGN_HEADERS);
+
+      const extMessage = listenForExtensionMessage<Record<string, string>>(
+        ExtensionMessageType.SIGNED_HEADERS,
+        messageId,
       );
 
-      const { signedHeaders } = await listenForExtensionMessage<
-        Record<string, string>
-      >(ExtensionMessageType.SIGNED_HEADERS, message.id);
+      sendMessageToExtension(messageId, ExtensionMessageType.SIGN_HEADERS, {
+        headers: serializedHeaders,
+        baseURL: config.baseURL,
+        path: config.url,
+        method: config.method,
+      });
 
+      const { signedHeaders } = await extMessage;
       config.headers = {
         ...config.headers,
         ...signedHeaders,
@@ -73,13 +75,18 @@ const createAxiosClient = (apiURL: string): AxiosInstance => {
 
   client.interceptors.response.use(
     async (response: AxiosResponse) => {
-      const message = sendMessageToExtension(ExtensionMessageType.VERIFY_HEADERS, {
+      const messageId = generateMessageId(ExtensionMessageType.SIGN_HEADERS);
+
+      const extMessage = listenForExtensionMessage<boolean>(
+        ExtensionMessageType.HEADERS_VERIFIED,
+        messageId,
+      );
+
+      sendMessageToExtension(messageId, ExtensionMessageType.VERIFY_HEADERS, {
         headers: response.headers,
       });
 
-      const verificationResult = await listenForExtensionMessage<boolean>(
-        ExtensionMessageType.HEADERS_VERIFIED, message.id
-      );
+      const verificationResult = await extMessage;
 
       if (!verificationResult) {
         throw new Error("Response headers verification failed.");
