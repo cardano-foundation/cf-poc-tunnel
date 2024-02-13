@@ -37,9 +37,6 @@ function Connect() {
     );
   };
 
-  console.log("session");
-  console.log(session);
-
   return (
     <div className="sessionDetails">
       <BackButton />

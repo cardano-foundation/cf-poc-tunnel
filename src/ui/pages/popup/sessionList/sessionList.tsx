@@ -41,7 +41,7 @@ function SessionList() {
 
   return (
     <ul className="list">
-      {sessions.map((session) => {
+      {sessions?.length ? sessions.map((session) => {
         return (
           <li key={session.id} className="listItem">
             <div className="sessionName">
@@ -78,7 +78,9 @@ function SessionList() {
             </div>
           </li>
         );
-      })}
+      }) : <>
+        <h2>No sessions yet</h2>
+      </>}
     </ul>
   );
 }

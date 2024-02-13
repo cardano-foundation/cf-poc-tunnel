@@ -10,54 +10,6 @@ const expirationTime = 1800000; // 30 min
 const signifyApi: SignifyApi = new SignifyApi();
 const logger = new Logger();
 
-const mockSessions = [
-  {
-    id: "1",
-    name: "voting-app.org",
-    expiryDate: "2014-04-05",
-    serverPubeid: "JJBD4S...9S23",
-    tunnelAid: "KO7G10D4S...1JS5",
-    oobi: "http://ac2in...1JS5",
-    createdAt: 1
-  },
-  {
-    id: "2",
-    name: "webapp.com",
-    expiryDate: "",
-    serverPubeid: "JJBD4S...9S23",
-    tunnelAid: "",
-    oobi: "http://ac2in...1JS5",
-    createdAt: 2
-  },
-  {
-    id: "3",
-    name: "platform2.gov",
-    expiryDate: "2015-06-10",
-    serverPubeid: "JJBD4S...9S23",
-    tunnelAid: "KO7G10D4S...1JS5",
-    oobi: "http://ac2in...1JS5",
-    createdAt: 3
-  },
-  {
-    id: "4",
-    name: "platform3.gov",
-    serverPubeid: "JJBD4S...9S23",
-    tunnelAid: "KO7G10D4S...1JS5",
-    expiryDate: "2019-07-10",
-    oobi: "http://ac2in...1JS5",
-    createdAt: 4
-  },
-  {
-    id: "5",
-    name: "platform4.gov",
-    expiryDate: "",
-    serverPubeid: "JJBD4S...9S23",
-    tunnelAid: "",
-    oobi: "http://ac2in...1JS5",
-    createdAt: 5
-  }
-];
-
 const checkSignify = async (): Promise<void> => {
   if (!signifyApi.started) {
     await signifyApi.start();
@@ -108,18 +60,18 @@ const signHeaders = async (
         headers.append(key, value);
       });
 
-      headers.set("signify-resource", ephemeralAID.data.prefix);
+      headers.set("Signify-Resource", ephemeralAID.data.prefix);
       await logger.addLog(
         `✅ Ephemeral AID added to headers: ${JSON.stringify({
-          "signify-resource": ephemeralAID.data.prefix,
+          "Signify-Resource": ephemeralAID.data.prefix,
         })}`,
       );
 
       const timestamp = new Date().toISOString().replace("Z", "000+00:00");
-      headers.set("signify-timestamp", timestamp);
+      headers.set("Signify-Timestamp", timestamp);
       await logger.addLog(
         `✅ Timestamp added to headers: ${JSON.stringify({
-          "signify-timestamp": timestamp,
+          "Signify-Timestamp": timestamp,
         })}`,
       );
 
@@ -228,10 +180,6 @@ const createSession = async (): Promise<ResponseData<null>> => {
 };
 chrome.runtime.onInstalled.addListener(async () => {
   await logger.addLog(`✅ Extension successfully installed!`);
-  await chrome.storage.local.set({
-    sessions: mockSessions,
-  });
-
   await checkSignify();
   await logger.addLog(`✅ Signify initialized successfully`);
 });
