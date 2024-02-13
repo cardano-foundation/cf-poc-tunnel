@@ -4,7 +4,6 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from "axios";
-import { canonicalize } from "json-canonicalize";
 import {
   listenForExtensionMessage,
   sendMessageToExtension,
@@ -46,12 +45,10 @@ const createAxiosClient = (apiURL: string): AxiosInstance => {
         });
       }
 
-      const canonicalizedHeaders = canonicalize(serializedHeaders);
-
       const message = sendMessageToExtension(
         ExtensionMessageType.SIGN_HEADERS,
         {
-          headers: canonicalizedHeaders,
+          headers: serializedHeaders,
           baseURL: config.baseURL,
           path: config.url,
           method: config.method,

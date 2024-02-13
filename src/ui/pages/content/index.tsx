@@ -1,6 +1,8 @@
 window.addEventListener("message", (event) => {
   chrome.runtime.sendMessage(event.data, (response) => {
-    window.postMessage(response, "*");
+    if (response){
+      window.postMessage(response, "*");
+    }
   });
 });
 
