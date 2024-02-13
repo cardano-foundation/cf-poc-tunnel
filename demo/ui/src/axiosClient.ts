@@ -29,13 +29,8 @@ enum ExtensionMessageType {
  * to verify response headers with the extension, ensuring they meet
  * the expected security criteria.
  */
-const createAxiosClient = (apiURL: string): AxiosInstance => {
-  const client = axios.create({
-    baseURL: apiURL,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+const createAxiosClient = (): AxiosInstance => {
+  const client = axios.create();
 
   client.interceptors.request.use(
     async (config: InternalAxiosRequestConfig) => {

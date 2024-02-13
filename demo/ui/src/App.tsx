@@ -40,8 +40,8 @@ const App: React.FC = () => {
 
   const handleFetch = async () => {
     try {
-      const axiosClient = createAxiosClient("http://localhost:3001");
-      const response = await axiosClient.get("/ping");
+      const axiosClient = createAxiosClient();
+      const response = await axiosClient.get("http://localhost:3001/ping");
       console.log("Data:", response.data);
     } catch (error) {
       const serializedHeads = {};
