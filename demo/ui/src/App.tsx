@@ -1,34 +1,92 @@
-import React from "react";
+// src/App.tsx
+import React, { useEffect, useState } from "react";
 import govLogo from "./assets/gov.png";
-import "./App.css";
+import "./App.scss";
+import { createAxiosClient, ExtensionMessageType } from "./axiosClient";
+import {
+  generateMessageId,
+  listenForExtensionMessage,
+  sendMessageToExtension,
+} from "./utils/extensionCommunication";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function sendMessageToExtension(data: any) {
-  window.postMessage(
-    {
-      type: "LOGIN_FROM_WEB",
-      data,
-    },
-    "*",
+const App: React.FC = () => {
+  const [sessionCreated, setSessionCreated] = useState(false);
+  const [signedHeaders, setSignedHeaders] = useState<Record<string, string>>(
+    {},
   );
-}
 
-const App = () => {
-  const handleLogin = async () => {
+  const handleCreateSession = async () => {
     const enterpriseData = {};
-    sendMessageToExtension(enterpriseData);
+
+    const messageId = generateMessageId(ExtensionMessageType.CREATE_SESSION);
+
+    const extMessage = listenForExtensionMessage<Record<string, string>>(
+      ExtensionMessageType.SESSION_CREATED,
+      messageId,
+    );
+
+    sendMessageToExtension(
+      messageId,
+      ExtensionMessageType.CREATE_SESSION,
+      enterpriseData,
+    );
+
+    const { success } = await extMessage;
+
+    if (success) {
+      setSessionCreated(true);
+    }
   };
+
+  const handleFetch = async () => {
+    try {
+      const axiosClient = createAxiosClient();
+      const response = await axiosClient.get("http://localhost:3001/ping");
+      console.log("Data:", response.data);
+    } catch (error) {
+      const serializedHeads = {};
+      if (error.config.headers) {
+        Object.entries(error.config.headers).forEach(([key, value]) => {
+          serializedHeads[key] = value;
+        });
+        setSignedHeaders(serializedHeads);
+      }
+    }
+  };
+
   return (
     <>
       <div>
         <img src={govLogo} className="logo" alt="Vite logo" />
       </div>
       <h1>Web app</h1>
-      <div className="card">
-        <button className="login-button" onClick={() => handleLogin()}>
-          <span>Login</span>
+      <div className="buttonsContainer">
+        <button className="button" onClick={() => handleCreateSession()}>
+          1. Init session {sessionCreated ? "✅" : null}
         </button>
+        {sessionCreated ? (
+          <>
+            <button className="button" onClick={() => handleFetch()}>
+              2. Call backend {Object.keys(signedHeaders).length ? "✅" : null}
+            </button>
+          </>
+        ) : null}
       </div>
+      {sessionCreated ? (
+        <>
+          {" "}
+          <div>
+            {Object.keys(signedHeaders).length ? (
+              <>
+                <h3>Signed Headers</h3>
+                <div className="jsonDisplay">
+                  <pre>{JSON.stringify(signedHeaders, null, 2)}</pre>
+                </div>
+              </>
+            ) : null}
+          </div>{" "}
+        </>
+      ) : null}
     </>
   );
 };

@@ -1,5 +1,8 @@
 import { uid } from "uid";
 
+type Header = {
+  [key: string]: any;
+};
 const isExpired = (date: string): boolean => {
   const dateObj = new Date(date);
   const currentDate = new Date();
@@ -23,10 +26,6 @@ const generateAID = async (): Promise<{ pubKey: string; privKey: string }> => {
     pubKey: uid(12),
     privKey: uid(12),
   };
-};
-
-const extractHostname = (url: string): string => {
-  return new URL(url).hostname;
 };
 
 const convertURLImageToBase64 = (url: string) => {
@@ -57,11 +56,28 @@ const shortenText = (text: string, maxLength = 10) => {
   }
 };
 
+const serializeHeaders = (headers: Headers) => {
+  const headersObj: Header = {};
+  for (const [key, value] of headers.entries()) {
+    headersObj[key] = value;
+  }
+  return headersObj;
+};
+
+const parseHeaders = (serializedHeaders: Header) => {
+  const headers = new Headers();
+  for (const [key, value] of Object.entries(serializedHeaders)) {
+    headers.append(key, value);
+  }
+  return headers;
+};
+
 export {
   isExpired,
   getCurrentDate,
   generateAID,
-  extractHostname,
   convertURLImageToBase64,
   shortenText,
+  serializeHeaders,
+  parseHeaders,
 };

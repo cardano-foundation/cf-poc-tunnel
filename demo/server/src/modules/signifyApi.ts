@@ -209,11 +209,6 @@ export const getSigner = async (aid: Aid) => {
   return signer;
 };
 
-export const getServerAuthn = async (): Promise<Authenticater | null> => {
-  const client = await getSignifyClient();
-  return client.authn;
-};
-
 export const getServerSignifyController = async (): Promise<Controller> => {
   const client = await getSignifyClient();
   return client.controller;

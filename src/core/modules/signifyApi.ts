@@ -1,9 +1,12 @@
-import { randomPasscode, ready, SignifyClient, Tier } from "signify-ts";
-import { Logger } from "@src/utils/logger";
+import {
+  Authenticater,
+  randomPasscode,
+  ready,
+  SignifyClient,
+  Tier,
+} from "signify-ts";
 import { Aid, ResponseData } from "@src/core/modules/signifyApi.types";
 import { EventResult } from "signify-ts/src/keri/app/aiding";
-
-const logger = new Logger();
 
 class SignifyApi {
   private signifyClient!: SignifyClient;
@@ -31,9 +34,6 @@ class SignifyApi {
       this.started = true;
       return {
         success: true,
-        error: new Error(
-          `Signify initialized with Keria endpoint: ${SignifyApi.KERIA_URL}`,
-        ),
       };
     } catch (err) {
       await this.signifyClient.boot();

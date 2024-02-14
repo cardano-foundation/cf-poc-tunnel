@@ -19,10 +19,7 @@ const Options = () => {
 
     try {
       const lgs = (await logger.getLogs()).data;
-      const sortedLogs = lgs.sort(
-        (a, b) =>
-          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-      );
+      const sortedLogs = lgs.sort((a, b) => b.timestamp - a.timestamp);
       setLogs(sortedLogs);
     } catch (error) {
       console.error("Error updating logs:", error);

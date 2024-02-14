@@ -31,7 +31,7 @@ interface Aid {
 }
 
 type ResponseData<T> =
-  | { success: true; data: T }
+  | { success: true; data?: T }
   | { success: false; error: unknown };
 
 export { Aid, ResponseData };
