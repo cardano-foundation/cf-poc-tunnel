@@ -1,10 +1,10 @@
-import express from 'express';
-import cors from 'cors';
-import bodyParser from 'body-parser';
-import { config } from './config';
-import router from './routes';
-import { log } from './log';
-import { initKeri, initSignify } from './modules/signifyApi';
+import express from "express";
+import cors from "cors";
+import bodyParser from "body-parser";
+import { config } from "./config";
+import router from "./routes";
+import { log } from "./log";
+import { initKeri, initSignify } from "./modules/signifyApi";
 import session from 'express-session';
 
 const signifyName = config.signifyName;
@@ -33,7 +33,7 @@ async function startServer() {
     name: identifier.name,
     prefix: identifier.prefix,
     oobi: oobi.oobis[0],
-    acdc : credDomain.sad
+    acdc: credDomain.sad,
   });
 }
 

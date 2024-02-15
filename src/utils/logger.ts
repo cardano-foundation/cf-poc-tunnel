@@ -1,4 +1,4 @@
-import { ResponseData } from '@src/core/modules/signifyApi.types';
+import { ResponseData } from "@src/core/modules/signifyApi.types";
 
 interface LogEntry {
   message: string;
@@ -7,11 +7,11 @@ interface LogEntry {
 }
 
 class Logger {
-  static readonly STORAGE_KEY = 'logs';
+  static readonly STORAGE_KEY = "logs";
 
   async addLog(message: string, error?: boolean): Promise<void> {
-    if (!message || typeof message !== 'string' || !message.trim()) {
-      throw new Error('Log message must be a non-empty string');
+    if (!message || typeof message !== "string" || !message.trim()) {
+      throw new Error("Log message must be a non-empty string");
     }
 
     const logEntry: LogEntry = {
@@ -24,7 +24,7 @@ class Logger {
       logs.push(logEntry);
       await this._storeLogs(logs);
     } catch (error) {
-      console.error('Error saving log:', error);
+      console.error("Error saving log:", error);
     }
   }
 
@@ -51,7 +51,7 @@ class Logger {
         );
       }
     } catch (error) {
-      console.error('Error displaying logs:', error);
+      console.error("Error displaying logs:", error);
     }
   }
 

@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 dotenv.config();
 
 const port = process.env.PORT ? Number(process.env.PORT) : 3001;
@@ -27,8 +27,8 @@ const config = {
     acdcRequirements: "/acdc-requirements",
     handleReqGrant: "/handle-req-grant/:said"
   },
-  domainSchemaSaid : 'EGjD1gCLi9ecZSZp9zevkgZGyEX_MbOdmhBFt4o0wvdb',
-  qviSchemaSaid: 'EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao',
+  domainSchemaSaid: "EGjD1gCLi9ecZSZp9zevkgZGyEX_MbOdmhBFt4o0wvdb",
+  qviSchemaSaid: "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
 };
 
 export { config };

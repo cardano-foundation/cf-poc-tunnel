@@ -1,11 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
-import './lock.scss';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@components/router/authProvider';
+import React, { useEffect, useRef, useState } from "react";
+import "./lock.scss";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@components/router/authProvider";
 
 const isPasscodeValid = async (codes: string[]): Promise<boolean> => {
-  const result = await chrome.storage.local.get(['passcode']);
-  if (result.passcode.join('') === codes.join('')) {
+  const result = await chrome.storage.local.get(["passcode"]);
+  if (result.passcode.join("") === codes.join("")) {
     return true;
   }
   return false;
@@ -16,19 +16,19 @@ function Lock() {
   const { login } = useAuth();
   const [isCreatingPasscode, setIsCreatingPasscode] = useState(true);
   const [isConfirmingPasscode, setIsConfirmingPasscode] = useState(false);
-  const [firstPasscode, setFirstPasscode] = useState(Array(6).fill(''));
-  const [confirmPasscode, setConfirmPasscode] = useState(Array(6).fill(''));
+  const [firstPasscode, setFirstPasscode] = useState(Array(6).fill(""));
+  const [confirmPasscode, setConfirmPasscode] = useState(Array(6).fill(""));
 
-  const [codes, setCodes] = useState(Array(6).fill(''));
+  const [codes, setCodes] = useState(Array(6).fill(""));
 
   const [storedPasscode, setStoredPasscode] = useState(undefined);
   const [enterCodeShowError, setEnterCodeShowError] = useState<boolean>(false);
-  const [codesErrorMessage, setCodesErrorMessage] = useState<string>('');
+  const [codesErrorMessage, setCodesErrorMessage] = useState<string>("");
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   inputRefs.current = [];
 
   useEffect(() => {
-    chrome.storage.local.get(['passcode'], function (result) {
+    chrome.storage.local.get(["passcode"], function (result) {
       if (result.passcode) {
         setStoredPasscode(result.passcode);
         setIsCreatingPasscode(false);
@@ -44,10 +44,10 @@ function Lock() {
   ) => {
     const value = event.target.value;
 
-    if (!(value && /^[0-9]$/.test(value)) && value !== '') return;
+    if (!(value && /^[0-9]$/.test(value)) && value !== "") return;
 
     setEnterCodeShowError(false);
-    setCodesErrorMessage('');
+    setCodesErrorMessage("");
 
     const updatedCodes = isConfirmingPasscode
       ? [...confirmPasscode]
@@ -57,7 +57,7 @@ function Lock() {
       setCodes(updatedCodes);
 
       if (
-        updatedCodes.every((code) => code !== '') &&
+        updatedCodes.every((code) => code !== "") &&
         updatedCodes.length === 6
       ) {
         if (storedPasscode) {
@@ -65,12 +65,12 @@ function Lock() {
 
           if (isValid) {
             login().then(() => {
-              navigate('/');
+              navigate("/");
               return;
             });
           } else {
             setEnterCodeShowError(true);
-            setCodesErrorMessage('Invalid passcode, please, try again');
+            setCodesErrorMessage("Invalid passcode, please, try again");
           }
         } else {
           setFirstPasscode(updatedCodes);
@@ -82,18 +82,18 @@ function Lock() {
     } else {
       setConfirmPasscode(updatedCodes);
       if (
-        !updatedCodes.some((code) => code === '') &&
-        updatedCodes.join('') === firstPasscode.join('')
+        !updatedCodes.some((code) => code === "") &&
+        updatedCodes.join("") === firstPasscode.join("")
       ) {
         login().then(() => {
-          navigate('/');
+          navigate("/");
           return;
         });
         savePasscode();
         return;
-      } else if (!updatedCodes.some((code) => code === '')) {
+      } else if (!updatedCodes.some((code) => code === "")) {
         setEnterCodeShowError(true);
-        setCodesErrorMessage('Passcodes does not match');
+        setCodesErrorMessage("Passcodes does not match");
       }
     }
 
@@ -108,11 +108,11 @@ function Lock() {
     chrome.storage.local.set({ passcode: codes }, function () {
       // Logger
     });
-    navigate('/');
+    navigate("/");
   };
 
   // Hide error message if codes is not complete
-  const showErrorMessage = !codes.some((code) => code === '');
+  const showErrorMessage = !codes.some((code) => code === "");
 
   const codesToRender = isConfirmingPasscode ? confirmPasscode : codes;
   return (
@@ -120,26 +120,26 @@ function Lock() {
       <div className="lockContainer">
         <div
           style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '8px',
+            display: "flex",
+            justifyContent: "center",
+            gap: "8px",
           }}
         >
           <h1 className="lockLabel">
             {isCreatingPasscode
               ? isConfirmingPasscode
-                ? 'Confirm passcode'
-                : 'Create passcode'
-              : 'Enter passcode'}
+                ? "Confirm passcode"
+                : "Create passcode"
+              : "Enter passcode"}
           </h1>
         </div>
 
         <div
           style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '8px',
-            marginTop: '28px',
+            display: "flex",
+            justifyContent: "center",
+            gap: "8px",
+            marginTop: "28px",
           }}
         >
           {[...Array(6)].map((_, index) => (
@@ -152,39 +152,39 @@ function Lock() {
               onChange={(e) => handleInputChange(e, index)}
               onKeyDown={(e) => {
                 const target = e.target as HTMLInputElement;
-                if (e.key === 'Backspace' && target.value === '') {
+                if (e.key === "Backspace" && target.value === "") {
                   if (index > 0) {
                     inputRefs.current[index - 1]?.focus();
                   }
                 }
               }}
               style={{
-                width: '43px',
-                height: '49px',
+                width: "43px",
+                height: "49px",
                 flexShrink: 0,
-                borderRadius: '8px',
-                border: '1px solid #6c6f89',
-                background: '#fff',
-                textAlign: 'center',
-                outline: 'none',
-                color: '#434656',
-                fontSize: '18px',
-                fontStyle: 'normal',
-                fontWeight: '600',
-                lineHeight: '22px',
+                borderRadius: "8px",
+                border: "1px solid #6c6f89",
+                background: "#fff",
+                textAlign: "center",
+                outline: "none",
+                color: "#434656",
+                fontSize: "18px",
+                fontStyle: "normal",
+                fontWeight: "600",
+                lineHeight: "22px",
               }}
             />
           ))}
         </div>
         <div
           style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '8px',
+            display: "flex",
+            justifyContent: "center",
+            gap: "8px",
           }}
         >
           <p className="lockError">
-            {showErrorMessage && enterCodeShowError ? codesErrorMessage : ''}
+            {showErrorMessage && enterCodeShowError ? codesErrorMessage : ""}
           </p>
         </div>
       </div>
