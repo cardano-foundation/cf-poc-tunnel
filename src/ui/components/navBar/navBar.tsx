@@ -1,10 +1,10 @@
-import React from 'react';
-import './Navbar.scss';
+import React from "react";
+import "./Navbar.scss";
 
-import TunnelIcon from '@assets/tunnel-icon.svg';
-import SettingsIcon from '@assets/settings-icon.svg';
-import LockIcon from '@assets/lock-icon.svg';
-import { useAuth } from '../router/authProvider';
+import TunnelIcon from "@assets/tunnel-icon.svg";
+import SettingsIcon from "@assets/settings-icon.svg";
+import LockIcon from "@assets/lock-icon.svg";
+import { useAuth } from "../router/authProvider";
 
 const NavBar = () => {
   const { logout, isLoggedIn } = useAuth();

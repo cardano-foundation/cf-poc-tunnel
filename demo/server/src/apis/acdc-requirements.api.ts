@@ -6,9 +6,9 @@ import { config } from "../config";
 function getAcdcRequirements(_: Request, res: Response) {
   const acdcRequirements = {
     user: {
-        '-s': config.qviSchemaSaid
-    }
-  }
+      "-s": config.qviSchemaSaid,
+    },
+  };
   const response: ResponseData<any> = {
     statusCode: 200,
     success: true,

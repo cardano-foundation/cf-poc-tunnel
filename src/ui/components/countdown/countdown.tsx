@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
 interface CountdownProps {
   expiryDate: string;
@@ -46,9 +46,9 @@ const Countdown: React.FC<CountdownProps> = ({ expiryDate }) => {
   return (
     <div>
       <span>
-        {timeLeft.days ? <>{timeLeft.days}d</> : null}{' '}
-        {timeLeft.hours ? <>{timeLeft.hours}h</> : null}{' '}
-        {timeLeft.minutes ? <>{timeLeft.minutes}m</> : null}{' '}
+        {timeLeft.days ? <>{timeLeft.days}d</> : null}{" "}
+        {timeLeft.hours ? <>{timeLeft.hours}h</> : null}{" "}
+        {timeLeft.minutes ? <>{timeLeft.minutes}m</> : null}{" "}
         {timeLeft.seconds ? <>{timeLeft.seconds}s</> : null}
       </span>
     </div>
