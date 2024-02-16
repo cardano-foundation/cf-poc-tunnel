@@ -1,16 +1,16 @@
 import {
-  Authenticater,
   Controller,
+  Encrypter,
   Serder,
   SignifyClient,
   ready as signifyReady,
   Tier,
+  Verfer,
 } from "signify-ts";
-import { Aid } from "../types/signifyApi.types";
+import { Aid, ERROR_ACDC_NOT_FOUND } from "./signifyService.types";
 import { config } from "../config";
-import { log } from "../log";
+import { log } from "../utils/log";
 import { v4 as uuidv4 } from "uuid";
-import { ERROR_MESSAGE } from "../utils/constants";
 
 const { keriaUrl, keriaBootUrl } = config;
 let signifyClient: SignifyClient;
@@ -150,7 +150,7 @@ export const disclosureAcdc = async (
   const identifier = await getIdentifierByName(config.signifyName);
   const acdc = await getServerAcdc(identifier.prefix, schemaSaid, issuer);
   if (!acdc) {
-    throw new Error(ERROR_MESSAGE.ACDC_NOT_FOUND);
+    throw new Error(ERROR_ACDC_NOT_FOUND);
   }
   const datetime = new Date().toISOString().replace("Z", "000+00:00");
   const [grant2, gsigs2, gend2] = await signifyClient.ipex().grant({
@@ -203,13 +203,24 @@ export const initKeri = async () => {
   return { identifier, oobi, credDomain };
 };
 
-export const getSigner = async (aid: Aid) => {
+export const getKeyManager = async (aid: Aid) => {
   const client = await getSignifyClient();
-  const signer = await client.manager?.get(aid);
-  return signer;
+  return client.manager?.get(aid);
 };
 
 export const getServerSignifyController = async (): Promise<Controller> => {
   const client = await getSignifyClient();
   return client.controller;
 };
+
+export const getRemoteVerfer = async (aid: string) => {
+  const client = await getSignifyClient();
+  const pubKey = (await client.keyStates().get(aid))[0].k[0];
+  return new Verfer({ qb64: pubKey });
+}
+
+export const getRemoteEncrypter = async (aid: string) => {
+  const client = await getSignifyClient();
+  const pubKey = (await client.keyStates().get(aid))[0].k[0];
+  return new Encrypter({}, (new Verfer({ qb64: pubKey })).qb64b);
+}

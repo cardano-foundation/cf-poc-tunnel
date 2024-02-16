@@ -2,9 +2,9 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import { config } from "./config";
-import router from "./routes";
-import { log } from "./log";
-import { initKeri, initSignify } from "./modules/signifyApi";
+import { router } from "./routes";
+import { log } from "./utils/log";
+import { initKeri, initSignify } from "./services/signifyService";
 
 const signifyName = config.signifyName;
 log({ signifyName });

@@ -29,3 +29,5 @@ export interface Aid {
   };
   windexes: number[];
 }
+
+export const ERROR_ACDC_NOT_FOUND = "Unable to disclose ACDC with given requirements";

@@ -8,7 +8,7 @@ const keriaBootUrl = process.env.KERIA_BOOT_URL as string;
 const bran = process.env.BRAN as string;
 const signifyName = process.env.SIGNIFY_NAME as string;
 
-const config = {
+export const config = {
   endpoint: endpoint,
   endpoints: [endpoint],
   port,
@@ -27,5 +27,3 @@ const config = {
   domainSchemaSaid: "EGjD1gCLi9ecZSZp9zevkgZGyEX_MbOdmhBFt4o0wvdb",
   qviSchemaSaid: "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",
 };
-
-export { config };
