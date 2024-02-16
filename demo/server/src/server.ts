@@ -5,18 +5,19 @@ import { config } from "./config";
 import router from "./routes";
 import { log } from "./log";
 import { initKeri, initSignify } from "./modules/signifyApi";
-import session from 'express-session';
+import { dataSource } from "./database";
 
 const signifyName = config.signifyName;
 log({ signifyName });
 async function startServer() {
   const app = express();
-  // Use the session middleware
-  app.use(session({
-    secret: 'your-secret-key', // Change this to a strong, secure secret
-    resave: false,
-    saveUninitialized: true,
-  }));
+
+  try {
+    await dataSource.initialize()    
+    console.log('Connected to database!');
+  } catch(error) {
+    console.log('Error connecting to database:', error);
+  };
   app.use('/static', express.static('static'));
   app.use(cors());
   app.use(bodyParser.json());
@@ -33,7 +34,7 @@ async function startServer() {
     name: identifier.name,
     prefix: identifier.prefix,
     oobi: oobi.oobis[0],
-    acdc: credDomain.sad,
+    acdc : credDomain.sad
   });
 }
 

@@ -1,5 +1,4 @@
 import {
-  Authenticater,
   Controller,
   Serder,
   SignifyClient,
@@ -214,10 +213,9 @@ export const getServerSignifyController = async (): Promise<Controller> => {
   return client.controller;
 }
 
-export const getExchangesBySaid = async (said: string) => {
+export const getExnMessageBySaid = async (said: string) => {
   const client = await getSignifyClient();
   const exchanges = await client.exchanges().get(said);
-  // const exchanges = await client.groups().getRequest(said)
   return exchanges;
 }
 
