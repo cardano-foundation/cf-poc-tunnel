@@ -1,6 +1,7 @@
 import {
   Controller,
   Encrypter,
+  Operation,
   Serder,
   SignifyClient,
   ready as signifyReady,
@@ -55,21 +56,19 @@ export const createIdentifier = async (name: string) => {
 };
 
 export const getOOBIs = async (name: string, role: string) => {
-  const oobisResult = await signifyClient.oobis().get(name, role);
-  return oobisResult;
+  return signifyClient.oobis().get(name, role);
 };
 
-export const resolveOOBI = async (url: string) => {
-  let oobiOperation = await signifyClient.oobis().resolve(url);
-  oobiOperation = await waitAndGetDoneOp(oobiOperation, 15000, 250);
-  return oobiOperation;
+export const resolveOOBI = async (url: string): Promise<Operation<unknown>> => {
+  const oobiOperation = await signifyClient.oobis().resolve(url);
+  return waitAndGetDoneOp(oobiOperation, 15000, 250);
 };
 
-export const waitAndGetDoneOp = async (
-  op: any,
+export const waitAndGetDoneOp = async <T>(
+  op: Operation<T>,
   timeout: number,
   interval: number,
-) => {
+): Promise<Operation<T>> => {
   const startTime = new Date().getTime();
   while (!op.done && new Date().getTime() < startTime + timeout) {
     op = await signifyClient.operations().get(op.name);
@@ -93,7 +92,7 @@ export const issueDomainCredential = async (
   schemaSAID: string,
   holder: string,
   domain: string,
-) => {
+): Promise<void> => {
   const vcdata = {
     domain,
   };
@@ -182,7 +181,9 @@ export const initKeri = async () => {
   const oobi = await getOOBIs(mainAidName, "agent");
   // For the development purpose, the endpoint needs to be accessible from keria
   const schemaUrl = config.endpoint + "/oobi/" + schemaSaid;
-  await resolveOOBI(schemaUrl);
+  if (!(await resolveOOBI(schemaUrl)).done) {
+    throw new Error("Failed to resolve schema OOBI, endpoint most likely incorrect.");
+  }
 
   let credDomain = await getServerAcdc(identifier.prefix, schemaSaid);
 
