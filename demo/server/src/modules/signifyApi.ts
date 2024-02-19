@@ -219,8 +219,12 @@ export const getExnMessageBySaid = async (said: string) => {
   return exchanges;
 }
 
-export const getCredentials = async () => {
+export const getCredentials = async (filters?: any) => {
   const client = await getSignifyClient();
-  const credentials = await client.credentials().list();
-  return credentials;
+  if (filters) {
+    return await client.credentials().list({
+      filter: filters,
+    });
+  }
+  return await client.credentials().list();
 }

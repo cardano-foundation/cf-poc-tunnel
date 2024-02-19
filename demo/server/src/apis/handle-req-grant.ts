@@ -4,19 +4,30 @@ import { httpResponse } from "../utils/response.util";
 import { getCredentials, getExnMessageBySaid } from "../modules/signifyApi";
 import { Session } from "../database/entities/session";
 import { dataSource } from "../database";
+import { config } from "../config";
 
 async function handleReqGrant(req: Request, res: Response) {
   const { said } = req.params;
   try {
     const exchange = await getExnMessageBySaid(said);
     const aid = exchange.exn.a.sid;
-    const acdcs= await getCredentials();
-    const acdcsOfAid = acdcs.filter(acdc => acdc.sad.a.i === aid);
+    const idWalletAid = exchange.exn.a.idwAid;
+    const acdcs= await getCredentials({
+      '-i': config.issuerAidPrefix,
+    });
+    const acdcsOfAid = acdcs.filter(acdc => acdc.sad.a.i === idWalletAid);
     if (!acdcsOfAid.length) {
       throw new Error("AID have not completed the ACDC disclosure yet.");
     }
     const session = new Session();
+    const acdcSchema = acdcsOfAid[0].sad.s;
+    if (acdcSchema === config.qviSchemaSaid) {
+      session.role = 'user';
+    };
     session.aid = aid;
+    const currentTime = new Date().getTime();
+    const sessionDuration = 24 * 60 * 60000; //1 day
+    session.validUntil = new Date(currentTime + sessionDuration);
     const entityManager = dataSource.manager;
     await entityManager.save(session);
     const response: ResponseData<any> = {

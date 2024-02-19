@@ -12,12 +12,9 @@ log({ signifyName });
 async function startServer() {
   const app = express();
 
-  try {
-    await dataSource.initialize()    
-    console.log('Connected to database!');
-  } catch(error) {
-    console.log('Error connecting to database:', error);
-  };
+  await dataSource.initialize()    
+  console.log('Connected to database!');
+
   app.use('/static', express.static('static'));
   app.use(cors());
   app.use(bodyParser.json());
