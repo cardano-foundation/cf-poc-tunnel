@@ -11,16 +11,20 @@ async function handleReqGrant(req: Request, res: Response) {
   try {
     const exchange = await getExnMessageBySaid(said);
     const aid = exchange.exn.a.sid;
-    const idWalletAid = exchange.exn.a.idwAid;
     const acdcs= await getCredentials({
       '-i': config.issuerAidPrefix,
+      '-a-i': exchange.exn.i
     });
-    const acdcsOfAid = acdcs.filter(acdc => acdc.sad.a.i === idWalletAid);
-    if (!acdcsOfAid.length) {
+    if (!acdcs.length) {
       throw new Error("AID have not completed the ACDC disclosure yet.");
     }
     const session = new Session();
-    const acdcSchema = acdcsOfAid[0].sad.s;
+    const latestAcdc = acdcs.reduce((latestObj, currentObj) => {
+      const maxDateTime = latestObj.sad.a.dt;
+      const currentDateTime = currentObj.sad.a.dt;
+      return currentDateTime > maxDateTime ? currentObj : latestObj;
+  });
+    const acdcSchema = latestAcdc.sad.s;
     if (acdcSchema === config.qviSchemaSaid) {
       session.role = 'user';
     };

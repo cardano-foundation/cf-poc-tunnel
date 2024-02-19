@@ -7,14 +7,12 @@ const keriaUrl = process.env.KERIA_URL as string;
 const keriaBootUrl = process.env.KERIA_BOOT_URL as string;
 const bran = process.env.BRAN as string;
 const signifyName = process.env.SIGNIFY_NAME as string;
-const sessionSecret = process.env.SESSION_SECRET;
-const issuerAidPrefix = process.env.ISSUANCE_SERVER_AID_PREFIX;
+const issuerAidPrefix = process.env.ISSUER_AID_PREFIX;
 
 const config = {
   endpoint: endpoint,
   endpoints: [endpoint],
   port,
-  sessionSecret,
   keriaUrl,
   keriaBootUrl,
   bran,
