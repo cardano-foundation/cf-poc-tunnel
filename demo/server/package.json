@@ -12,13 +12,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.5.0",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "node-cache": "^5.1.2",
-    "signify-ts": "file:../../../keri/signify-ts/signify-ts-0.1.1.tgz",
+    "signify-ts": "github:cardano-foundation/signify-ts#c47354267b193a18b3f7d2ddc5d1076f36a2e867",
     "uuid": "^9.0.1",
     "ws": "^8.13.0"
   },
