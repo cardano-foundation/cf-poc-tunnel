@@ -43,8 +43,7 @@ export async function decryptVerifyRequest(req: Request, res: Response, next: Ne
     }
 
     const signature = new Cigar({ qb64: req.body.sig });  // @TODO - foconnor: Will crash if not valid CESR - handle.
-    const verfer = await getRemoteVerfer(reqAid);
-    if (!verfer.verify(signature.raw, JSON.stringify({
+    if (!reqVerfer.verify(signature.raw, JSON.stringify({
       src: reqAid,
       dest: serverAid.prefix,
       datetime: reqDateTime,

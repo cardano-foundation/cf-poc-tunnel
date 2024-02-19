@@ -213,13 +213,13 @@ export const getServerSignifyController = async (): Promise<Controller> => {
   return client.controller;
 };
 
-export const getRemoteVerfer = async (aid: string) => {
+export const getRemoteVerfer = async (aid: string): Promise<Verfer> => {
   const client = await getSignifyClient();
   const pubKey = (await client.keyStates().get(aid))[0].k[0];
   return new Verfer({ qb64: pubKey });
 }
 
-export const getRemoteEncrypter = async (aid: string) => {
+export const getRemoteEncrypter = async (aid: string): Promise<Encrypter> => {
   const client = await getSignifyClient();
   const pubKey = (await client.keyStates().get(aid))[0].k[0];
   return new Encrypter({}, (new Verfer({ qb64: pubKey })).qb64b);
