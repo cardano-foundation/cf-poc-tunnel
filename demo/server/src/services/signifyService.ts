@@ -225,3 +225,18 @@ export const getRemoteEncrypter = async (aid: string): Promise<Encrypter> => {
   const pubKey = (await client.keyStates().get(aid))[0].k[0];
   return new Encrypter({}, (new Verfer({ qb64: pubKey })).qb64b);
 }
+
+export const getExnMessageBySaid = async (said: string): Promise<any> => {
+  const client = await getSignifyClient();
+  return client.exchanges().get(said);
+}
+
+export const getCredentials = async (filters?: any): Promise<any> => {
+  const client = await getSignifyClient();
+  if (filters) {
+    return client.credentials().list({
+      filter: filters,
+    });
+  }
+  return client.credentials().list();
+}

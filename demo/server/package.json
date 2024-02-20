@@ -18,6 +18,8 @@
     "express": "^4.18.2",
     "node-cache": "^5.1.2",
     "signify-ts": "github:cardano-foundation/signify-ts#c47354267b193a18b3f7d2ddc5d1076f36a2e867",
+    "sqlite3": "^5.1.7",
+    "typeorm": "^0.3.20",
     "uuid": "^9.0.1",
     "ws": "^8.13.0"
   },

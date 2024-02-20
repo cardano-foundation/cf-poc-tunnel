@@ -6,6 +6,7 @@ import { getSchema } from "./apis/schema.api";
 import { discloseAcdc } from "./apis/discloseAcdc.api";
 import { decryptVerifyRequest, encryptSignResponse } from "./middlewares";
 import { getAcdcRequirements } from "./apis/acdcRequirements.api";
+import { handleReqGrant } from './apis/handle-req-grant';
 
 export const router = express.Router();
 router.post(config.path.ping, decryptVerifyRequest, ping, encryptSignResponse);  // POST to test ESSR
@@ -14,3 +15,4 @@ router.get(config.path.oobi, getServerOOBI);
 router.get(config.path.schema, getSchema);
 router.post(config.path.disclosureAcdc, discloseAcdc);
 router.get(config.path.acdcRequirements, getAcdcRequirements);
+router.get(config.path.handleReqGrant, handleReqGrant);

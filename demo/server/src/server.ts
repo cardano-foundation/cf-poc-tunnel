@@ -5,9 +5,14 @@ import { config } from "./config";
 import { router } from "./routes";
 import { log } from "./utils/log";
 import { initKeri, initSignify } from "./services/signifyService";
+import { dataSource } from "./database";
 
 async function startServer() {
   const app = express();
+  
+  await dataSource.initialize()    
+  console.log('Connected to database!');
+  
   app.use("/static", express.static("static"));
   app.use(cors({
     exposedHeaders: ["signature", "signature-input", "signify-resource", "signify-timestamp"]
@@ -26,7 +31,7 @@ async function startServer() {
     name: identifier.name,
     prefix: identifier.prefix,
     oobi: oobi.oobis[0],
-    acdc: credDomain.sad,
+    acdc : credDomain.sad
   });
 }
 
