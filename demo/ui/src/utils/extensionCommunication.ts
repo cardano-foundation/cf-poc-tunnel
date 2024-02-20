@@ -5,6 +5,8 @@ export interface ExtensionMessage {
   data: any;
 }
 
+const COMMUNICATION_TIMEOUT = 30000;
+
 const generateMessageId = (type: string) => {
   return `${type}:${uuidv4()}`;
 };
@@ -29,7 +31,7 @@ const listenForExtensionMessage = <T>(
     setTimeout(() => {
       window.removeEventListener("message", handler);
       reject(new Error("Timeout waiting for extension message"));
-    }, 5000);
+    }, COMMUNICATION_TIMEOUT);
   });
 };
 

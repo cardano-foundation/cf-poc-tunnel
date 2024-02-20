@@ -41,46 +41,53 @@ function SessionList() {
 
   return (
     <ul className="list">
-      {sessions?.length ? sessions.map((session) => {
-        return (
-          <li key={session.id} className="listItem">
-            <div className="sessionName">
-              <div className="sessionLogo">
-                <img
-                  className={session.logo?.length ? "" : "smallIcon"}
-                  src={session.logo?.length ? session.logo : webLogo}
-                  width={32}
-                />
+      {sessions?.length ? (
+        sessions.map((session) => {
+          return (
+            <li key={session.id} className="listItem">
+              <div className="sessionName">
+                <div className="sessionLogo">
+                  <img
+                    className={session.logo?.length ? "" : "smallIcon"}
+                    src={session.logo?.length ? session.logo : webLogo}
+                    width={32}
+                  />
+                </div>
+                <div className="primaryText domainName">{session.name}</div>
+                <div className="secondaryText">
+                  {session.expiryDate && isExpired(session.expiryDate) ? (
+                    <>Expired</>
+                  ) : (
+                    <Countdown expiryDate={session.expiryDate} />
+                  )}
+                </div>
               </div>
-              <div className="primaryText domainName">{session.name}</div>
-              <div className="secondaryText">
-                {session.expiryDate && isExpired(session.expiryDate) ? (
-                  <>Expired</>
-                ) : (
-                  <Countdown expiryDate={session.expiryDate} />
-                )}
+              {!session.expiryDate || session.expiryDate === 0 ? (
+                <button
+                  className="iconButton"
+                  onClick={() => handleConnect(session)}
+                >
+                  <img className="icon" src={MobileConnectIcon} width={30} />
+                  <span className="label">Login</span>
+                </button>
+              ) : null}
+              <div className="buttonGroup">
+                <span
+                  onClick={() => handleInfo(session)}
+                  className="infoButton"
+                >
+                  {" "}
+                  →{" "}
+                </span>
               </div>
-            </div>
-            {!session.expiryDate || session.expiryDate === 0 ? (
-              <button
-                className="iconButton"
-                onClick={() => handleConnect(session)}
-              >
-                <img className="icon" src={MobileConnectIcon} width={30} />
-                <span className="label">Login</span>
-              </button>
-            ) : null}
-            <div className="buttonGroup">
-              <span onClick={() => handleInfo(session)} className="infoButton">
-                {" "}
-                →{" "}
-              </span>
-            </div>
-          </li>
-        );
-      }) : <>
-        <h2>No sessions yet</h2>
-      </>}
+            </li>
+          );
+        })
+      ) : (
+        <>
+          <h2>No sessions yet</h2>
+        </>
+      )}
     </ul>
   );
 }

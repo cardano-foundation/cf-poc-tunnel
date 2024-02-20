@@ -43,7 +43,6 @@ const signHeaders = async (
   aidName: string,
 ): Promise<ResponseData<Headers>> => {
   try {
-
     const ephemeralAID = await signifyApi.getIdentifierByName(aidName);
 
     if (ephemeralAID.success) {
@@ -104,8 +103,97 @@ const signHeaders = async (
     };
   }
 };
-const createSession = async (): Promise<ResponseData<null>> => {
 
+const resolveClientOOBI = async (
+  name: string,
+): Promise<
+  ResponseData<{
+    success: boolean;
+    data: string;
+  }>
+> => {
+  try {
+    const oobi = await signifyApi.getOOBI(name, "agent");
+
+    if (oobi.success) {
+      const oobiUrl = oobi.data.oobis[0];
+      await fetch(`${SERVER_ENDPOINT}/resolve-oobi`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          oobiUrl,
+        }),
+      });
+      return {
+        success: true,
+        data: {
+          oobiUrl,
+        },
+      };
+    } else {
+      return {
+        success: false,
+        error: new Error("Error while getting the OOBI url"),
+      };
+    }
+  } catch (e) {
+    return {
+      success: false,
+      error: e,
+    };
+  }
+};
+
+const discloseEnterpriseACDC = async (
+  aidPrefix: string,
+  schemaSaid: string,
+): Promise<
+  ResponseData<{
+    statusCode: number;
+    success: boolean;
+    data: null;
+  }>
+> => {
+  try {
+    const response = await fetch(`${SERVER_ENDPOINT}/disclosure-acdc`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        aidPrefix,
+        schemaSaid,
+      }),
+    });
+    return {
+      success: true,
+      data: await response.json(),
+    };
+  } catch (e) {
+    return {
+      success: false,
+      error: e,
+    };
+  }
+};
+
+const waitForAcdcToAppear = async (retryTimes: number): Promise<any> => {
+  let noty = (await signifyApi.getNotifications()).data;
+  let tries = 0;
+  while (!noty?.notes?.length) {
+    if (tries > retryTimes) {
+      throw new Error("not acdc");
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    noty = (await signifyApi.getNotifications()).data;
+    tries++;
+  }
+  return noty.notes;
+};
+
+const createSession = async (): Promise<ResponseData<any>> => {
   let { hostname, port, favIconUrl } = await getCurrentTabDetails();
   if (port.length) {
     hostname = `${hostname}:${port}`;
@@ -126,38 +214,73 @@ const createSession = async (): Promise<ResponseData<null>> => {
 
     const resolvedOOBI = await signifyApi.resolveOOBI(oobiUrl);
 
-    await logger.addLog(`✅ OOBI resolved successfully`);
-
     if (resolvedOOBI.success) {
+      await logger.addLog(`✅ Enterpise OOBI resolved successfully`);
+
       try {
-        await signifyApi.createIdentifier(hostname);
+        const aid = await signifyApi.createIdentifier(hostname);
 
-        await logger.addLog(
-          `✅ AID created successfully with name ${hostname}`,
-        );
+        if (aid.success) {
+          await logger.addLog(
+            `✅ AID created successfully with name ${hostname}`,
+          );
 
-        const ephemeralAID = await signifyApi.getIdentifierByName(hostname);
+          const clientOobiResolved = await resolveClientOOBI(hostname);
 
-        const newSession = {
-          id: uid(24),
-          tunnelAid: ephemeralAID.data.prefix,
-          expiryDate: "",
-          name: hostname,
-          logo,
-          oobi: resolvedOOBI?.data,
-          createdAt: Date.now()
-        };
+          if (clientOobiResolved.success) {
+            await logger.addLog(
+              `✅ Client OOBI successfully resolved with URL: ${clientOobiResolved.data.oobiUrl}`,
+            );
 
-        const { sessions } = await chrome.storage.local.get(["sessions"]);
-        const sessionsArray = sessions || [];
-        sessionsArray.push(newSession);
+            const disclosedAcdc = await discloseEnterpriseACDC(
+              aid.data.data.prefix,
+              SignifyApi.ENTERPRISE_SCHEMA_SAID,
+            );
 
-        await chrome.storage.local.set({ sessions: sessionsArray });
+            if (disclosedAcdc.success) {
+              const creds = await waitForAcdcToAppear(140);
 
-        await logger.addLog(
-          `🗃 New session stored in db: ${JSON.stringify(sessionsArray)}`,
-        );
-        return { success: true };
+              await logger.addLog(`✅ Credentials: ${JSON.stringify(creds)}`);
+
+              const newSession = {
+                id: uid(24),
+                tunnelAid: aid.data.data.prefix,
+                expiryDate: "",
+                name: hostname,
+                logo,
+                oobi: resolvedOOBI?.data,
+                createdAt: Date.now(),
+                acdc: creds[0],
+              };
+
+              const { sessions } = await chrome.storage.local.get(["sessions"]);
+              const sessionsArray = sessions || [];
+              sessionsArray.push(newSession);
+
+              await chrome.storage.local.set({ sessions: sessionsArray });
+
+              await logger.addLog(
+                `🗃 New session stored in db: ${JSON.stringify(sessionsArray)}`,
+              );
+              return { success: true, data: newSession };
+            } else {
+              return {
+                success: false,
+                error: `Error while disclosing enterprise ACDC. Error: ${disclosedAcdc.error}`,
+              };
+            }
+          } else {
+            return {
+              success: false,
+              error: `Error while resolving client OOBI with name: ${hostname}. Error: ${clientOobiResolved.error}`,
+            };
+          }
+        } else {
+          return {
+            success: false,
+            error: `Error while creating AID with name: ${hostname}. Error: ${aid.error}`,
+          };
+        }
       } catch (e) {
         return {
           success: false,
@@ -240,7 +363,7 @@ async function processMessage(message) {
         await logger.addLog(
           `❌ Error while signing. Error: ${signedHeaders.error}`,
         );
-        return { success: false, type: "SIGNED_HEADERS", id: message.id, };
+        return { success: false, type: "SIGNED_HEADERS", id: message.id };
       }
     }
   }

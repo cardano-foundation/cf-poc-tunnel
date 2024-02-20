@@ -1,10 +1,4 @@
-import {
-  Authenticater,
-  randomPasscode,
-  ready,
-  SignifyClient,
-  Tier,
-} from "signify-ts";
+import { randomPasscode, ready, SignifyClient, Tier } from "signify-ts";
 import { Aid, ResponseData } from "@src/core/modules/signifyApi.types";
 import { EventResult } from "signify-ts/src/keri/app/aiding";
 
@@ -14,6 +8,10 @@ class SignifyApi {
   static readonly KERIA_URL = import.meta.env.VITE_KERIA_URL;
   static readonly KERIA_BOOT_URL = import.meta.env.VITE_KERIA_BOOT_ENDPOINT;
   static readonly SIGNIFY_BRAN_STORAGE_KEY = "SIGNIFY_BRAN";
+  static readonly ENTERPRISE_SCHEMA_SAID =
+    "EGjD1gCLi9ecZSZp9zevkgZGyEX_MbOdmhBFt4o0wvdb";
+  static readonly ENTERPRISE_PREFIX =
+    "ECsjFzeEvQFhFL2IivLjwuVj-Gp2O6qbPyivlmmWOpBy";
 
   constructor() {
     this.started = false;
@@ -73,7 +71,12 @@ class SignifyApi {
     name: string,
   ): Promise<ResponseData<EventResult | any>> => {
     try {
-      const aid = await this.signifyClient.identifiers().create(name);
+      const op: any = await this.signifyClient.identifiers().create(name);
+      await op.op();
+      await this.signifyClient
+        .identifiers()
+        .addEndRole(name, "agent", this.signifyClient.agent!.pre);
+      const aid = await this.getIdentifierByName(name);
       return {
         success: true,
         data: aid,
@@ -150,6 +153,48 @@ class SignifyApi {
       };
     }
   };
+  getCredentials = async (): Promise<ResponseData<any>> => {
+    try {
+      return {
+        success: true,
+        data: await this.signifyClient.credentials().list(),
+      };
+    } catch (e) {
+      return {
+        success: false,
+        error: e,
+      };
+    }
+  };
+
+  async getNotifications() {
+    const noty = await this.signifyClient.notifications().list();
+    try {
+      return {
+        success: true,
+        data: noty,
+      };
+    } catch (e) {
+      return {
+        success: false,
+        error: e,
+      };
+    }
+  }
+  async getOOBI(name: string, role) {
+    const oobi = await this.signifyClient.oobis().get(name, role);
+    try {
+      return {
+        success: true,
+        data: oobi,
+      };
+    } catch (e) {
+      return {
+        success: false,
+        error: e,
+      };
+    }
+  }
 
   private waitAndGetDoneOp = async (
     op: any,
