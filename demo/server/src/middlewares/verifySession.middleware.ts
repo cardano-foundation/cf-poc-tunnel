@@ -4,7 +4,7 @@ import { Session } from "../database/entities/session";
 
 export const verifySession = (validRoles: string[]) => {
     return async (req: Request, res: Response, next) => {
-        const aid = req.headers['signify-resource'];
+        const aid = req.headers['signify-resource'] as string;
         const sessionRepository = dataSource.getRepository(Session);
         const session = await sessionRepository.findOne({
             where: {
@@ -28,6 +28,6 @@ export const verifySession = (validRoles: string[]) => {
                 userAid: session.aid,
             }
         }
-        next();
+        return next();
     }
   }
