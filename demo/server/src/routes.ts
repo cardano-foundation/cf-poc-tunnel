@@ -10,7 +10,7 @@ import { handleReqGrant } from './apis/handle-req-grant';
 
 const router = express.Router();
 // Currently, I am testing the interceptor with the ping api
-router.get(config.path.ping, verifySession, verifyRequest, signResponse, ping);
+router.get(config.path.ping, verifySession(['user']), verifyRequest, signResponse, ping);
 router.post(config.path.resolveOOBI, resolveClientOOBI);
 router.get(config.path.oobi, getServerOOBI);
 router.get(config.path.schema, schemaApi);
