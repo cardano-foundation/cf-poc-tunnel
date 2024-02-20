@@ -6,12 +6,12 @@ import { router } from "./routes";
 import { log } from "./utils/log";
 import { initKeri, initSignify } from "./services/signifyService";
 
-const signifyName = config.signifyName;
-log({ signifyName });
 async function startServer() {
   const app = express();
   app.use("/static", express.static("static"));
-  app.use(cors());
+  app.use(cors({
+    exposedHeaders: ["signature", "signature-input", "signify-resource", "signify-timestamp"]
+  }));
   app.use(bodyParser.json());
 
   app.use(router);

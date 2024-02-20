@@ -29,11 +29,17 @@ export async function decryptVerifyRequest(req: Request, res: Response, next: Ne
     reqVerfer,
   )
 
-  if (!authenticator.verify(
-    new Headers(JSON.parse(JSON.stringify(req.headers))),
-    req.method,
-    req.path.split("?")[0],
-  )) {
+  try {
+    if (!authenticator.verify(
+      new Headers(JSON.parse(JSON.stringify(req.headers))),
+      req.method.toUpperCase(),
+      req.path.split("?")[0],
+    )) {
+    return res.status(400).send("Signature headers not in the correct format"); 
+  }
+  } catch (error) {
+    console.warn(error);
+    // @TODO - foconnor: Catch this more specifically just in case.
     return res.status(400).send("Signature header not valid for given Signify-Resource");
   }
 
