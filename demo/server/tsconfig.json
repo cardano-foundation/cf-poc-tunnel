@@ -15,7 +15,10 @@
     "skipLibCheck": true,
     "noImplicitAny": false,
     "esModuleInterop": true,
-    "declaration": true
+    "declaration": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strictPropertyInitialization": false,
   },
   "include": ["src/**/*"],
   "compileOnSave": false
