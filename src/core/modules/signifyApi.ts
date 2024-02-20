@@ -1,14 +1,18 @@
 import {
-  Authenticater,
+  Encrypter,
+  Verfer,
+  Operation,
   randomPasscode,
   ready,
   SignifyClient,
   Tier,
+  EventResult,
 } from "signify-ts";
-import { Aid, ResponseData } from "@src/core/modules/signifyApi.types";
-import { EventResult } from "signify-ts/src/keri/app/aiding";
+import { Aid } from "@src/core/modules/signifyApi.types";
+import { ResponseData } from "@src/core/background/types";
+import { failure, success } from "@src/utils";
 
-class SignifyApi {
+class SignifyService {
   private signifyClient!: SignifyClient;
   public started: boolean;
   static readonly KERIA_URL = import.meta.env.VITE_KERIA_URL;
@@ -18,144 +22,132 @@ class SignifyApi {
   constructor() {
     this.started = false;
   }
+
   async start(): Promise<ResponseData<undefined>> {
     await ready();
     const bran = await this.getBran();
 
     this.signifyClient = new SignifyClient(
-      SignifyApi.KERIA_URL as string,
+      SignifyService.KERIA_URL as string,
       bran,
       Tier.low,
-      SignifyApi.KERIA_BOOT_URL,
+      SignifyService.KERIA_BOOT_URL,
     );
 
     try {
       await this.signifyClient.connect();
       this.started = true;
-      return {
-        success: true,
-      };
+      return success(undefined);
     } catch (err) {
       await this.signifyClient.boot();
       try {
         await this.signifyClient.connect();
         this.started = true;
-        return {
-          success: true,
-        };
+        return success(undefined);
       } catch (e) {
-        return {
-          success: false,
-          error: new Error(
-            `Init Signify failed with Keria endpoint: ${SignifyApi.KERIA_URL}. Error: ${e}`,
-          ),
-        };
+        return failure(e);
       }
     }
   }
+
   private async getBran(): Promise<string> {
     const bran = await chrome.storage.local.get([
-      SignifyApi.SIGNIFY_BRAN_STORAGE_KEY,
+      SignifyService.SIGNIFY_BRAN_STORAGE_KEY,
     ]);
 
-    if (bran[SignifyApi.SIGNIFY_BRAN_STORAGE_KEY] === undefined) {
+    if (bran[SignifyService.SIGNIFY_BRAN_STORAGE_KEY] === undefined) {
       const newBran = randomPasscode();
       await chrome.storage.local.set({
-        [SignifyApi.SIGNIFY_BRAN_STORAGE_KEY]: newBran,
+        [SignifyService.SIGNIFY_BRAN_STORAGE_KEY]: newBran,
       });
       return newBran;
     } else {
-      return bran[SignifyApi.SIGNIFY_BRAN_STORAGE_KEY] as string;
+      return bran[SignifyService.SIGNIFY_BRAN_STORAGE_KEY] as string;
     }
   }
 
-  createIdentifier = async (
-    name: string,
-  ): Promise<ResponseData<EventResult | any>> => {
+  async createIdentifier(name: string): Promise<ResponseData<EventResult>> {
     try {
-      const aid = await this.signifyClient.identifiers().create(name);
-      return {
-        success: true,
-        data: aid,
-      };
+      const op = await this.signifyClient.identifiers().create(name);
+      await op.op();
+      await (await this.signifyClient
+        .identifiers()
+        .addEndRole(name, "agent", this.signifyClient.agent!.pre)).op();
+      return success(op);
     } catch (e) {
-      return {
-        success: false,
-        error: new Error(
-          `Error on AID creation with name ${name}. Error: ${e}`,
-        ),
-      };
+      return failure(e);
     }
   };
 
-  getIdentifierByName = async (name: string): Promise<ResponseData<any>> => {
+  async getIdentifierByName(name: string): Promise<ResponseData<Aid>> {
     try {
-      return {
-        success: true,
-        data: await this.signifyClient.identifiers().get(name),
-      };
+      return success(await this.signifyClient.identifiers().get(name));
     } catch (e) {
-      return {
-        success: false,
-        error: e,
-      };
+      return failure(e);
     }
   };
 
-  resolveOOBI = async (url: string): Promise<ResponseData<any>> => {
+  async createOOBI(name: string): Promise<ResponseData<any>> {
     try {
-      if (!this.started)
-        return {
-          success: false,
-          error: new Error("Signify not initialized"),
-        };
+      return success(await this.signifyClient.oobis().get(name, "agent"));
+    } catch (e) {
+      return failure(e);
+    }
+  }
+
+  async resolveOOBI(url: string): Promise<ResponseData<any>> {
+    try {
+      if (!this.started) {
+        return failure(new Error("Signify not initialized"));
+      }
 
       const oobiOperation = await this.signifyClient.oobis().resolve(url);
       const r = await this.waitAndGetDoneOp(oobiOperation, 15000, 250);
       if (r.done) {
-        return {
-          success: true,
-          data: r,
-        };
+        return success(r);
       } else {
-        return {
-          success: false,
-          error: new Error(
-            `Resolving OOBI failed for URL: ${url}. \nResponse from Keria: ${JSON.stringify(
-              r,
-            )}`,
-          ),
-        };
+        return failure(new Error(
+          `Resolving OOBI failed for URL: ${url}. \nResponse from Keria: ${JSON.stringify(r)}`
+        ));
       }
     } catch (e) {
-      return {
-        success: false,
-        error: new Error(
-          `Resolving OOBI failed for URL: ${url}. \nError: ${e}`,
-        ),
-      };
+      return failure(new Error(
+        `Resolving OOBI failed for URL: ${url}. \nError: ${e}`
+      ));
     }
   };
 
-  getSigner = async (aid: Aid): Promise<ResponseData<any>> => {
+  async getKeyManager(aid: Aid): Promise<ResponseData<any>> {
     try {
-      return {
-        success: true,
-        data: await this.signifyClient.manager?.get(aid),
-      };
+      return success(await this.signifyClient.manager?.get(aid));
     } catch (e) {
-      return {
-        success: false,
-        error: e,
-      };
+      return failure(e);
     }
   };
 
-  private waitAndGetDoneOp = async (
-    op: any,
+  async getRemoteEncrypter(aid: string): Promise<ResponseData<Encrypter>> {
+    try {
+      const pubKey = (await this.signifyClient.keyStates().get(aid))[0].k[0];
+      return success(new Encrypter({}, (new Verfer({ qb64: pubKey })).qb64b));
+    } catch (e) {
+      return failure(e);
+    }
+  }
+
+  async getRemoveVerfer(aid: string): Promise<ResponseData<Verfer>> {
+    try {
+      const pubKey = (await this.signifyClient.keyStates().get(aid))[0].k[0];
+      return success(new Verfer({ qb64: pubKey }));
+    } catch (e) {
+      return failure(e);
+    }
+  }
+
+  private async waitAndGetDoneOp(
+    op: Operation,
     timeout: number,
     interval: number,
-  ) => {
+  ): Promise<Operation> {
     const startTime = new Date().getTime();
     while (!op.done && new Date().getTime() < startTime + timeout) {
       op = await this.signifyClient.operations().get(op.name);
@@ -165,4 +157,4 @@ class SignifyApi {
   };
 }
 
-export { SignifyApi };
+export { SignifyService };

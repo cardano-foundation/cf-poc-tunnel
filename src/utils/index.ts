@@ -1,3 +1,4 @@
+import { ExtensionMessage, ExtensionMessageType, ResponseData } from "@src/core/background/types";
 import { uid } from "uid";
 
 type Header = {
@@ -28,7 +29,7 @@ const generateAID = async (): Promise<{ pubKey: string; privKey: string }> => {
   };
 };
 
-const convertURLImageToBase64 = (url: string) => {
+const convertURLImageToBase64 = (url: string): Promise<string> => {
   return fetch(url)
     .then((response) => {
       if (!response.ok) {
@@ -39,6 +40,8 @@ const convertURLImageToBase64 = (url: string) => {
     .then((blob) => {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
+        // @TODO - foconnor: Better handle typing issues later.
+        // @ts-ignore
         reader.onloadend = () => resolve(reader.result);
         reader.onerror = reject;
         reader.readAsDataURL(blob);
@@ -72,6 +75,39 @@ const parseHeaders = (serializedHeaders: Header) => {
   return headers;
 };
 
+const success = <T>(data: T): ResponseData<T> => {
+  return {
+    success: true,
+    data,
+  }
+}
+
+const failure = <T>(error: unknown): ResponseData<T> => {
+  return {
+    success: false,
+    error,
+  }
+}
+
+const successExt = <T>(id: string, type: ExtensionMessageType, data: T): ExtensionMessage<T> => {
+  return {
+    success: true,
+    id,
+    type,
+    data,
+  }
+}
+
+const failureExt = <T>(id: string, type: ExtensionMessageType, error: unknown): ExtensionMessage<T> => {
+  console.error(`Returning error from extension: ${error}`);
+  return {
+    success: false,
+    id,
+    type,
+    error,
+  }
+}
+
 export {
   isExpired,
   getCurrentDate,
@@ -80,4 +116,8 @@ export {
   shortenText,
   serializeHeaders,
   parseHeaders,
+  success,
+  failure,
+  successExt,
+  failureExt,
 };

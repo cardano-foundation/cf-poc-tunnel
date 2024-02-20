@@ -16,14 +16,13 @@ const Options = () => {
 
   const updateLogs = async () => {
     const logger = new Logger();
-
-    try {
-      const lgs = (await logger.getLogs()).data;
-      const sortedLogs = lgs.sort((a, b) => b.timestamp - a.timestamp);
-      setLogs(sortedLogs);
-    } catch (error) {
-      console.error("Error updating logs:", error);
+    const getLogsResult = await logger.getLogs();
+    if (!getLogsResult.success) {
+      return getLogsResult;
     }
+
+    const sortedLogs = getLogsResult.data.sort((a, b) => b.timestamp - a.timestamp);
+    setLogs(sortedLogs);
   };
 
   useEffect(() => {

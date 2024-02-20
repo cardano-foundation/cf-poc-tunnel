@@ -1,3 +1,5 @@
+import { MtrDex } from "signify-ts";
+
 interface Aid {
   name: string;
   prefix: string;
@@ -30,8 +32,10 @@ interface Aid {
   windexes: number[];
 }
 
-type ResponseData<T> =
-  | { success: true; data?: T }
-  | { success: false; error: unknown };
+const LEAD_CODES = new Map<number, string>([
+  [0, MtrDex.StrB64_L0],
+  [1, MtrDex.StrB64_L1],
+  [2, MtrDex.StrB64_L2],
+]);
 
-export { Aid, ResponseData };
+export { Aid, LEAD_CODES };
