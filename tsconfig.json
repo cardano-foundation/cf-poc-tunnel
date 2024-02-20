@@ -19,7 +19,8 @@
       "@pages/*": ["src/ui/pages/*"],
       "@components/*": ["src/ui/components/*"]
     },
-    "include": ["src", "vite.config.ts"],
-    "exclude": ["node_modules"]
-  }
+    "types": ["chrome", "vite/client"]
+  },
+  "include": ["src", "vite.config.ts"],
+  "exclude": ["node_modules"]
 }
