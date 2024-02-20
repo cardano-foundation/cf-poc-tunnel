@@ -23,7 +23,9 @@ const createAxiosClient = (): AxiosInstance => {
 
   client.interceptors.request.use(
     async (config: InternalAxiosRequestConfig) => {
-      const messageId = generateMessageId(ExtensionMessageType.SIGN_ENCRYPT_REQ);
+      const messageId = generateMessageId(
+        ExtensionMessageType.SIGN_ENCRYPT_REQ,
+      );
       const extMessage = listenForExtensionMessage<SignEncryptResponse>(
         ExtensionMessageType.SIGN_ENCRPYT_REQ_RESULT,
         messageId,
@@ -36,7 +38,7 @@ const createAxiosClient = (): AxiosInstance => {
           url: config.baseURL ? `${config.baseURL}/${config.url}` : config.url,
           method: config.method?.toUpperCase(),
           body: config.data,
-        }
+        },
       });
 
       const { signedHeaders, essrBody } = await extMessage;
@@ -55,7 +57,9 @@ const createAxiosClient = (): AxiosInstance => {
 
   client.interceptors.response.use(
     async (response: AxiosResponse) => {
-      const messageId = generateMessageId(ExtensionMessageType.VERIFY_DECRYPT_RESP);
+      const messageId = generateMessageId(
+        ExtensionMessageType.VERIFY_DECRYPT_RESP,
+      );
       // Will throw if it does not verify.
       const extMessage = listenForExtensionMessage<any>(
         ExtensionMessageType.VERIFY_DECRYPT_RESP_RESULT,
@@ -66,11 +70,13 @@ const createAxiosClient = (): AxiosInstance => {
         id: messageId,
         type: ExtensionMessageType.VERIFY_DECRYPT_RESP,
         data: {
-          url: response.config.baseURL ? `${response.config.baseURL}/${response.config.url}` : response.config.url,
+          url: response.config.baseURL
+            ? `${response.config.baseURL}/${response.config.url}`
+            : response.config.url,
           method: response.config.method?.toUpperCase(),
           headers: response.headers,
           body: response.data,
-        }
+        },
       });
 
       response.data = await extMessage;

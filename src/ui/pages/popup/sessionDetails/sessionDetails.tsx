@@ -53,8 +53,7 @@ function SessionDetails() {
             {session.expiryDate}
           </p>
           <p>
-            <strong>Tunnel AID:</strong>{" "}
-            {shortenText(session.tunnelAid, 24)}
+            <strong>Tunnel AID:</strong> {shortenText(session.tunnelAid, 24)}
           </p>
           <p>
             <strong>OOBI: </strong>

@@ -182,7 +182,9 @@ export const initKeri = async () => {
   // For the development purpose, the endpoint needs to be accessible from keria
   const schemaUrl = config.endpoint + "/oobi/" + schemaSaid;
   if (!(await resolveOOBI(schemaUrl)).done) {
-    throw new Error("Failed to resolve schema OOBI, endpoint most likely incorrect.");
+    throw new Error(
+      "Failed to resolve schema OOBI, endpoint most likely incorrect.",
+    );
   }
 
   let credDomain = await getServerAcdc(identifier.prefix, schemaSaid);
@@ -218,18 +220,18 @@ export const getRemoteVerfer = async (aid: string): Promise<Verfer> => {
   const client = await getSignifyClient();
   const pubKey = (await client.keyStates().get(aid))[0].k[0];
   return new Verfer({ qb64: pubKey });
-}
+};
 
 export const getRemoteEncrypter = async (aid: string): Promise<Encrypter> => {
   const client = await getSignifyClient();
   const pubKey = (await client.keyStates().get(aid))[0].k[0];
-  return new Encrypter({}, (new Verfer({ qb64: pubKey })).qb64b);
-}
+  return new Encrypter({}, new Verfer({ qb64: pubKey }).qb64b);
+};
 
 export const getExnMessageBySaid = async (said: string): Promise<any> => {
   const client = await getSignifyClient();
   return client.exchanges().get(said);
-}
+};
 
 export const getCredentials = async (filters?: any): Promise<any> => {
   const client = await getSignifyClient();
@@ -239,4 +241,4 @@ export const getCredentials = async (filters?: any): Promise<any> => {
     });
   }
   return client.credentials().list();
-}
+};

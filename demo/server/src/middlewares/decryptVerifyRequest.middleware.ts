@@ -1,9 +1,17 @@
 import { NextFunction, Request, Response } from "express";
 import { Authenticater, Cigar, Cipher, Decrypter } from "signify-ts";
 import { config } from "../config";
-import { getIdentifierByName, getRemoteVerfer, getKeyManager } from "../services/signifyService";
+import {
+  getIdentifierByName,
+  getRemoteVerfer,
+  getKeyManager,
+} from "../services/signifyService";
 
-export async function decryptVerifyRequest(req: Request, res: Response, next: NextFunction) {
+export async function decryptVerifyRequest(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const reqAid = req.get("Signify-Resource");
   if (!reqAid) {
     return res.status(400).send("Missing Signify-Resource header");
@@ -25,49 +33,68 @@ export async function decryptVerifyRequest(req: Request, res: Response, next: Ne
   const keyManager = await getKeyManager(serverAid);
 
   const authenticator = new Authenticater(
-    keyManager.signers[0],  // Not used here, we only need to verify so just inject our own.
+    keyManager.signers[0], // Not used here, we only need to verify so just inject our own.
     reqVerfer,
-  )
+  );
 
   try {
-    if (!authenticator.verify(
-      new Headers(JSON.parse(JSON.stringify(req.headers))),
-      req.method.toUpperCase(),
-      req.path.split("?")[0],
-    )) {
-    return res.status(400).send("Signature headers not in the correct format"); 
-  }
+    if (
+      !authenticator.verify(
+        new Headers(JSON.parse(JSON.stringify(req.headers))),
+        req.method.toUpperCase(),
+        req.path.split("?")[0],
+      )
+    ) {
+      return res
+        .status(400)
+        .send("Signature headers not in the correct format");
+    }
   } catch (error) {
     console.warn(error);
     // @TODO - foconnor: Catch this more specifically just in case.
-    return res.status(400).send("Signature header not valid for given Signify-Resource");
+    return res
+      .status(400)
+      .send("Signature header not valid for given Signify-Resource");
   }
 
   if (req.body) {
     if (!req.body.sig || !req.body.cipher) {
-      return res.status(400).send("Body must contain a valid ESSR ciphertext and signature");
+      return res
+        .status(400)
+        .send("Body must contain a valid ESSR ciphertext and signature");
     }
 
-    const signature = new Cigar({ qb64: req.body.sig });  // @TODO - foconnor: Will crash if not valid CESR - handle.
-    if (!reqVerfer.verify(signature.raw, JSON.stringify({
-      src: reqAid,
-      dest: serverAid.prefix,
-      datetime: reqDateTime,
-      cipher: req.body.cipher,
-    }))) {
-      return res.status(400).send("Signature of body is not valid for given Signify-Resource");
+    const signature = new Cigar({ qb64: req.body.sig }); // @TODO - foconnor: Will crash if not valid CESR - handle.
+    if (
+      !reqVerfer.verify(
+        signature.raw,
+        JSON.stringify({
+          src: reqAid,
+          dest: serverAid.prefix,
+          datetime: reqDateTime,
+          cipher: req.body.cipher,
+        }),
+      )
+    ) {
+      return res
+        .status(400)
+        .send("Signature of body is not valid for given Signify-Resource");
     }
 
-    const cipher = new Cipher({ qb64: req.body.cipher });  // @TODO - foconnor: Same here.
+    const cipher = new Cipher({ qb64: req.body.cipher }); // @TODO - foconnor: Same here.
     const decrypter: Decrypter = new Decrypter({}, keyManager.signers[0].qb64b);
-    const decrypted = JSON.parse(Buffer.from(decrypter.decrypt(null, cipher).raw).toString());
+    const decrypted = JSON.parse(
+      Buffer.from(decrypter.decrypt(null, cipher).raw).toString(),
+    );
 
     if (!(decrypted.src && decrypted.src === reqAid)) {
-      return res.status(400).send("Invalid src identifier in plaintext of cipher");
+      return res
+        .status(400)
+        .send("Invalid src identifier in plaintext of cipher");
     }
 
     req.body = decrypted.data;
   }
 
   return next();
-};
+}

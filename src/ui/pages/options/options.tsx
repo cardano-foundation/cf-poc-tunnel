@@ -21,7 +21,9 @@ const Options = () => {
       return getLogsResult;
     }
 
-    const sortedLogs = getLogsResult.data.sort((a, b) => b.timestamp - a.timestamp);
+    const sortedLogs = getLogsResult.data.sort(
+      (a, b) => b.timestamp - a.timestamp,
+    );
     setLogs(sortedLogs);
   };
 

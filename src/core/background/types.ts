@@ -1,20 +1,15 @@
 export interface EssrBody {
-  sig: string,
-  cipher: JSONValue
+  sig: string;
+  cipher: JSONValue;
 }
 
-export type JSONValue =
-    | string
-    | number
-    | boolean
-    | JSONObject
-    | JSONArray;
+export type JSONValue = string | number | boolean | JSONObject | JSONArray;
 
 interface JSONObject {
-    [x: string]: JSONValue;
+  [x: string]: JSONValue;
 }
 
-interface JSONArray extends Array<JSONValue> { }
+interface JSONArray extends Array<JSONValue> {}
 
 export type ResponseData<T> =
   | { success: true; data: T }
@@ -31,4 +26,7 @@ export enum ExtensionMessageType {
   GENERIC_ERROR = "ERROR_STREAM",
 }
 
-export type ExtensionMessage<T> = ResponseData<T> & { id: string, type: ExtensionMessageType }
+export type ExtensionMessage<T> = ResponseData<T> & {
+  id: string;
+  type: ExtensionMessageType;
+};

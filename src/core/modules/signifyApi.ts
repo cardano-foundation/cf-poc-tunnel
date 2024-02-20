@@ -70,14 +70,16 @@ class SignifyApi {
     try {
       const op = await this.signifyClient.identifiers().create(name);
       await op.op();
-      await (await this.signifyClient
-        .identifiers()
-        .addEndRole(name, "agent", this.signifyClient.agent!.pre)).op();
+      await (
+        await this.signifyClient
+          .identifiers()
+          .addEndRole(name, "agent", this.signifyClient.agent!.pre)
+      ).op();
       return success(op);
     } catch (e) {
       return failure(e);
     }
-  };
+  }
 
   async getIdentifierByName(name: string): Promise<ResponseData<Aid>> {
     try {
@@ -85,7 +87,7 @@ class SignifyApi {
     } catch (e) {
       return failure(e);
     }
-  };
+  }
 
   async createOOBI(name: string): Promise<ResponseData<any>> {
     try {
@@ -106,16 +108,20 @@ class SignifyApi {
       if (r.done) {
         return success(r);
       } else {
-        return failure(new Error(
-          `Resolving OOBI failed for URL: ${url}. \nResponse from Keria: ${JSON.stringify(r)}`
-        ));
+        return failure(
+          new Error(
+            `Resolving OOBI failed for URL: ${url}. \nResponse from Keria: ${JSON.stringify(
+              r,
+            )}`,
+          ),
+        );
       }
     } catch (e) {
-      return failure(new Error(
-        `Resolving OOBI failed for URL: ${url}. \nError: ${e}`
-      ));
+      return failure(
+        new Error(`Resolving OOBI failed for URL: ${url}. \nError: ${e}`),
+      );
     }
-  };
+  }
 
   async getKeyManager(aid: Aid): Promise<ResponseData<any>> {
     try {
@@ -123,12 +129,12 @@ class SignifyApi {
     } catch (e) {
       return failure(e);
     }
-  };
+  }
 
   async getRemoteEncrypter(aid: string): Promise<ResponseData<Encrypter>> {
     try {
       const pubKey = (await this.signifyClient.keyStates().get(aid))[0].k[0];
-      return success(new Encrypter({}, (new Verfer({ qb64: pubKey })).qb64b));
+      return success(new Encrypter({}, new Verfer({ qb64: pubKey }).qb64b));
     } catch (e) {
       return failure(e);
     }
@@ -154,7 +160,7 @@ class SignifyApi {
       await new Promise((resolve) => setTimeout(resolve, interval));
     }
     return op;
-  };
+  }
 }
 
 export { SignifyApi };

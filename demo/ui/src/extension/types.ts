@@ -8,17 +8,24 @@ enum ExtensionMessageType {
 }
 
 interface ExtensionMessageOutbound<T> {
-  id: string,
-  type: ExtensionMessageType,
-  data: T,
+  id: string;
+  type: ExtensionMessageType;
+  data: T;
 }
 
-type ExtensionMessageInbound<T> = ({ success: true; data: T } | { success: false; error: unknown }) & { id: string, type: ExtensionMessageType};
+type ExtensionMessageInbound<T> = (
+  | { success: true; data: T }
+  | { success: false; error: unknown }
+) & { id: string; type: ExtensionMessageType };
 
 interface SignEncryptResponse {
-  signedHeaders: Headers,
-  essrBody?: any  // We just pass this directly though, so doesn't need strict typing.
+  signedHeaders: Headers;
+  essrBody?: any; // We just pass this directly though, so doesn't need strict typing.
 }
 
-export type { ExtensionMessageInbound, ExtensionMessageOutbound, SignEncryptResponse }
-export { ExtensionMessageType }
+export type {
+  ExtensionMessageInbound,
+  ExtensionMessageOutbound,
+  SignEncryptResponse,
+};
+export { ExtensionMessageType };

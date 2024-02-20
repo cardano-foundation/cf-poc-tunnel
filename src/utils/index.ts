@@ -1,4 +1,8 @@
-import { ExtensionMessage, ExtensionMessageType, ResponseData } from "@src/core/background/types";
+import {
+  ExtensionMessage,
+  ExtensionMessageType,
+  ResponseData,
+} from "@src/core/background/types";
 import { uid } from "uid";
 
 type Header = {
@@ -79,34 +83,42 @@ const success = <T>(data: T): ResponseData<T> => {
   return {
     success: true,
     data,
-  }
-}
+  };
+};
 
 const failure = <T>(error: unknown): ResponseData<T> => {
   return {
     success: false,
     error,
-  }
-}
+  };
+};
 
-const successExt = <T>(id: string, type: ExtensionMessageType, data: T): ExtensionMessage<T> => {
+const successExt = <T>(
+  id: string,
+  type: ExtensionMessageType,
+  data: T,
+): ExtensionMessage<T> => {
   return {
     success: true,
     id,
     type,
     data,
-  }
-}
+  };
+};
 
-const failureExt = <T>(id: string, type: ExtensionMessageType, error: unknown): ExtensionMessage<T> => {
+const failureExt = <T>(
+  id: string,
+  type: ExtensionMessageType,
+  error: unknown,
+): ExtensionMessage<T> => {
   console.error(`Returning error from extension: ${error}`);
   return {
     success: false,
     id,
     type,
     error,
-  }
-}
+  };
+};
 
 export {
   isExpired,

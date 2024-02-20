@@ -1,4 +1,4 @@
-import { JSONValue } from "./types"
+import { JSONValue } from "./types";
 
 export const SCHEMAS = new Map<string, JSONValue>([
   [
@@ -74,5 +74,5 @@ export const SCHEMAS = new Map<string, JSONValue>([
       additionalProperties: false,
       required: ["i", "ri", "s", "d"],
     },
-  ]
+  ],
 ]);

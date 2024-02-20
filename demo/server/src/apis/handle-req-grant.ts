@@ -11,35 +11,38 @@ async function handleReqGrant(req: Request, res: Response) {
   try {
     const exchange = await getExnMessageBySaid(said);
     const aid = exchange.exn.a.sid;
-    const acdcs= await getCredentials({
-      '-i': config.issuerAidPrefix,
-      '-a-i': exchange.exn.i
+    const acdcs = await getCredentials({
+      "-i": config.issuerAidPrefix,
+      "-a-i": exchange.exn.i,
     });
     if (!acdcs.length) {
       return httpResponse(res, {
         statusCode: 409,
         success: false,
         data: `AID have not completed the ACDC disclosure yet.`,
-      });  
+      });
     }
     const session = new Session();
     const latestAcdc = acdcs.reduce((latestObj, currentObj) => {
-        const maxDateTime = latestObj.sad.a.dt;
-        const currentDateTime = currentObj.sad.a.dt;
-        return currentDateTime > maxDateTime ? currentObj : latestObj;
+      const maxDateTime = latestObj.sad.a.dt;
+      const currentDateTime = currentObj.sad.a.dt;
+      return currentDateTime > maxDateTime ? currentObj : latestObj;
     });
 
-    if (new Date(latestAcdc.sad.a.dt).getTime() < new Date().getTime() - 60000) {
+    if (
+      new Date(latestAcdc.sad.a.dt).getTime() <
+      new Date().getTime() - 60000
+    ) {
       return httpResponse(res, {
         statusCode: 409,
         success: false,
         data: `Latest ACDC disclosure from ${exchange.exn.i} is too old`,
-      });  
+      });
     }
     const acdcSchema = latestAcdc.sad.s;
     if (acdcSchema === config.qviSchemaSaid) {
-      session.role = 'user';
-    };
+      session.role = "user";
+    }
     session.aid = aid;
     const currentTime = new Date().getTime();
     const sessionDuration = 24 * 60 * 60000; //1 day
@@ -51,7 +54,7 @@ async function handleReqGrant(req: Request, res: Response) {
       success: true,
       data: exchange,
     };
-    httpResponse(res, response);  
+    httpResponse(res, response);
   } catch (error) {
     console.log(`handle req grant error:`, error);
     const response: ResponseData<any> = {
@@ -59,7 +62,7 @@ async function handleReqGrant(req: Request, res: Response) {
       success: false,
       data: (error as Error).message,
     };
-    httpResponse(res, response);  
+    httpResponse(res, response);
   }
 }
 

@@ -1,10 +1,22 @@
 import { uid } from "uid";
 import { Authenticater, b, Cipher, Matter, Cigar, Decrypter } from "signify-ts";
 import { SignifyApi } from "@src/core/modules/signifyApi";
-import { convertURLImageToBase64, failure, failureExt, serializeHeaders, success, successExt } from "@src/utils";
+import {
+  convertURLImageToBase64,
+  failure,
+  failureExt,
+  serializeHeaders,
+  success,
+  successExt,
+} from "@src/utils";
 import { Logger } from "@src/utils/logger";
 import { LEAD_CODES } from "@src/core/modules/signifyApi.types";
-import { EssrBody, ExtensionMessage, ResponseData, ExtensionMessageType } from "@src/core/background/types";
+import {
+  EssrBody,
+  ExtensionMessage,
+  ResponseData,
+  ExtensionMessageType,
+} from "@src/core/background/types";
 import { Session } from "@src/ui/pages/popup/sessionList/sessionList";
 import { LOCAL_STORAGE_SESSIONS } from "@src/ui/pages/popup/sessionDetails/sessionDetails";
 
@@ -18,10 +30,12 @@ const signEncryptRequest = async (
   path: string,
   method: string,
   body?: any,
-): Promise<ResponseData<{
-  signedHeaders: Headers,
-  essrBody?: EssrBody
-}>> => {
+): Promise<
+  ResponseData<{
+    signedHeaders: Headers;
+    essrBody?: EssrBody;
+  }>
+> => {
   // @TODO - foconnor: Need a better short-hand way to return the result if it's not successful.
   const getAidResult = await signifyApi.getIdentifierByName(ourAidName);
   if (!getAidResult.success) {
@@ -29,7 +43,7 @@ const signEncryptRequest = async (
   }
 
   const ourAid = getAidResult.data;
-  const getKeyManResult = (await signifyApi.getKeyManager(ourAid));
+  const getKeyManResult = await signifyApi.getKeyManager(ourAid);
   if (!getKeyManResult.success) {
     return getKeyManResult;
   }
@@ -65,7 +79,9 @@ const signEncryptRequest = async (
   } catch (e) {
     return {
       success: false,
-      error: `Error while signing [${ourAidName}] headers ${JSON.stringify(headers)}, method: ${method}, pathname: ${path}. Error: ${e}`,
+      error: `Error while signing [${ourAidName}] headers ${JSON.stringify(
+        headers,
+      )}, method: ${method}, pathname: ${path}. Error: ${e}`,
     };
   }
 
@@ -78,24 +94,33 @@ const signEncryptRequest = async (
     return getEncResult;
   }
 
-  const toEncrypt: Uint8Array = Buffer.from(JSON.stringify({
-    src: ourAid.prefix,
-    data: body,
-  }));
-  const cipher: Cipher = getEncResult.data.encrypt(null, new Matter({ raw: toEncrypt, code: LEAD_CODES.get(toEncrypt.length % 3) }));
+  const toEncrypt: Uint8Array = Buffer.from(
+    JSON.stringify({
+      src: ourAid.prefix,
+      data: body,
+    }),
+  );
+  const cipher: Cipher = getEncResult.data.encrypt(
+    null,
+    new Matter({ raw: toEncrypt, code: LEAD_CODES.get(toEncrypt.length % 3) }),
+  );
 
   // src, datetime are both already in the headers, and dest is already known by the receiver for this (src, dest) interaction.
   const essrBody: EssrBody = {
-    sig: getKeyManResult.data.signers[0].sign(b(JSON.stringify({
-      src: ourAid.prefix,
-      dest: otherAidPrefix,
-      datetime,
-      cipher: cipher.qb64,
-    }))).qb64,
+    sig: getKeyManResult.data.signers[0].sign(
+      b(
+        JSON.stringify({
+          src: ourAid.prefix,
+          dest: otherAidPrefix,
+          datetime,
+          cipher: cipher.qb64,
+        }),
+      ),
+    ).qb64,
     cipher: cipher.qb64,
-  }
+  };
 
-  return success({ signedHeaders, essrBody, });
+  return success({ signedHeaders, essrBody });
 };
 
 const verifyDecryptResponse = async (
@@ -140,52 +165,66 @@ const verifyDecryptResponse = async (
   }
 
   const authenticator = new Authenticater(
-    getKeyManResult.data.signers[0],  // Not used here, we only need to verify so just inject our own.
+    getKeyManResult.data.signers[0], // Not used here, we only need to verify so just inject our own.
     getReqVerferResult.data,
-  ) 
+  );
 
   try {
-    if (!authenticator.verify(
-      headers,
-      method,
-      path.split("?")[0],
-    )) {
+    if (!authenticator.verify(headers, method, path.split("?")[0])) {
       return failure(new Error("Signify headers not in the correct format"));
     }
   } catch (error) {
     console.warn(error);
     // @TODO - foconnor: Catch this more specifically just in case.
-    return failure(new Error("Signature header not valid for given Signify-Resource"));
+    return failure(
+      new Error("Signature header not valid for given Signify-Resource"),
+    );
   }
 
   if (body) {
     if (!body.sig || !body.cipher) {
-      return failure(new Error("Body must contain a valid ESSR ciphertext and signature"));
+      return failure(
+        new Error("Body must contain a valid ESSR ciphertext and signature"),
+      );
     }
 
-    const signature = new Cigar({ qb64: body.sig });  // @TODO - foconnor: Will crash if not valid CESR - handle.
-    if (!getReqVerferResult.data.verify(signature.raw, JSON.stringify({
-      src: reqAid,
-      dest: getAidResult.data.prefix,
-      datetime: reqDateTime,
-      cipher: body.cipher,
-    }))) {
-      return failure(new Error("Signature of body is not valid for given Signify-Resource"));
+    const signature = new Cigar({ qb64: body.sig }); // @TODO - foconnor: Will crash if not valid CESR - handle.
+    if (
+      !getReqVerferResult.data.verify(
+        signature.raw,
+        JSON.stringify({
+          src: reqAid,
+          dest: getAidResult.data.prefix,
+          datetime: reqDateTime,
+          cipher: body.cipher,
+        }),
+      )
+    ) {
+      return failure(
+        new Error("Signature of body is not valid for given Signify-Resource"),
+      );
     }
 
-    const cipher = new Cipher({ qb64: body.cipher });  // @TODO - foconnor: Same here.
-    const decrypter: Decrypter = new Decrypter({}, getKeyManResult.data.signers[0].qb64b);
-    const decrypted = JSON.parse(Buffer.from(decrypter.decrypt(null, cipher).raw).toString());
+    const cipher = new Cipher({ qb64: body.cipher }); // @TODO - foconnor: Same here.
+    const decrypter: Decrypter = new Decrypter(
+      {},
+      getKeyManResult.data.signers[0].qb64b,
+    );
+    const decrypted = JSON.parse(
+      Buffer.from(decrypter.decrypt(null, cipher).raw).toString(),
+    );
 
     if (!(decrypted.src && decrypted.src === reqAid)) {
-      return failure(new Error("Invalid src identifier in plaintext of cipher"));
+      return failure(
+        new Error("Invalid src identifier in plaintext of cipher"),
+      );
     }
 
     return success(decrypted.data);
   }
 
   return success(undefined);
-}
+};
 
 const createSession = async (): Promise<ResponseData<undefined>> => {
   // @TODO - foconnor: SERVER_ENDPOINT shouldn't be hardcoded.
@@ -196,49 +235,69 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
     response = await fetch(`${SERVER_ENDPOINT}/oobi`);
     await logger.addLog(`✅ Received OOBI URL from ${SERVER_ENDPOINT}/oobi`);
   } catch (e) {
-    return failure(new Error(`Error getting OOBI URL from server: ${SERVER_ENDPOINT}/oobi: ${e}`));
+    return failure(
+      new Error(
+        `Error getting OOBI URL from server: ${SERVER_ENDPOINT}/oobi: ${e}`,
+      ),
+    );
   }
 
   const oobiUrl = (await response.json()).oobis[0];
   await logger.addLog(`⏳ Resolving OOBI URL...`);
-  
+
   const resolveOobiResult = await signifyApi.resolveOOBI(oobiUrl);
   if (!resolveOobiResult.success) {
-    return failure(new Error(`Error resolving OOBI URL ${oobiUrl}: ${resolveOobiResult.error}`));
+    return failure(
+      new Error(
+        `Error resolving OOBI URL ${oobiUrl}: ${resolveOobiResult.error}`,
+      ),
+    );
   }
   await logger.addLog(`✅ OOBI resolved successfully`);
 
-  const createIdentifierResult = await signifyApi.createIdentifier(urlF.hostname);
+  const createIdentifierResult = await signifyApi.createIdentifier(
+    urlF.hostname,
+  );
   if (!createIdentifierResult.success) {
-    return failure(new Error(`Error trying to create an AID with name ${urlF.hostname}: ${createIdentifierResult.error}`));
+    return failure(
+      new Error(
+        `Error trying to create an AID with name ${urlF.hostname}: ${createIdentifierResult.error}`,
+      ),
+    );
   }
 
   const getOobiResult = await signifyApi.createOOBI(urlF.hostname);
   if (!getOobiResult.success) {
-    return failure(new Error(`Error getting OOBI for identifier with name ${urlF.hostname}: ${getOobiResult.error}`));
+    return failure(
+      new Error(
+        `Error getting OOBI for identifier with name ${urlF.hostname}: ${getOobiResult.error}`,
+      ),
+    );
   }
-  
-  await logger.addLog(
-    `✅ AID created successfully with name ${urlF.hostname}`,
-  );
+
+  await logger.addLog(`✅ AID created successfully with name ${urlF.hostname}`);
 
   try {
     await fetch(`${SERVER_ENDPOINT}/resolve-oobi`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ oobiUrl: getOobiResult.data.oobis[0] })
+      body: JSON.stringify({ oobiUrl: getOobiResult.data.oobis[0] }),
     });
   } catch (e) {
-    return failure(new Error(`Error triggering server to resolve tunnel OOBI: ${e}`));
+    return failure(
+      new Error(`Error triggering server to resolve tunnel OOBI: ${e}`),
+    );
   }
 
-  await logger.addLog(`✅ Server has resolved our OOBI for identifier ${urlF.hostname}`);
+  await logger.addLog(
+    `✅ Server has resolved our OOBI for identifier ${urlF.hostname}`,
+  );
 
-  const [ tab ] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   const newSession: Session = {
     id: uid(24),
     tunnelAid: createIdentifierResult.data.serder.ked.i,
-    serverAid: oobiUrl.split("/oobi/")[1].split("/")[0],  // todo get from oobiresult
+    serverAid: oobiUrl.split("/oobi/")[1].split("/")[0], // todo get from oobiresult
     expiryDate: "",
     name: urlF.hostname,
     logo: tab.favIconUrl ? await convertURLImageToBase64(tab.favIconUrl) : "",
@@ -267,11 +326,15 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
-  processMessage(request).then((response) => response && sendResponse(response)).catch(console.error);
+  processMessage(request)
+    .then((response) => response && sendResponse(response))
+    .catch(console.error);
   return true;
 });
 
-function getReturnMessageType(inbound: ExtensionMessageType): ExtensionMessageType {
+function getReturnMessageType(
+  inbound: ExtensionMessageType,
+): ExtensionMessageType {
   switch (inbound) {
     case ExtensionMessageType.CREATE_SESSION:
       return ExtensionMessageType.CREATE_SESSION_RESULT;
@@ -284,39 +347,70 @@ function getReturnMessageType(inbound: ExtensionMessageType): ExtensionMessageTy
   }
 }
 
-async function processMessage(message: any): Promise<ExtensionMessage<any> | undefined> {
+async function processMessage(
+  message: any,
+): Promise<ExtensionMessage<any> | undefined> {
   // @TODO - foconnor: Need better handling of message.data to avoid crashing.
   switch (message.type) {
     case ExtensionMessageType.CREATE_SESSION: {
       const { url } = message.data;
-      
+
       const urlF = new URL(url);
-      const { sessions } = await chrome.storage.local.get([LOCAL_STORAGE_SESSIONS]);
-      if (sessions && sessions.find((session: Session) => session.name === urlF.hostname)) {
-        return successExt(message.id, getReturnMessageType(message.type), "Session previously created before, ignoring.");
+      const { sessions } = await chrome.storage.local.get([
+        LOCAL_STORAGE_SESSIONS,
+      ]);
+      if (
+        sessions &&
+        sessions.find((session: Session) => session.name === urlF.hostname)
+      ) {
+        return successExt(
+          message.id,
+          getReturnMessageType(message.type),
+          "Session previously created before, ignoring.",
+        );
       }
 
       const createSessionResult = await createSession();
       if (createSessionResult.success) {
         await logger.addLog(`✅ Session created successfully`);
-        return successExt(message.id, getReturnMessageType(message.type), createSessionResult.data);
+        return successExt(
+          message.id,
+          getReturnMessageType(message.type),
+          createSessionResult.data,
+        );
       } else {
         await logger.addLog(`❌ ${createSessionResult.error}`);
-        return failureExt(message.id, getReturnMessageType(message.type), createSessionResult.error);
+        return failureExt(
+          message.id,
+          getReturnMessageType(message.type),
+          createSessionResult.error,
+        );
       }
     }
     case ExtensionMessageType.SIGN_ENCRYPT_REQ: {
       const { url, method, body } = message.data;
 
       const urlF = new URL(url);
-      const { sessions } = await chrome.storage.local.get([LOCAL_STORAGE_SESSIONS]);
+      const { sessions } = await chrome.storage.local.get([
+        LOCAL_STORAGE_SESSIONS,
+      ]);
       if (!sessions) {
-        return failureExt(message.id, ExtensionMessageType.SIGN_ENCRPYT_REQ_RESULT, new Error(`Session not found for host ${urlF.hostname}`));
+        return failureExt(
+          message.id,
+          ExtensionMessageType.SIGN_ENCRPYT_REQ_RESULT,
+          new Error(`Session not found for host ${urlF.hostname}`),
+        );
       }
-      const session: Session = sessions.find((session: Session) => session.name === urlF.hostname);
+      const session: Session = sessions.find(
+        (session: Session) => session.name === urlF.hostname,
+      );
       if (!session) {
         // @TODO - foconnor: Here we should call connect with that hostname - allows us to call other hosts than the one the UI is hosted on.
-        return failureExt(message.id, ExtensionMessageType.SIGN_ENCRPYT_REQ_RESULT, new Error(`Session not found for host ${urlF.hostname}`));
+        return failureExt(
+          message.id,
+          ExtensionMessageType.SIGN_ENCRPYT_REQ_RESULT,
+          new Error(`Session not found for host ${urlF.hostname}`),
+        );
       }
 
       // @TODO - foconnor: Using one AID per domain/hostname means a UI can call other domains and expose
@@ -328,21 +422,27 @@ async function processMessage(message: any): Promise<ExtensionMessage<any> | und
         session.serverAid,
         urlF.pathname,
         method,
-        body
+        body,
       );
 
       if (!encryptSignResult.success) {
-        return failureExt(message.id, getReturnMessageType(message.type), new Error(`❌ Error while signing. Error: ${encryptSignResult.error}`));
+        return failureExt(
+          message.id,
+          getReturnMessageType(message.type),
+          new Error(
+            `❌ Error while signing. Error: ${encryptSignResult.error}`,
+          ),
+        );
       }
 
       await logger.addLog(
         `📤 Request signed and encrypted. Headers: ${JSON.stringify(
           serializeHeaders(encryptSignResult.data.signedHeaders),
-        )} // Body: ${JSON.stringify(encryptSignResult.data.essrBody)}`
+        )} // Body: ${JSON.stringify(encryptSignResult.data.essrBody)}`,
       );
 
       return successExt(message.id, getReturnMessageType(message.type), {
-        ...encryptSignResult.data, 
+        ...encryptSignResult.data,
         signedHeaders: serializeHeaders(encryptSignResult.data.signedHeaders),
       });
     }
@@ -351,22 +451,49 @@ async function processMessage(message: any): Promise<ExtensionMessage<any> | und
 
       // We don't trust requests for other domains until they show ACDC etc.
       const urlF = new URL(url);
-      const { sessions } = await chrome.storage.local.get([LOCAL_STORAGE_SESSIONS]);
+      const { sessions } = await chrome.storage.local.get([
+        LOCAL_STORAGE_SESSIONS,
+      ]);
       if (!sessions) {
-        return failureExt(message.id, getReturnMessageType(message.type), new Error(`Session not found for host ${urlF.hostname}`));
+        return failureExt(
+          message.id,
+          getReturnMessageType(message.type),
+          new Error(`Session not found for host ${urlF.hostname}`),
+        );
       }
-      const session: Session = sessions.find((session: Session) => session.name === urlF.hostname);
+      const session: Session = sessions.find(
+        (session: Session) => session.name === urlF.hostname,
+      );
       if (!session) {
         // @TODO - foconnor: Here we should call connect with that hostname - allows us to call other hosts than the one the UI is hosted on.
-        return failureExt(message.id, getReturnMessageType(message.type), new Error(`Session not found for host ${urlF.hostname}`));
+        return failureExt(
+          message.id,
+          getReturnMessageType(message.type),
+          new Error(`Session not found for host ${urlF.hostname}`),
+        );
       }
 
-      const verifyDecryptResult = await verifyDecryptResponse(urlF.hostname, session.serverAid, urlF.pathname, method, new Headers(headers), body);
+      const verifyDecryptResult = await verifyDecryptResponse(
+        urlF.hostname,
+        session.serverAid,
+        urlF.pathname,
+        method,
+        new Headers(headers),
+        body,
+      );
       if (!verifyDecryptResult.success) {
-        return failureExt(message.id, getReturnMessageType(message.type), verifyDecryptResult.error);
+        return failureExt(
+          message.id,
+          getReturnMessageType(message.type),
+          verifyDecryptResult.error,
+        );
       }
 
-      return successExt(message.id, getReturnMessageType(message.type), verifyDecryptResult.data);
+      return successExt(
+        message.id,
+        getReturnMessageType(message.type),
+        verifyDecryptResult.data,
+      );
     }
   }
 }

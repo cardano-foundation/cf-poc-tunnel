@@ -45,7 +45,7 @@ function SessionList() {
   };
 
   if (!sessions.length) {
-    return <h2>No sessions yet</h2>; 
+    return <h2>No sessions yet</h2>;
   }
 
   return (

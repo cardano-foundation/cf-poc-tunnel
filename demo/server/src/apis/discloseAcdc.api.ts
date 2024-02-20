@@ -14,6 +14,8 @@ export async function discloseAcdc(req: Request, res: Response) {
     if (error instanceof Error && error["message"] === ERROR_ACDC_NOT_FOUND) {
       return res.status(409).send(error["message"]);
     }
-    return res.status(500).send(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    return res
+      .status(500)
+      .send(JSON.stringify(error, Object.getOwnPropertyNames(error)));
   }
 }

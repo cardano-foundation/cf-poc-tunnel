@@ -1,17 +1,12 @@
 export interface EssrBody {
-  sig: string,
-  cipher: JSONValue
+  sig: string;
+  cipher: JSONValue;
 }
 
-export type JSONValue =
-    | string
-    | number
-    | boolean
-    | JSONObject
-    | JSONArray;
+export type JSONValue = string | number | boolean | JSONObject | JSONArray;
 
 interface JSONObject {
-    [x: string]: JSONValue;
+  [x: string]: JSONValue;
 }
 
-interface JSONArray extends Array<JSONValue> { }
+interface JSONArray extends Array<JSONValue> {}

@@ -5,7 +5,9 @@ const generateMessageId = (type: string) => {
   return `${type}:${uuidv4()}`;
 };
 
-const sendMessageToExtension = <T>(message: ExtensionMessageOutbound<T>): void => {
+const sendMessageToExtension = <T>(
+  message: ExtensionMessageOutbound<T>,
+): void => {
   window.postMessage(message, "*");
 };
 
@@ -18,7 +20,11 @@ const listenForExtensionMessage = <T>(
       if (event.data.id === expectedId && event.data.type === type) {
         window.removeEventListener("message", handler);
         if (!event.data.success) {
-          console.error(`Received an unsuccessful error message: ${JSON.stringify(event.data)}`);
+          console.error(
+            `Received an unsuccessful error message: ${JSON.stringify(
+              event.data,
+            )}`,
+          );
           reject(event.data.error);
           return;
         }

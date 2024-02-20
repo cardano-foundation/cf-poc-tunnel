@@ -29,7 +29,7 @@ const App: React.FC = () => {
       id: messageId,
       type: ExtensionMessageType.CREATE_SESSION,
       data: {
-        url: BACKEND_URL
+        url: BACKEND_URL,
       },
     });
 
@@ -39,7 +39,9 @@ const App: React.FC = () => {
 
   const handleFetch = async () => {
     const axiosClient = createAxiosClient();
-    const response = await axiosClient.post(`${BACKEND_URL}/ping`, { dummy: "data" });
+    const response = await axiosClient.post(`${BACKEND_URL}/ping`, {
+      dummy: "data",
+    });
     setSignedHeaders(JSON.parse(JSON.stringify(response.headers)));
     setResponseBody(response.data);
   };
@@ -74,8 +76,7 @@ const App: React.FC = () => {
                 </div>
               </>
             ) : null}
-          </div>
-          {" "}
+          </div>{" "}
           <div>
             {responseBody && (
               <>
