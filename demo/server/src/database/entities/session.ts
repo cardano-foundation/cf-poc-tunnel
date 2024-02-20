@@ -8,6 +8,9 @@ export class Session {
   @Column()
   aid: string;
 
-  @CreateDateColumn()
-  createDate: Date;
+  @Column()
+  role: string;
+
+  @Column()
+  validUntil: Date;
 }
