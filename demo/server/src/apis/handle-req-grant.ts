@@ -42,7 +42,7 @@ async function handleReqGrant(req: Request, res: Response) {
     };
     session.aid = aid;
     const currentTime = new Date().getTime();
-    const sessionDuration = 24 * 60 * 60000; //1 day
+    const sessionDuration = 5 * 60000; //5 mins
     session.validUntil = new Date(currentTime + sessionDuration);
     const entityManager = dataSource.manager;
     await entityManager.save(session);
