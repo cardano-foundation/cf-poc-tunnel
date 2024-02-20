@@ -12,7 +12,7 @@ import { Aid } from "@src/core/modules/signifyApi.types";
 import { ResponseData } from "@src/core/background/types";
 import { failure, success } from "@src/utils";
 
-class SignifyService {
+class SignifyApi {
   private signifyClient!: SignifyClient;
   public started: boolean;
   static readonly KERIA_URL = import.meta.env.VITE_KERIA_URL;
@@ -28,10 +28,10 @@ class SignifyService {
     const bran = await this.getBran();
 
     this.signifyClient = new SignifyClient(
-      SignifyService.KERIA_URL as string,
+      SignifyApi.KERIA_URL as string,
       bran,
       Tier.low,
-      SignifyService.KERIA_BOOT_URL,
+      SignifyApi.KERIA_BOOT_URL,
     );
 
     try {
@@ -52,17 +52,17 @@ class SignifyService {
 
   private async getBran(): Promise<string> {
     const bran = await chrome.storage.local.get([
-      SignifyService.SIGNIFY_BRAN_STORAGE_KEY,
+      SignifyApi.SIGNIFY_BRAN_STORAGE_KEY,
     ]);
 
-    if (bran[SignifyService.SIGNIFY_BRAN_STORAGE_KEY] === undefined) {
+    if (bran[SignifyApi.SIGNIFY_BRAN_STORAGE_KEY] === undefined) {
       const newBran = randomPasscode();
       await chrome.storage.local.set({
-        [SignifyService.SIGNIFY_BRAN_STORAGE_KEY]: newBran,
+        [SignifyApi.SIGNIFY_BRAN_STORAGE_KEY]: newBran,
       });
       return newBran;
     } else {
-      return bran[SignifyService.SIGNIFY_BRAN_STORAGE_KEY] as string;
+      return bran[SignifyApi.SIGNIFY_BRAN_STORAGE_KEY] as string;
     }
   }
 
@@ -157,4 +157,4 @@ class SignifyService {
   };
 }
 
-export { SignifyService };
+export { SignifyApi };

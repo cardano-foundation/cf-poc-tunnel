@@ -1,6 +1,6 @@
 import { uid } from "uid";
 import { Authenticater, b, Cipher, Matter, Cigar, Decrypter } from "signify-ts";
-import { SignifyService } from "@src/core/modules/signifyApi";
+import { SignifyApi } from "@src/core/modules/signifyApi";
 import { convertURLImageToBase64, failure, failureExt, serializeHeaders, success, successExt } from "@src/utils";
 import { Logger } from "@src/utils/logger";
 import { LEAD_CODES } from "@src/core/modules/signifyApi.types";
@@ -9,7 +9,7 @@ import { Session } from "@src/ui/pages/popup/sessionList/sessionList";
 import { LOCAL_STORAGE_SESSIONS } from "@src/ui/pages/popup/sessionDetails/sessionDetails";
 
 const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
-const signifyService: SignifyService = new SignifyService();
+const signifyApi: SignifyApi = new SignifyApi();
 const logger = new Logger();
 
 const signEncryptRequest = async (
@@ -23,13 +23,13 @@ const signEncryptRequest = async (
   essrBody?: EssrBody
 }>> => {
   // @TODO - foconnor: Need a better short-hand way to return the result if it's not successful.
-  const getAidResult = await signifyService.getIdentifierByName(ourAidName);
+  const getAidResult = await signifyApi.getIdentifierByName(ourAidName);
   if (!getAidResult.success) {
     return getAidResult;
   }
 
   const ourAid = getAidResult.data;
-  const getKeyManResult = (await signifyService.getKeyManager(ourAid));
+  const getKeyManResult = (await signifyApi.getKeyManager(ourAid));
   if (!getKeyManResult.success) {
     return getKeyManResult;
   }
@@ -73,7 +73,7 @@ const signEncryptRequest = async (
     return success({ signedHeaders });
   }
 
-  const getEncResult = await signifyService.getRemoteEncrypter(otherAidPrefix);
+  const getEncResult = await signifyApi.getRemoteEncrypter(otherAidPrefix);
   if (!getEncResult.success) {
     return getEncResult;
   }
@@ -125,16 +125,16 @@ const verifyDecryptResponse = async (
     return failure(new Error("Signify-Timestamp of response is too old"));
   }
 
-  const getReqVerferResult = await signifyService.getRemoveVerfer(reqAid);
+  const getReqVerferResult = await signifyApi.getRemoveVerfer(reqAid);
   if (!getReqVerferResult.success) {
     return getReqVerferResult;
   }
 
-  const getAidResult = await signifyService.getIdentifierByName(ourAidName);
+  const getAidResult = await signifyApi.getIdentifierByName(ourAidName);
   if (!getAidResult.success) {
     return getAidResult;
   }
-  const getKeyManResult = await signifyService.getKeyManager(getAidResult.data);
+  const getKeyManResult = await signifyApi.getKeyManager(getAidResult.data);
   if (!getKeyManResult.success) {
     return getKeyManResult;
   }
@@ -202,18 +202,18 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
   const oobiUrl = (await response.json()).oobis[0];
   await logger.addLog(`⏳ Resolving OOBI URL...`);
   
-  const resolveOobiResult = await signifyService.resolveOOBI(oobiUrl);
+  const resolveOobiResult = await signifyApi.resolveOOBI(oobiUrl);
   if (!resolveOobiResult.success) {
     return failure(new Error(`Error resolving OOBI URL ${oobiUrl}: ${resolveOobiResult.error}`));
   }
   await logger.addLog(`✅ OOBI resolved successfully`);
 
-  const createIdentifierResult = await signifyService.createIdentifier(urlF.hostname);
+  const createIdentifierResult = await signifyApi.createIdentifier(urlF.hostname);
   if (!createIdentifierResult.success) {
     return failure(new Error(`Error trying to create an AID with name ${urlF.hostname}: ${createIdentifierResult.error}`));
   }
 
-  const getOobiResult = await signifyService.createOOBI(urlF.hostname);
+  const getOobiResult = await signifyApi.createOOBI(urlF.hostname);
   if (!getOobiResult.success) {
     return failure(new Error(`Error getting OOBI for identifier with name ${urlF.hostname}: ${getOobiResult.error}`));
   }
@@ -260,8 +260,8 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
 
 chrome.runtime.onInstalled.addListener(async () => {
   await logger.addLog(`✅ Extension successfully installed!`);
-  if (!signifyService.started) {
-    await signifyService.start();
+  if (!signifyApi.started) {
+    await signifyApi.start();
   }
   await logger.addLog(`✅ Signify initialized successfully`);
 });
