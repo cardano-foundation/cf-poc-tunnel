@@ -1,14 +1,22 @@
 import { Request, Response } from "express";
-import { config } from '../config';
+import { dataSource } from "../database";
+import { Session } from "../database/entities/session";
 
 export const verifySession = async (req: Request, res: Response, next) => {
-    if (!req.session.loginInfo) {
+    const aid = req.headers['signify-resource'];
+    const sessionRepository = dataSource.getRepository(Session);
+    const session = await sessionRepository.findOne({
+        where: {
+            aid,
+        }
+    });
+    if (!session) {
         return res.status(401).send('The AID is not logged in yet');
     }
     const currentTimestamp = new Date().getTime();
-    const sessionExpireTime = req.session.loginInfo.timestamp + config.sessionTimeout;
+    const sessionExpireTime = new Date(session.validUntil).getTime();
     if (sessionExpireTime < currentTimestamp) {
-        req.session.destroy();
+        await sessionRepository.delete(session.id);
         return res.status(401).send('Session timed out');
     }
     next();
