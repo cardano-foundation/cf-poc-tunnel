@@ -20,10 +20,14 @@ async function handleReqGrant(req: Request, res: Response) {
     }
     const session = new Session();
     const latestAcdc = acdcs.reduce((latestObj, currentObj) => {
-      const maxDateTime = latestObj.sad.a.dt;
-      const currentDateTime = currentObj.sad.a.dt;
-      return currentDateTime > maxDateTime ? currentObj : latestObj;
-  });
+        const maxDateTime = latestObj.sad.a.dt;
+        const currentDateTime = currentObj.sad.a.dt;
+        return currentDateTime > maxDateTime ? currentObj : latestObj;
+    });
+
+    if (new Date(latestAcdc.sad.a.dt).getTime() < new Date().getTime() - 60000) {
+      throw new Error("The ACDC is too old");
+    }
     const acdcSchema = latestAcdc.sad.s;
     if (acdcSchema === config.qviSchemaSaid) {
       session.role = 'user';
