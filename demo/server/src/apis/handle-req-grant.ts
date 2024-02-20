@@ -16,7 +16,11 @@ async function handleReqGrant(req: Request, res: Response) {
       '-a-i': exchange.exn.i
     });
     if (!acdcs.length) {
-      throw new Error("AID have not completed the ACDC disclosure yet.");
+      return httpResponse(res, {
+        statusCode: 409,
+        success: false,
+        data: `AID have not completed the ACDC disclosure yet.`,
+      });  
     }
     const session = new Session();
     const latestAcdc = acdcs.reduce((latestObj, currentObj) => {
@@ -26,7 +30,11 @@ async function handleReqGrant(req: Request, res: Response) {
     });
 
     if (new Date(latestAcdc.sad.a.dt).getTime() < new Date().getTime() - 60000) {
-      throw new Error("The ACDC is too old");
+      return httpResponse(res, {
+        statusCode: 409,
+        success: false,
+        data: `Latest ACDC disclosure from ${exchange.exn.i} is too old`,
+      });  
     }
     const acdcSchema = latestAcdc.sad.s;
     if (acdcSchema === config.qviSchemaSaid) {
