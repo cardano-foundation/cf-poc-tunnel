@@ -1,7 +1,5 @@
 import { Request, Response } from "express";
-import { ResponseData } from "../types/response.type";
-import { httpResponse } from "../utils/response.util";
-import { getCredentials, getExnMessageBySaid } from "../modules/signifyApi";
+import { getCredentials, getExnMessageBySaid } from "../services/signifyService";
 import { Session } from "../database/entities/session";
 import { dataSource } from "../database";
 import { config } from "../config";
@@ -16,11 +14,7 @@ async function handleReqGrant(req: Request, res: Response) {
       "-a-i": exchange.exn.i,
     });
     if (!acdcs.length) {
-      return httpResponse(res, {
-        statusCode: 409,
-        success: false,
-        data: `AID have not completed the ACDC disclosure yet.`,
-      });
+      return res.status(409).send("AID has not completed the ACDC disclosure yet.");
     }
     const session = new Session();
     const latestAcdc = acdcs.reduce((latestObj, currentObj) => {
@@ -33,11 +27,7 @@ async function handleReqGrant(req: Request, res: Response) {
       new Date(latestAcdc.sad.a.dt).getTime() <
       new Date().getTime() - 60000
     ) {
-      return httpResponse(res, {
-        statusCode: 409,
-        success: false,
-        data: `Latest ACDC disclosure from ${exchange.exn.i} is too old`,
-      });
+      return res.status(409).send(`Latest ACDC disclosure from ${exchange.exn.i} is too old`);
     }
     const acdcSchema = latestAcdc.sad.s;
     if (acdcSchema === config.qviSchemaSaid) {
@@ -49,20 +39,10 @@ async function handleReqGrant(req: Request, res: Response) {
     session.validUntil = new Date(currentTime + sessionDuration);
     const entityManager = dataSource.manager;
     await entityManager.save(session);
-    const response: ResponseData<any> = {
-      statusCode: 200,
-      success: true,
-      data: exchange,
-    };
-    httpResponse(res, response);
+    return res.status(200).send(exchange);
   } catch (error) {
-    console.log(`handle req grant error:`, error);
-    const response: ResponseData<any> = {
-      statusCode: 500,
-      success: false,
-      data: (error as Error).message,
-    };
-    httpResponse(res, response);
+    console.warn(`handle req grant error:`, error);
+    return res.status(500).send((error as Error).message);
   }
 }
 

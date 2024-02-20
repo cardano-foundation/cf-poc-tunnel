@@ -6,7 +6,7 @@ import { getSchema } from "./apis/schema.api";
 import { discloseAcdc } from "./apis/discloseAcdc.api";
 import { decryptVerifyRequest, encryptSignResponse } from "./middlewares";
 import { getAcdcRequirements } from "./apis/acdcRequirements.api";
-import { handleReqGrant } from "./apis/handle-req-grant";
+import { handleReqGrant } from "./apis/handleReqGrant";
 
 export const router = express.Router();
 router.post(config.path.ping, decryptVerifyRequest, ping, encryptSignResponse); // POST to test ESSR
