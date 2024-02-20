@@ -1,17 +1,12 @@
 import { v4 as uuidv4 } from "uuid";
-
-export interface ExtensionMessage {
-  type: string;
-  data: any;
-}
+import { ExtensionMessageInbound, ExtensionMessageOutbound } from "./types";
 
 const generateMessageId = (type: string) => {
   return `${type}:${uuidv4()}`;
 };
-const sendMessageToExtension = (id: string, type: string, data: any) => {
-  const message = { id, type, data };
+
+const sendMessageToExtension = <T>(message: ExtensionMessageOutbound<T>): void => {
   window.postMessage(message, "*");
-  return message;
 };
 
 const listenForExtensionMessage = <T>(
@@ -19,9 +14,14 @@ const listenForExtensionMessage = <T>(
   expectedId: string,
 ): Promise<T> => {
   return new Promise((resolve, reject) => {
-    const handler = (event: MessageEvent<ExtensionMessage>) => {
-      if (event.data?.id === expectedId && event.data?.type === type) {
+    const handler = (event: MessageEvent<ExtensionMessageInbound<T>>) => {
+      if (event.data.id === expectedId && event.data.type === type) {
         window.removeEventListener("message", handler);
+        if (!event.data.success) {
+          console.error(`Received an unsuccessful error message: ${JSON.stringify(event.data)}`);
+          reject(event.data.error);
+          return;
+        }
         resolve(event.data.data as T);
       }
     };

@@ -1,57 +1,47 @@
-// src/App.tsx
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import govLogo from "./assets/gov.png";
 import "./App.scss";
-import { createAxiosClient, ExtensionMessageType } from "./axiosClient";
+import { createAxiosClient } from "./extension/axiosClient";
 import {
   generateMessageId,
   listenForExtensionMessage,
   sendMessageToExtension,
-} from "./utils/extensionCommunication";
+} from "./extension/communication";
+import { ExtensionMessageType } from "./extension/types";
+
+const BACKEND_URL = "http://localhost:3001";
 
 const App: React.FC = () => {
   const [sessionCreated, setSessionCreated] = useState(false);
   const [signedHeaders, setSignedHeaders] = useState<Record<string, string>>(
     {},
   );
+  const [responseBody, setResponseBody] = useState<any>();
 
   const handleCreateSession = async () => {
-    const enterpriseData = {};
-
     const messageId = generateMessageId(ExtensionMessageType.CREATE_SESSION);
-
     const extMessage = listenForExtensionMessage<Record<string, string>>(
-      ExtensionMessageType.SESSION_CREATED,
+      ExtensionMessageType.CREATE_SESSION_RESULT,
       messageId,
     );
 
-    sendMessageToExtension(
-      messageId,
-      ExtensionMessageType.CREATE_SESSION,
-      enterpriseData,
-    );
+    sendMessageToExtension({
+      id: messageId,
+      type: ExtensionMessageType.CREATE_SESSION,
+      data: {
+        url: BACKEND_URL
+      },
+    });
 
-    const { success } = await extMessage;
-
-    if (success) {
-      setSessionCreated(true);
-    }
+    await extMessage;
+    setSessionCreated(true);
   };
 
   const handleFetch = async () => {
-    try {
-      const axiosClient = createAxiosClient();
-      const response = await axiosClient.get("http://localhost:3001/ping");
-      console.log("Data:", response.data);
-    } catch (error) {
-      const serializedHeads = {};
-      if (error.config.headers) {
-        Object.entries(error.config.headers).forEach(([key, value]) => {
-          serializedHeads[key] = value;
-        });
-        setSignedHeaders(serializedHeads);
-      }
-    }
+    const axiosClient = createAxiosClient();
+    const response = await axiosClient.post(`${BACKEND_URL}/ping`, { dummy: "data" });
+    setSignedHeaders(JSON.parse(JSON.stringify(response.headers)));
+    setResponseBody(response.data);
   };
 
   return (
@@ -84,7 +74,18 @@ const App: React.FC = () => {
                 </div>
               </>
             ) : null}
-          </div>{" "}
+          </div>
+          {" "}
+          <div>
+            {responseBody && (
+              <>
+                <h3>Decrypted response body</h3>
+                <div className="jsonDisplay">
+                  <pre>{JSON.stringify(responseBody, null, 2)}</pre>
+                </div>
+              </>
+            )}
+          </div>
         </>
       ) : null}
     </>
