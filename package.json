@@ -4,7 +4,7 @@
   "description": "Project Tunnel",
   "scripts": {
     "start": "vite",
-    "build": "vite build",
+    "build": "tsc --noEmit && vite build",
     "lint": "eslint --ext .ts,.js --max-warnings=0 .",
     "prettier": "prettier --write ."
   },
@@ -12,10 +12,12 @@
   "license": "MIT",
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.0.0-beta.21",
+    "@types/axios": "^0.14.0",
     "@types/chrome": "^0.0.237",
     "@types/lodash": "^4.14.197",
     "@types/react": "^18.2.39",
     "@types/react-dom": "^18.2.17",
+    "@types/uuid": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "^5.30.5",
     "@typescript-eslint/parser": "^5.30.5",
     "@vitejs/plugin-react": "^4.2.1",
@@ -25,7 +27,7 @@
     "lint-staged": "^13.0.3",
     "prettier": "^2.7.1",
     "sass": "^1.53.0",
-    "signify-ts": "github:WebOfTrust/signify-ts#8b2080744ffc9da3a43a71164b80db8796ea2284",
+    "signify-ts": "github:cardano-foundation/signify-ts#c47354267b193a18b3f7d2ddc5d1076f36a2e867",
     "ts-node": "^10.9.1",
     "typescript": "^4.7.4",
     "vite": "^4.5.1",

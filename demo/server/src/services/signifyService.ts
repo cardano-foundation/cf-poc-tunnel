@@ -1,15 +1,17 @@
 import {
   Controller,
+  Encrypter,
+  Operation,
   Serder,
   SignifyClient,
   ready as signifyReady,
   Tier,
+  Verfer,
 } from "signify-ts";
-import { Aid } from "../types/signifyApi.types";
+import { Aid, ERROR_ACDC_NOT_FOUND } from "./signifyService.types";
 import { config } from "../config";
-import { log } from "../log";
+import { log } from "../utils/log";
 import { v4 as uuidv4 } from "uuid";
-import { ERROR_MESSAGE } from "../utils/constants";
 
 const { keriaUrl, keriaBootUrl } = config;
 let signifyClient: SignifyClient;
@@ -54,21 +56,19 @@ export const createIdentifier = async (name: string) => {
 };
 
 export const getOOBIs = async (name: string, role: string) => {
-  const oobisResult = await signifyClient.oobis().get(name, role);
-  return oobisResult;
+  return signifyClient.oobis().get(name, role);
 };
 
-export const resolveOOBI = async (url: string) => {
-  let oobiOperation = await signifyClient.oobis().resolve(url);
-  oobiOperation = await waitAndGetDoneOp(oobiOperation, 15000, 250);
-  return oobiOperation;
+export const resolveOOBI = async (url: string): Promise<Operation<unknown>> => {
+  const oobiOperation = await signifyClient.oobis().resolve(url);
+  return waitAndGetDoneOp(oobiOperation, 15000, 250);
 };
 
-export const waitAndGetDoneOp = async (
-  op: any,
+export const waitAndGetDoneOp = async <T>(
+  op: Operation<T>,
   timeout: number,
   interval: number,
-) => {
+): Promise<Operation<T>> => {
   const startTime = new Date().getTime();
   while (!op.done && new Date().getTime() < startTime + timeout) {
     op = await signifyClient.operations().get(op.name);
@@ -92,7 +92,7 @@ export const issueDomainCredential = async (
   schemaSAID: string,
   holder: string,
   domain: string,
-) => {
+): Promise<void> => {
   const vcdata = {
     domain,
   };
@@ -149,7 +149,7 @@ export const disclosureAcdc = async (
   const identifier = await getIdentifierByName(config.signifyName);
   const acdc = await getServerAcdc(identifier.prefix, schemaSaid, issuer);
   if (!acdc) {
-    throw new Error(ERROR_MESSAGE.ACDC_NOT_FOUND);
+    throw new Error(ERROR_ACDC_NOT_FOUND);
   }
   const datetime = new Date().toISOString().replace("Z", "000+00:00");
   const [grant2, gsigs2, gend2] = await signifyClient.ipex().grant({
@@ -181,7 +181,11 @@ export const initKeri = async () => {
   const oobi = await getOOBIs(mainAidName, "agent");
   // For the development purpose, the endpoint needs to be accessible from keria
   const schemaUrl = config.endpoint + "/oobi/" + schemaSaid;
-  await resolveOOBI(schemaUrl);
+  if (!(await resolveOOBI(schemaUrl)).done) {
+    throw new Error(
+      "Failed to resolve schema OOBI, endpoint most likely incorrect.",
+    );
+  }
 
   let credDomain = await getServerAcdc(identifier.prefix, schemaSaid);
 
@@ -202,29 +206,39 @@ export const initKeri = async () => {
   return { identifier, oobi, credDomain };
 };
 
-export const getSigner = async (aid: Aid) => {
+export const getKeyManager = async (aid: Aid) => {
   const client = await getSignifyClient();
-  const signer = await client.manager?.get(aid);
-  return signer;
+  return client.manager?.get(aid);
 };
 
 export const getServerSignifyController = async (): Promise<Controller> => {
   const client = await getSignifyClient();
   return client.controller;
-}
+};
 
-export const getExnMessageBySaid = async (said: string) => {
+export const getRemoteVerfer = async (aid: string): Promise<Verfer> => {
   const client = await getSignifyClient();
-  const exchanges = await client.exchanges().get(said);
-  return exchanges;
-}
+  const pubKey = (await client.keyStates().get(aid))[0].k[0];
+  return new Verfer({ qb64: pubKey });
+};
 
-export const getCredentials = async (filters?: any) => {
+export const getRemoteEncrypter = async (aid: string): Promise<Encrypter> => {
+  const client = await getSignifyClient();
+  const pubKey = (await client.keyStates().get(aid))[0].k[0];
+  return new Encrypter({}, new Verfer({ qb64: pubKey }).qb64b);
+};
+
+export const getExnMessageBySaid = async (said: string): Promise<any> => {
+  const client = await getSignifyClient();
+  return client.exchanges().get(said);
+};
+
+export const getCredentials = async (filters?: any): Promise<any> => {
   const client = await getSignifyClient();
   if (filters) {
-    return await client.credentials().list({
+    return client.credentials().list({
       filter: filters,
     });
   }
-  return await client.credentials().list();
-}
+  return client.credentials().list();
+};

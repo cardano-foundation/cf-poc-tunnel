@@ -5,18 +5,23 @@ import "./sessionList.scss";
 import MobileConnectIcon from "../../../assets/mobile-connect-icon.svg";
 import webLogo from "../../../assets/web.png";
 import { isExpired } from "@src/utils";
+import { LOCAL_STORAGE_SESSIONS } from "../sessionDetails/sessionDetails";
 
 interface Session {
   id: string;
   name: string;
   expiryDate: string;
   logo: string;
+  tunnelAid: string;
+  serverAid: string;
+  oobi: any;
+  createdAt: number;
 }
 
 function SessionList() {
   const navigate = useNavigate();
 
-  const [sessions, setSessions] = useState([]);
+  const [sessions, setSessions] = useState<Session[]>([]);
 
   const handleNavigation = (
     option: string,
@@ -26,7 +31,7 @@ function SessionList() {
   };
 
   useEffect(() => {
-    chrome.storage.local.get(["sessions"], function (result) {
+    chrome.storage.local.get([LOCAL_STORAGE_SESSIONS], function (result) {
       setSessions(result.sessions);
     });
   }, []);
@@ -39,9 +44,13 @@ function SessionList() {
     handleNavigation(`/${session.id}`, { state: { session } });
   };
 
+  if (!sessions.length) {
+    return <h2>No sessions yet</h2>;
+  }
+
   return (
     <ul className="list">
-      {sessions?.length ? sessions.map((session) => {
+      {sessions.map((session) => {
         return (
           <li key={session.id} className="listItem">
             <div className="sessionName">
@@ -61,7 +70,7 @@ function SessionList() {
                 )}
               </div>
             </div>
-            {!session.expiryDate || session.expiryDate === 0 ? (
+            {!session.expiryDate || session.expiryDate === "" ? (
               <button
                 className="iconButton"
                 onClick={() => handleConnect(session)}
@@ -78,11 +87,9 @@ function SessionList() {
             </div>
           </li>
         );
-      }) : <>
-        <h2>No sessions yet</h2>
-      </>}
+      })}
     </ul>
   );
 }
 
-export { SessionList };
+export { SessionList, Session };

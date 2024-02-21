@@ -1,3 +1,3 @@
-export { signResponse } from './signResponse.middleware';
-export { verifyRequest } from './verifyRequest.middleware';
-export { verifySession } from './verifySession.middleware';
+export { encryptSignResponse } from "./encryptSignResponse.middleware";
+export { decryptVerifyRequest } from "./decryptVerifyRequest.middleware";
+export { verifySession } from "./verifySession.middleware";

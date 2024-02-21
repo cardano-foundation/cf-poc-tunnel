@@ -19,7 +19,7 @@
   "externally_connectable": {
     "matches": ["<all_urls>"]
   },
-  "permissions": ["storage", "scripting", "tabs", "runtime"],
+  "permissions": ["storage", "scripting", "tabs"],
   "host_permissions": ["*://*/*"],
   "options_ui": {
     "page": "src/ui/pages/options/index.html",

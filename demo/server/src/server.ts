@@ -2,21 +2,28 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import { config } from "./config";
-import router from "./routes";
-import { log } from "./log";
-import { initKeri, initSignify } from "./modules/signifyApi";
+import { router } from "./routes";
+import { log } from "./utils/log";
+import { initKeri, initSignify } from "./services/signifyService";
 import { dataSource } from "./database";
 
-const signifyName = config.signifyName;
-log({ signifyName });
 async function startServer() {
   const app = express();
 
-  await dataSource.initialize()    
-  console.log('Connected to database!');
+  await dataSource.initialize();
+  console.log("Connected to database!");
 
-  app.use('/static', express.static('static'));
-  app.use(cors());
+  app.use("/static", express.static("static"));
+  app.use(
+    cors({
+      exposedHeaders: [
+        "signature",
+        "signature-input",
+        "signify-resource",
+        "signify-timestamp",
+      ],
+    }),
+  );
   app.use(bodyParser.json());
 
   app.use(router);
@@ -31,7 +38,7 @@ async function startServer() {
     name: identifier.name,
     prefix: identifier.prefix,
     oobi: oobi.oobis[0],
-    acdc : credDomain.sad
+    acdc: credDomain.sad,
   });
 }
 

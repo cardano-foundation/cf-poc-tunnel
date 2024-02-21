@@ -12,19 +12,21 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.5.0",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "node-cache": "^5.1.2",
-    "signify-ts": "github:WebOfTrust/signify-ts#858dea2464eba8288318f147a8d3ab2640f5d625",
+    "signify-ts": "github:cardano-foundation/signify-ts#c47354267b193a18b3f7d2ddc5d1076f36a2e867",
     "sqlite3": "^5.1.7",
     "typeorm": "^0.3.20",
     "uuid": "^9.0.1",
     "ws": "^8.13.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/uuid": "^9.0.8",
     "nodemon": "^3.0.1",
     "rimraf": "^5.0.1",
     "ts-node": "^10.9.1"

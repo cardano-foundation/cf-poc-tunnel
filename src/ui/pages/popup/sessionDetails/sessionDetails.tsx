@@ -4,6 +4,9 @@ import "./sessionDetails.scss";
 import { BackButton } from "@components/backButton";
 import MobileConnectIcon from "@assets/mobile-connect-icon.svg";
 import { shortenText } from "@src/utils";
+import { Session } from "../sessionList/sessionList";
+
+const LOCAL_STORAGE_SESSIONS = "sessions";
 
 function SessionDetails() {
   const navigate = useNavigate();
@@ -18,7 +21,7 @@ function SessionDetails() {
 
   const deleteSession = () => {
     chrome.storage.local.get(["sessions"], function (result) {
-      const ss = result.sessions.filter((s) => session.id !== s.id);
+      const ss = result.sessions.filter((s: Session) => session.id !== s.id);
 
       chrome.storage.local.set({ sessions: ss }, function () {
         navigate(-1);
@@ -50,8 +53,7 @@ function SessionDetails() {
             {session.expiryDate}
           </p>
           <p>
-            <strong>Tunnel AID:</strong>{" "}
-            {shortenText(session.tunnelAid, 24)}
+            <strong>Tunnel AID:</strong> {shortenText(session.tunnelAid, 24)}
           </p>
           <p>
             <strong>OOBI: </strong>
@@ -67,4 +69,4 @@ function SessionDetails() {
   );
 }
 
-export { SessionDetails };
+export { SessionDetails, LOCAL_STORAGE_SESSIONS };

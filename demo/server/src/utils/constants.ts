@@ -1,3 +1,0 @@
-export enum ERROR_MESSAGE {
-  ACDC_NOT_FOUND = "ACDC_NOT_FOUND",
-}

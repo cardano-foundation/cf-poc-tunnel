@@ -1,4 +1,4 @@
-import { ResponseData } from "@src/core/modules/signifyApi.types";
+import { ResponseData } from "@src/core/background/types";
 
 interface LogEntry {
   message: string;
