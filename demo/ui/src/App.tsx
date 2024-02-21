@@ -9,7 +9,7 @@ import {
 } from "./extension/communication";
 import { ExtensionMessageType } from "./extension/types";
 
-const BACKEND_URL = "http://localhost:3001";
+const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
 
 const App: React.FC = () => {
   const [sessionCreated, setSessionCreated] = useState(false);
@@ -29,7 +29,7 @@ const App: React.FC = () => {
       id: messageId,
       type: ExtensionMessageType.CREATE_SESSION,
       data: {
-        url: BACKEND_URL,
+        url: SERVER_ENDPOINT,
       },
     });
 
@@ -39,7 +39,7 @@ const App: React.FC = () => {
 
   const handleFetch = async () => {
     const axiosClient = createAxiosClient();
-    const response = await axiosClient.post(`${BACKEND_URL}/ping`, {
+    const response = await axiosClient.post(`${SERVER_ENDPOINT}/ping`, {
       dummy: "data",
     });
     setSignedHeaders(JSON.parse(JSON.stringify(response.headers)));
