@@ -9,8 +9,6 @@ import webLogo from "@assets/web.png";
 function Connect() {
   const location = useLocation();
   const [session] = useState(location.state?.session);
-  const [qrCodeValue] = useState("***");
-  const [isBlurred, setIsBlurred] = useState(true);
   const [showSpinner, setShowSpinner] = useState(false);
   if (!session) {
     return <div>No session data available</div>;
@@ -32,7 +30,6 @@ function Connect() {
         setShowSpinner(false);
         // setSession(response.data);
         // setQrCodeValue(response.data.oobi);
-        setIsBlurred(false);
       },
     );
   };
@@ -46,14 +43,9 @@ function Connect() {
           In order to connect, scan the QR code with your identity wallet
         </p>
         <div>
-          <div
-            className={
-              isBlurred ? "blurEffectHover blurEffect" : "blurEffectHover"
-            }
-          >
-            {" "}
+          <div>
             <QRCode
-              value={qrCodeValue}
+              value={session.tunnelOobiUrl}
               size={192}
               fgColor={"black"}
               bgColor={"white"}
@@ -63,7 +55,7 @@ function Connect() {
               logoHeight={60}
               logoOpacity={1}
               quietZone={10}
-            />{" "}
+            />
           </div>
           {showSpinner && (
             <div className="spinnerOverlay">
@@ -72,7 +64,7 @@ function Connect() {
           )}
         </div>
         <p>
-          <strong>Portal: </strong> {session.name.replace("-", ":")}
+          <strong>Name: </strong> {session.name.replace("-", ":")}
         </p>
         <p>
           <strong>Tunnel AID: </strong>
@@ -85,9 +77,8 @@ function Connect() {
           )}
         </p>
         <p>
-          <strong>OOBI: </strong>{" "}
-          {shortenText(session.oobi?.metadata?.oobi, 24)}{" "}
-          {session.oobi?.done ? " ✅" : ""}
+          <strong>Tunnel OOBI: </strong>
+          {shortenText(session.tunnelOobiUrl, 24)}
         </p>
       </div>
     </div>

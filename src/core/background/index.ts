@@ -226,6 +226,61 @@ const verifyDecryptResponse = async (
   return success(undefined);
 };
 
+const discloseEnterpriseACDC = async (
+  aidPrefix: string,
+  schemaSaid: string,
+): Promise<ResponseData<any>> => {
+  try {
+    const response = await fetch(`${SERVER_ENDPOINT}/disclosure-acdc`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        aidPrefix,
+        schemaSaid,
+      }),
+    });
+    return success(response.status === 200);
+  } catch (e) {
+    return failure(e);
+  }
+};
+
+const waitForAcdcToAppear = async (retryTimes: number) => {
+  try {
+    let noty = await signifyApi.getNotifications();
+    if (!noty.success) {
+      return failure(
+          new Error(
+              `Error trying to get the credentials from Keria`,
+          ),
+      );
+    }
+    let notes = noty.data.notes;
+    let tries = 0;
+    while (!notes?.length) {
+      if (tries > retryTimes) {
+        throw new Error("not acdc");
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      noty = await signifyApi.getNotifications();
+      if (!noty.success) {
+        return failure(
+            new Error(
+                `Error trying to get the credentials from Keria`,
+            )
+        );
+      }
+      notes = noty.data.notes;
+      tries++;
+    }
+    return success(notes);
+  } catch (e) {
+    return failure(e);
+  }
+};
+
 const createSession = async (): Promise<ResponseData<undefined>> => {
   // @TODO - foconnor: SERVER_ENDPOINT shouldn't be hardcoded.
   const urlF = new URL(SERVER_ENDPOINT);
@@ -293,7 +348,32 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
     `✅ Server has resolved our OOBI for identifier ${urlF.hostname}`,
   );
 
+  const disclosedAcdcResult = await discloseEnterpriseACDC(
+    createIdentifierResult.data.serder.ked.i,
+    SignifyApi.ENTERPRISE_SCHEMA_SAID,
+  );
+
+  if (!disclosedAcdcResult.success) {
+    return failure(
+      new Error(
+        `Error disclosing server ACDC with tunnel prefix ${createIdentifierResult.data.serder.ked.i}
+        and server schema ${SignifyApi.ENTERPRISE_SCHEMA_SAID}. Error: ${disclosedAcdcResult.error}`,
+      ),
+    );
+  }
+
+  const credsResult = await waitForAcdcToAppear(140);
+
+  if (!credsResult.success) {
+    return failure(
+        new Error(
+            `Error getting credentials from Keria`,
+        ),
+    );
+  }
+
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
   const newSession: Session = {
     id: uid(24),
     tunnelAid: createIdentifierResult.data.serder.ked.i,
@@ -301,8 +381,10 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
     expiryDate: "",
     name: urlF.hostname,
     logo: tab.favIconUrl ? await convertURLImageToBase64(tab.favIconUrl) : "",
-    oobi: resolveOobiResult.data,
+    serverOobi: resolveOobiResult.data,
+    tunnelOobiUrl: getOobiResult.data.oobis[0],
     createdAt: Date.now(),
+    credentials: credsResult.data
   };
 
   const { sessions } = await chrome.storage.local.get([LOCAL_STORAGE_SESSIONS]);

@@ -18,6 +18,8 @@ class SignifyApi {
   static readonly KERIA_URL = import.meta.env.VITE_KERIA_URL;
   static readonly KERIA_BOOT_URL = import.meta.env.VITE_KERIA_BOOT_ENDPOINT;
   static readonly SIGNIFY_BRAN_STORAGE_KEY = "SIGNIFY_BRAN";
+  static readonly ENTERPRISE_SCHEMA_SAID =
+    "EGjD1gCLi9ecZSZp9zevkgZGyEX_MbOdmhBFt4o0wvdb";
 
   constructor() {
     this.started = false;
@@ -120,6 +122,19 @@ class SignifyApi {
       return failure(
         new Error(`Resolving OOBI failed for URL: ${url}. \nError: ${e}`),
       );
+    }
+  }
+
+  async getNotifications(): Promise<ResponseData<{
+    start: number,
+    end: number,
+    total: number,
+    notes: any[]
+  }>> {
+    try {
+      return success(await this.signifyClient.notifications().list());
+    } catch (e) {
+      return failure(e);
     }
   }
 

@@ -14,8 +14,10 @@ interface Session {
   logo: string;
   tunnelAid: string;
   serverAid: string;
-  oobi: any;
+  serverOobi: any;
+  tunnelOobiUrl: any;
   createdAt: number;
+  credentials: any;
 }
 
 function SessionList() {
@@ -44,7 +46,7 @@ function SessionList() {
     handleNavigation(`/${session.id}`, { state: { session } });
   };
 
-  if (!sessions.length) {
+  if (!sessions?.length) {
     return <h2>No sessions yet</h2>;
   }
 
