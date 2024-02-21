@@ -138,6 +138,49 @@ class SignifyApi {
     }
   }
 
+  async getCredentialBySaid(
+      sad: string
+  ): Promise<ResponseData<any>> {
+    try {
+      const results = await this.signifyClient.credentials().list({
+        filter: {
+          "-d": { $eq: sad },
+        },
+      });
+      return success(results[0]);
+    } catch (e) {
+      return failure(e);
+    }
+  }
+
+  async getKeriExchange(notificationD: string): Promise<any> {
+    try {
+      return success(await this.signifyClient.exchanges().get(notificationD));
+    } catch (e) {
+      return failure(e);
+    }
+  }
+
+  async admitIpex(
+      notificationD: string,
+      holderAidName: string,
+      issuerAid: string
+  ): Promise<ResponseData<any>> {
+
+    try {
+      const dt = new Date().toISOString().replace("Z", "000+00:00");
+      const [admit, sigs, aend] = await this.signifyClient
+          .ipex()
+          .admit(holderAidName, "", notificationD, dt);
+      const submitAdmitResponse = await this.signifyClient
+          .ipex()
+          .submitAdmit(holderAidName, admit, sigs, aend, [issuerAid]);
+      return success(submitAdmitResponse);
+    } catch (e) {
+      return failure(e);
+    }
+  }
+
   async getKeyManager(aid: Aid): Promise<ResponseData<any>> {
     try {
       return success(await this.signifyClient.manager?.get(aid));

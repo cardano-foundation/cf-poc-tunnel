@@ -226,6 +226,26 @@ const verifyDecryptResponse = async (
   return success(undefined);
 };
 
+const acceptKeriAcdc = async (
+  said: string,
+  holderAidName: string,
+): Promise<ResponseData<any>> => {
+  try {
+    const keriExchangeResult = await signifyApi.getKeriExchange(
+        said
+    );
+
+    const admitIpexResult = await signifyApi.admitIpex(
+        said,
+        holderAidName,
+        keriExchangeResult.data.exn.i
+    );
+    return success(admitIpexResult);
+  } catch (e) {
+    return failure(e);
+  }
+}
+
 const discloseEnterpriseACDC = async (
   aidPrefix: string,
   schemaSaid: string,
@@ -247,7 +267,39 @@ const discloseEnterpriseACDC = async (
   }
 };
 
-const waitForAcdcToAppear = async (retryTimes: number) => {
+const waitForCredentialsToAppear = async (said: string, retryTimes: number) => {
+  try {
+    let credResult = await signifyApi.getCredentialBySaid(said);
+    if (!credResult.success) {
+      return failure(
+          new Error(
+              `Error trying to get the credentials from Keria`,
+          ),
+      );
+    }
+    let tries = 0;
+
+    while (!credResult.data) {
+      if (tries > retryTimes) {
+        throw new Error("not credential");
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      credResult = await signifyApi.getCredentialBySaid(said);
+      if (!credResult.success) {
+        return failure(
+            new Error(
+                `Error trying to get the credentials from Keria`,
+            )
+        );
+      }
+      tries++;
+    }
+    return success(credResult.data);
+  } catch (e) {
+    return failure(e);
+  }
+}
+const waitForNotificationsToAppear = async (retryTimes: number): Promise<ResponseData<any>> => {
   try {
     let noty = await signifyApi.getNotifications();
     if (!noty.success) {
@@ -367,9 +419,23 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
       and schema ${SignifyApi.ENTERPRISE_SCHEMA_SAID}`,
   );
 
-  const credsResult = await waitForAcdcToAppear(140);
+  const notificationsResult = await waitForNotificationsToAppear(140);
 
-  if (!credsResult.success) {
+  if (!notificationsResult.success) {
+    return failure(
+        new Error(
+            `Error getting notifications from Keria`,
+        ),
+    );
+  }
+
+  await logger.addLog(
+      `✅ Notifications received from Keria ${JSON.stringify(notificationsResult.data)}`,
+  );
+
+  const acceptedKeriAcdc = await acceptKeriAcdc(notificationsResult.data[0].a.d, urlF.hostname);
+
+  if (!acceptedKeriAcdc.success) {
     return failure(
         new Error(
             `Error getting credentials from Keria`,
@@ -377,9 +443,7 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
     );
   }
 
-  await logger.addLog(
-      `✅ Credentials received from Keria ${JSON.stringify(credsResult.data)}`,
-  );
+  const credsResult = await waitForCredentialsToAppear(notificationsResult.data[0].a.d, 140);
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
@@ -393,7 +457,7 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
     serverOobi: resolveOobiResult.data,
     tunnelOobiUrl: getOobiResult.data.oobis[0],
     createdAt: Date.now(),
-    credentials: credsResult.data
+    credentials: notificationsResult.data
   };
 
   const { sessions } = await chrome.storage.local.get([LOCAL_STORAGE_SESSIONS]);
