@@ -362,6 +362,11 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
     );
   }
 
+  await logger.addLog(
+      `✅ Server has disclosed the ACDC for the identifier ${createIdentifierResult.data.serder.ked.i}
+      and schema ${SignifyApi.ENTERPRISE_SCHEMA_SAID}`,
+  );
+
   const credsResult = await waitForAcdcToAppear(140);
 
   if (!credsResult.success) {
@@ -371,6 +376,10 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
         ),
     );
   }
+
+  await logger.addLog(
+      `✅ Credentials received from Keria ${JSON.stringify(credsResult.data)}`,
+  );
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
