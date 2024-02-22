@@ -256,7 +256,7 @@ const acceptKeriAcdc = async (
   }
 }
 
-const discloseEnterpriseACDC = async (
+const triggerServerToDiscloseACDC = async (
   aidPrefix: string,
   schemaSaid: string,
 ): Promise<ResponseData<any>> => {
@@ -414,7 +414,7 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
     `✅ Server has resolved our OOBI for identifier ${urlF.hostname}`,
   );
 
-  const disclosedAcdcResult = await discloseEnterpriseACDC(
+  const disclosedAcdcResult = await triggerServerToDiscloseACDC(
     createIdentifierResult.data.serder.ked.i,
     SignifyApi.ENTERPRISE_SCHEMA_SAID,
   );
@@ -422,7 +422,7 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
   if (!disclosedAcdcResult.success) {
     return failure(
       new Error(
-        `Error disclosing server ACDC with tunnel prefix ${createIdentifierResult.data.serder.ked.i}
+        `Error trigger server to disclose ACDC ${createIdentifierResult.data.serder.ked.i}
         and server schema ${SignifyApi.ENTERPRISE_SCHEMA_SAID}. Error: ${disclosedAcdcResult.error}`,
       ),
     );
