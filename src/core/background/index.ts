@@ -232,28 +232,23 @@ const isTrustedDomain = (
   expectedAid: string,
 ): boolean => {
   try {
-    return acdc.a.i === expectedAid && acdc.a.domain === expectedDomain
+    return acdc.a.i === expectedAid && acdc.a.domain === expectedDomain;
   } catch (e) {
     return false;
   }
-}
+};
 
-const getServerACDC = async (
-  said: string
-): Promise<ResponseData<any>> => {
+const getServerACDC = async (said: string): Promise<ResponseData<any>> => {
   try {
-
-    const keriExchangeResult = await signifyApi.getExchangeMessage(
-        said
-    );
+    const keriExchangeResult = await signifyApi.getExchangeMessage(said);
 
     return success({
-      acdc: keriExchangeResult.data.exn.e.acdc
+      acdc: keriExchangeResult.data.exn.e.acdc,
     });
   } catch (e) {
     return failure(e);
   }
-}
+};
 
 const triggerServerToDiscloseACDC = async (
   aidPrefix: string,
@@ -276,14 +271,14 @@ const triggerServerToDiscloseACDC = async (
   }
 };
 
-const waitForNotificationsToAppear = async (retryTimes: number): Promise<ResponseData<any>> => {
+const waitForNotificationsToAppear = async (
+  retryTimes: number,
+): Promise<ResponseData<any>> => {
   try {
-    let noty = await signifyApi.getNotifications();
+    let noty = await signifyApi.getUnreadNotifications();
     if (!noty.success) {
       return failure(
-          new Error(
-              `Error trying to get the notifications from Keria`,
-          ),
+        new Error(`Error trying to get the notifications from Keria`),
       );
     }
     let notes = noty.data.notes;
@@ -293,12 +288,10 @@ const waitForNotificationsToAppear = async (retryTimes: number): Promise<Respons
         throw new Error("not acdc");
       }
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      noty = await signifyApi.getNotifications();
+      noty = await signifyApi.getUnreadNotifications();
       if (!noty.success) {
         return failure(
-            new Error(
-                `Error trying to get the notifications from Keria`,
-            )
+          new Error(`Error trying to get the notifications from Keria`),
         );
       }
       notes = noty.data.notes;
@@ -392,37 +385,32 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
   }
 
   await logger.addLog(
-      `✅ Server has disclosed the ACDC for the identifier ${createIdentifierResult.data.serder.ked.i}
+    `✅ Server has disclosed the ACDC for the identifier ${createIdentifierResult.data.serder.ked.i}
       and schema ${SignifyApi.ENTERPRISE_SCHEMA_SAID}`,
   );
 
   const notificationsResult = await waitForNotificationsToAppear(140);
 
   if (!notificationsResult.success) {
-    return failure(
-        new Error(
-            `Error getting notifications from Keria`,
-        ),
-    );
+    return failure(new Error(`Error getting notifications from Keria`));
   }
 
   await logger.addLog(
-      `✅ Notifications received from Keria: ${JSON.stringify(notificationsResult.data)}`,
+    `✅ Notifications received from Keria: ${JSON.stringify(
+      notificationsResult.data,
+    )}`,
   );
 
   const said = notificationsResult.data[0].a.d;
+  const notei = notificationsResult.data[0].i;
   const acdcResponse = await getServerACDC(said);
 
   if (!acdcResponse.success) {
-    return failure(
-        new Error(
-            `Error getting ACDC from Keria`,
-        ),
-    );
+    return failure(new Error(`Error getting ACDC from Keria`));
   }
 
   await logger.addLog(
-      `✅ ACDC received from Keria: ${JSON.stringify(acdcResponse.data)}`,
+    `✅ ACDC received from Keria: ${JSON.stringify(acdcResponse.data)}`,
   );
 
   const acdc = acdcResponse.data.acdc;
@@ -431,23 +419,27 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
   const isTrusted = isTrustedDomain(acdc, SERVER_ENDPOINT, serverAid);
 
   await logger.addLog(
-      `✅🌐 Domain is fully trusted: ${SERVER_ENDPOINT}`,
+    `${isTrusted ? "✅" : "❌"}🌐 Domain is ${
+      isTrusted ? "" : "not"
+    } fully trusted: ${SERVER_ENDPOINT}`,
   );
 
   const issuerAid = acdcResponse.data.acdc.a.i;
 
   const admitIpexResult = await signifyApi.admitIpex(
-      said,
-      urlF.hostname,
-      issuerAid
+    said,
+    urlF.hostname,
+    issuerAid,
   );
 
   if (!admitIpexResult.success) {
-    return failure(
-        new Error(
-            `Error trying to admit ipex with said ${said}`,
-        ),
-    );
+    return failure(new Error(`Error trying to admit ipex with said ${said}`));
+  }
+
+  const makedAsRead = await signifyApi.markNotificationAsRead(notei);
+
+  if (!makedAsRead.success) {
+    return failure(new Error(`Error marking notification as read ${notei}`));
   }
 
   const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -458,13 +450,15 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
     serverAid,
     expiryDate: "",
     name: urlF.hostname,
-    logo: tabs[0]?.favIconUrl ? await convertURLImageToBase64(tabs[0]?.favIconUrl) : "",
+    logo: tabs[0]?.favIconUrl
+      ? await convertURLImageToBase64(tabs[0]?.favIconUrl)
+      : "",
     serverOobi: resolveOobiResult.data,
     tunnelOobiUrl: getOobiResult.data.oobis[0],
     createdAt: Date.now(),
     acdc: {
       isTrusted,
-      ...acdc
+      ...acdc,
     },
   };
 

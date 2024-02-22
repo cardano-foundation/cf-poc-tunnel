@@ -64,10 +64,12 @@ function SessionDetails() {
             {session.serverOobi?.done ? " ✅" : ""}
           </p>
           <p>
-            <strong>Tunnel OOBI:</strong> {shortenText(session.tunnelOobiUrl, 24)}
+            <strong>Tunnel OOBI:</strong>{" "}
+            {shortenText(session.tunnelOobiUrl, 24)}
           </p>
           <p>
-            <strong>Created at:</strong> {new Date(session.createdAt).toLocaleString()}
+            <strong>Created at:</strong>{" "}
+            {new Date(session.createdAt).toLocaleString()}
           </p>
         </div>
         <button className="deleteButton" onClick={() => deleteSession()}>
