@@ -17,7 +17,7 @@ interface Session {
   serverOobi: any;
   tunnelOobiUrl: any;
   createdAt: number;
-  credentials: any;
+  acdc: any;
 }
 
 function SessionList() {
@@ -34,7 +34,7 @@ function SessionList() {
 
   useEffect(() => {
     chrome.storage.local.get([LOCAL_STORAGE_SESSIONS], function (result) {
-      setSessions(result.sessions);
+      setSessions(result.sessions || [] );
     });
   }, []);
 

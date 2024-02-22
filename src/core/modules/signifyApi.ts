@@ -153,7 +153,7 @@ class SignifyApi {
     }
   }
 
-  async getKeriExchange(notificationD: string): Promise<any> {
+  async getExchangeMessage(notificationD: string): Promise<any> {
     try {
       return success(await this.signifyClient.exchanges().get(notificationD));
     } catch (e) {

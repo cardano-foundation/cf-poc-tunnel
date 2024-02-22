@@ -226,31 +226,30 @@ const verifyDecryptResponse = async (
   return success(undefined);
 };
 
-const acceptKeriAcdc = async (
-  said: string,
-  holderAidName: string,
+const isTrustedDomain = (
+  acdc: any,
+  expectedDomain: string,
+  expectedAid: string,
+): boolean => {
+  try {
+    return acdc.a.i === expectedAid && acdc.a.domain === expectedDomain
+  } catch (e) {
+    return false;
+  }
+}
+
+const getServerACDC = async (
+  said: string
 ): Promise<ResponseData<any>> => {
   try {
 
-    const keriExchangeResult = await signifyApi.getKeriExchange(
+    const keriExchangeResult = await signifyApi.getExchangeMessage(
         said
     );
 
-    const admitIpexResult = await signifyApi.admitIpex(
-        said,
-        holderAidName,
-        keriExchangeResult.data.exn.i
-    );
-
-    if (!admitIpexResult.success) {
-      return failure(
-          new Error(
-              `Error trying to admit ipex with said ${said}`,
-          ),
-      );
-    }
-
-    return success(admitIpexResult.data);
+    return success({
+      acdc: keriExchangeResult.data.exn.e.acdc
+    });
   } catch (e) {
     return failure(e);
   }
@@ -277,42 +276,6 @@ const triggerServerToDiscloseACDC = async (
   }
 };
 
-const waitForCredentialsToAppear = async (said: string, retryTimes: number) => {
-  console.log('waitForCredentialsToAppear: said');
-  console.log(said);
-  try {
-    let credResult = await signifyApi.getCredentialBySaid(said);
-    if (!credResult.success) {
-      return failure(
-          new Error(
-              `Error trying to get the credentials from Keria`,
-          ),
-      );
-    }
-    let tries = 0;
-
-    while (!credResult.data) {
-      if (tries > retryTimes) {
-        throw new Error("not credential");
-      }
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      credResult = await signifyApi.getCredentialBySaid(said);
-      if (!credResult.success) {
-        return failure(
-            new Error(
-                `Error trying to get the credentials from Keria`,
-            )
-        );
-      }
-      console.log('credResult');
-      console.log(credResult);
-      tries++;
-    }
-    return success(credResult.data);
-  } catch (e) {
-    return failure(e);
-  }
-}
 const waitForNotificationsToAppear = async (retryTimes: number): Promise<ResponseData<any>> => {
   try {
     let noty = await signifyApi.getNotifications();
@@ -363,14 +326,14 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
     );
   }
 
-  const oobiUrl = (await response.json()).oobis[0];
+  const serverOobiUrl = (await response.json()).oobis[0];
   await logger.addLog(`⏳ Resolving OOBI URL...`);
 
-  const resolveOobiResult = await signifyApi.resolveOOBI(oobiUrl);
+  const resolveOobiResult = await signifyApi.resolveOOBI(serverOobiUrl);
   if (!resolveOobiResult.success) {
     return failure(
       new Error(
-        `Error resolving OOBI URL ${oobiUrl}: ${resolveOobiResult.error}`,
+        `Error resolving server OOBI URL ${serverOobiUrl}: ${resolveOobiResult.error}`,
       ),
     );
   }
@@ -444,40 +407,65 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
   }
 
   await logger.addLog(
-      `✅ Notifications received from Keria ${JSON.stringify(notificationsResult.data)}`,
+      `✅ Notifications received from Keria: ${JSON.stringify(notificationsResult.data)}`,
   );
 
-  const acceptedKeriAcdc = await acceptKeriAcdc(notificationsResult.data[0].a.d, urlF.hostname);
+  const said = notificationsResult.data[0].a.d;
+  const acdcResponse = await getServerACDC(said);
 
-  console.log('acceptedKeriAcdc');
-  console.log(acceptedKeriAcdc);
-
-  if (!acceptedKeriAcdc.success) {
+  if (!acdcResponse.success) {
     return failure(
         new Error(
-            `Error getting credentials from Keria`,
+            `Error getting ACDC from Keria`,
         ),
     );
   }
 
-  const credsResult = await waitForCredentialsToAppear(acceptedKeriAcdc.data.metadata.said, 140);
+  await logger.addLog(
+      `✅ ACDC received from Keria: ${JSON.stringify(acdcResponse.data)}`,
+  );
 
-  console.log('credsResult');
-  console.log(credsResult);
+  const acdc = acdcResponse.data.acdc;
+  const serverAid = resolveOobiResult.data.response.i;
 
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const isTrusted = isTrustedDomain(acdc, SERVER_ENDPOINT, serverAid);
+
+  await logger.addLog(
+      `✅🌐 Domain is fully trusted: ${SERVER_ENDPOINT}`,
+  );
+
+  const issuerAid = acdcResponse.data.acdc.a.i;
+
+  const admitIpexResult = await signifyApi.admitIpex(
+      said,
+      urlF.hostname,
+      issuerAid
+  );
+
+  if (!admitIpexResult.success) {
+    return failure(
+        new Error(
+            `Error trying to admit ipex with said ${said}`,
+        ),
+    );
+  }
+
+  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
 
   const newSession: Session = {
     id: uid(24),
     tunnelAid: createIdentifierResult.data.serder.ked.i,
-    serverAid: oobiUrl.split("/oobi/")[1].split("/")[0], // todo get from oobiresult
+    serverAid,
     expiryDate: "",
     name: urlF.hostname,
-    logo: tab.favIconUrl ? await convertURLImageToBase64(tab.favIconUrl) : "",
+    logo: tabs[0]?.favIconUrl ? await convertURLImageToBase64(tabs[0]?.favIconUrl) : "",
     serverOobi: resolveOobiResult.data,
     tunnelOobiUrl: getOobiResult.data.oobis[0],
     createdAt: Date.now(),
-    credentials: notificationsResult.data
+    acdc: {
+      isTrusted,
+      ...acdc
+    },
   };
 
   const { sessions } = await chrome.storage.local.get([LOCAL_STORAGE_SESSIONS]);
