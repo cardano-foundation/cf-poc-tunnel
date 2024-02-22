@@ -319,7 +319,7 @@ const waitForNotificationsToAppear = async (retryTimes: number): Promise<Respons
     if (!noty.success) {
       return failure(
           new Error(
-              `Error trying to get the credentials from Keria`,
+              `Error trying to get the notifications from Keria`,
           ),
       );
     }
@@ -334,7 +334,7 @@ const waitForNotificationsToAppear = async (retryTimes: number): Promise<Respons
       if (!noty.success) {
         return failure(
             new Error(
-                `Error trying to get the credentials from Keria`,
+                `Error trying to get the notifications from Keria`,
             )
         );
       }
