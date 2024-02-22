@@ -57,17 +57,25 @@ const signEncryptRequest = async (
   const headers = new Headers();
   headers.set("Signify-Resource", ourAid.prefix);
   await logger.addLog(
-    `✅ Tunnel AID added to headers: ${JSON.stringify({
-      "Signify-Resource": ourAid.prefix,
-    })}`,
+    `✅ Tunnel AID added to headers: ${JSON.stringify(
+      {
+        "Signify-Resource": ourAid.prefix,
+      },
+      null,
+      2,
+    )}`,
   );
 
   const datetime = new Date().toISOString().replace("Z", "000+00:00");
   headers.set("Signify-Timestamp", datetime);
   await logger.addLog(
-    `✅ Timestamp added to headers: ${JSON.stringify({
-      "Signify-Timestamp": datetime,
-    })}`,
+    `✅ Timestamp added to headers: ${JSON.stringify(
+      {
+        "Signify-Timestamp": datetime,
+      },
+      null,
+      2,
+    )}`,
   );
 
   let signedHeaders;
@@ -398,6 +406,8 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
   await logger.addLog(
     `✅ Notifications received from Keria: ${JSON.stringify(
       notificationsResult.data,
+      null,
+      2,
     )}`,
   );
 
@@ -410,7 +420,11 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
   }
 
   await logger.addLog(
-    `✅ ACDC received from Keria: ${JSON.stringify(acdcResponse.data)}`,
+    `✅ ACDC received from Keria: ${JSON.stringify(
+      acdcResponse.data,
+      null,
+      2,
+    )}`,
   );
 
   const acdc = acdcResponse.data.acdc;
@@ -424,22 +438,24 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
     } fully trusted: ${SERVER_ENDPOINT}`,
   );
 
-  const issuerAid = acdcResponse.data.acdc.a.i;
-
-  const admitIpexResult = await signifyApi.admitIpex(
-    said,
-    urlF.hostname,
-    issuerAid,
-  );
-
-  if (!admitIpexResult.success) {
-    return failure(new Error(`Error trying to admit ipex with said ${said}`));
-  }
-
   const makedAsRead = await signifyApi.markNotificationAsRead(notei);
 
   if (!makedAsRead.success) {
     return failure(new Error(`Error marking notification as read ${notei}`));
+  }
+
+  const issuerAid = acdcResponse.data.acdc.a.i;
+
+  if (isTrusted) {
+    const admitIpexResult = await signifyApi.admitIpex(
+      said,
+      urlF.hostname,
+      issuerAid,
+    );
+
+    if (!admitIpexResult.success) {
+      return failure(new Error(`Error trying to admit ipex with said ${said}`));
+    }
   }
 
   const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -468,7 +484,7 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
   await chrome.storage.local.set({ sessions: sessionsArray });
 
   await logger.addLog(
-    `🗃 New session stored in db: ${JSON.stringify(newSession)}`,
+    `🗃 New session stored in db: ${JSON.stringify(newSession, null, 2)}`,
   );
 
   return success(undefined);
@@ -595,7 +611,13 @@ async function processMessage(
       await logger.addLog(
         `📤 Request signed and encrypted. Headers: ${JSON.stringify(
           serializeHeaders(encryptSignResult.data.signedHeaders),
-        )} // Body: ${JSON.stringify(encryptSignResult.data.essrBody)}`,
+          null,
+          2,
+        )} // Body: ${JSON.stringify(
+          encryptSignResult.data.essrBody,
+          null,
+          2,
+        )}`,
       );
 
       return successExt(message.id, getReturnMessageType(message.type), {
