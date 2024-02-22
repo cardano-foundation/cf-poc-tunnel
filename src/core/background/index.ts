@@ -259,9 +259,9 @@ const acceptKeriAcdc = async (
 const triggerServerToDiscloseACDC = async (
   aidPrefix: string,
   schemaSaid: string,
-): Promise<ResponseData<any>> => {
+): Promise<ResponseData<void>> => {
   try {
-    const response = await fetch(`${SERVER_ENDPOINT}/disclosure-acdc`, {
+    await fetch(`${SERVER_ENDPOINT}/disclosure-acdc`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -271,7 +271,7 @@ const triggerServerToDiscloseACDC = async (
         schemaSaid,
       }),
     });
-    return success(response.status === 200);
+    return success(undefined);
   } catch (e) {
     return failure(e);
   }
