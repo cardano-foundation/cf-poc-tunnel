@@ -46,7 +46,7 @@ function SessionList() {
     handleNavigation(`/${session.id}`, { state: { session } });
   };
 
-  if (!sessions?.length) {
+  if (!sessions.length) {
     return <h2>No sessions yet</h2>;
   }
 
