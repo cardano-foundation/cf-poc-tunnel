@@ -360,7 +360,7 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
     );
   }
 
-  await logger.addLog(`✅ AID created successfully with name ${urlF.hostname}`);
+  await logger.addLog(`✅ AID created successfully with domain ${urlF.hostname}`);
 
   try {
     await fetch(`${SERVER_ENDPOINT}/resolve-oobi`, {
@@ -375,7 +375,7 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
   }
 
   await logger.addLog(
-    `✅ Server has resolved our OOBI for identifier ${urlF.hostname}`,
+    `✅ Server has resolved the OOBI for domain ${urlF.hostname}`,
   );
 
   const disclosedAcdcResult = await triggerServerToDiscloseACDC(
