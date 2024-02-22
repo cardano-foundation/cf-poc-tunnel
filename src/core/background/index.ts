@@ -231,6 +231,7 @@ const acceptKeriAcdc = async (
   holderAidName: string,
 ): Promise<ResponseData<any>> => {
   try {
+
     const keriExchangeResult = await signifyApi.getKeriExchange(
         said
     );
@@ -240,7 +241,16 @@ const acceptKeriAcdc = async (
         holderAidName,
         keriExchangeResult.data.exn.i
     );
-    return success(admitIpexResult);
+
+    if (!admitIpexResult.success) {
+      return failure(
+          new Error(
+              `Error trying to admit ipex with said ${said}`,
+          ),
+      );
+    }
+
+    return success(admitIpexResult.data);
   } catch (e) {
     return failure(e);
   }
@@ -268,6 +278,8 @@ const discloseEnterpriseACDC = async (
 };
 
 const waitForCredentialsToAppear = async (said: string, retryTimes: number) => {
+  console.log('waitForCredentialsToAppear: said');
+  console.log(said);
   try {
     let credResult = await signifyApi.getCredentialBySaid(said);
     if (!credResult.success) {
@@ -292,6 +304,8 @@ const waitForCredentialsToAppear = async (said: string, retryTimes: number) => {
             )
         );
       }
+      console.log('credResult');
+      console.log(credResult);
       tries++;
     }
     return success(credResult.data);
@@ -435,6 +449,9 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
 
   const acceptedKeriAcdc = await acceptKeriAcdc(notificationsResult.data[0].a.d, urlF.hostname);
 
+  console.log('acceptedKeriAcdc');
+  console.log(acceptedKeriAcdc);
+
   if (!acceptedKeriAcdc.success) {
     return failure(
         new Error(
@@ -443,7 +460,10 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
     );
   }
 
-  const credsResult = await waitForCredentialsToAppear(notificationsResult.data[0].a.d, 140);
+  const credsResult = await waitForCredentialsToAppear(acceptedKeriAcdc.data.metadata.said, 140);
+
+  console.log('credsResult');
+  console.log(credsResult);
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 

@@ -162,8 +162,8 @@ class SignifyApi {
   }
 
   async admitIpex(
-      notificationD: string,
-      holderAidName: string,
+      said: string,
+      aidName: string,
       issuerAid: string
   ): Promise<ResponseData<any>> {
 
@@ -171,10 +171,10 @@ class SignifyApi {
       const dt = new Date().toISOString().replace("Z", "000+00:00");
       const [admit, sigs, aend] = await this.signifyClient
           .ipex()
-          .admit(holderAidName, "", notificationD, dt);
+          .admit(aidName, "", said, dt);
       const submitAdmitResponse = await this.signifyClient
           .ipex()
-          .submitAdmit(holderAidName, admit, sigs, aend, [issuerAid]);
+          .submitAdmit(aidName, admit, sigs, aend, [issuerAid]);
       return success(submitAdmitResponse);
     } catch (e) {
       return failure(e);
