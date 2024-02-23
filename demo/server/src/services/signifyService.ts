@@ -243,22 +243,37 @@ export const getCredentials = async (filters?: any): Promise<any> => {
   return client.credentials().list();
 };
 
-export const acceptKeriAcdc = async () => {
+export const getUnhandledGrants = async (sender: string) => {
   const client = await getSignifyClient();
   const notificationsList = await client.notifications().list();
-  const notifications = notificationsList.notes;
-  for (const notification of notifications) {
-    const msgSaid = notification.a.d;
-    const exnData = await client.exchanges().get(msgSaid);
-    if (exnData.exn.a.acdc) {
-      const issuerAid = exnData.exn.a.i;
-      const dt = new Date().toISOString().replace("Z", "000+00:00");
-      const [admit, sigs, aend] = await client
-        .ipex()
-        .admit(config.signifyName, "", msgSaid, dt);
-      await client
-        .ipex()
-        .submitAdmit(config.signifyName, admit, sigs, aend, [issuerAid]);
-      }
+  const notificationsData = await Promise.all(notificationsList.notes.map(async note => {
+    const exchange = await client.exchanges().get(note.a.d);
+    return {
+      notiId: note.i,
+      notiSaid: note.a.d,
+      read: note.r,
+      exchange,
     }
+  }));
+  return notificationsData.filter(notification => notification.exchange.exn.i === sender && notification.exchange.exn.a.acdc && !notification.read);
+}
+
+export const admitIpex = async (
+  notificationSaid: string,
+  signifyName: string,
+  recpAid: string
+)=> {
+  const client = await getSignifyClient();
+  const dt = new Date().toISOString().replace("Z", "000+00:00");
+  const [admit, sigs, aend] = await client
+    .ipex()
+    .admit(signifyName, "", notificationSaid, dt);
+  await client
+    .ipex()
+    .submitAdmit(signifyName, admit, sigs, aend, [recpAid]);
+}
+
+export const markNotification = async (id: string) => {
+  const client = await getSignifyClient();
+  return client.notifications().mark(id);
 }
