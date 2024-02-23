@@ -57,17 +57,25 @@ const signEncryptRequest = async (
   const headers = new Headers();
   headers.set("Signify-Resource", ourAid.prefix);
   await logger.addLog(
-    `✅ Tunnel AID added to headers: ${JSON.stringify({
-      "Signify-Resource": ourAid.prefix,
-    })}`,
+    `✅ Tunnel AID added to headers: ${JSON.stringify(
+      {
+        "Signify-Resource": ourAid.prefix,
+      },
+      null,
+      2,
+    )}`,
   );
 
   const datetime = new Date().toISOString().replace("Z", "000+00:00");
   headers.set("Signify-Timestamp", datetime);
   await logger.addLog(
-    `✅ Timestamp added to headers: ${JSON.stringify({
-      "Signify-Timestamp": datetime,
-    })}`,
+    `✅ Timestamp added to headers: ${JSON.stringify(
+      {
+        "Signify-Timestamp": datetime,
+      },
+      null,
+      2,
+    )}`,
   );
 
   let signedHeaders;
@@ -226,6 +234,83 @@ const verifyDecryptResponse = async (
   return success(undefined);
 };
 
+const isTrustedDomain = (
+  acdc: any,
+  expectedDomain: string,
+  expectedAid: string,
+): boolean => {
+  return acdc?.a?.i === expectedAid && acdc?.a?.domain === expectedDomain;
+};
+
+const getServerACDC = async (said: string): Promise<ResponseData<any>> => {
+  try {
+    const keriExchangeResult = await signifyApi.getExchangeMessage(said);
+
+    if (keriExchangeResult.data.exn?.e?.acdc !== undefined) {
+      return success({
+        acdc: keriExchangeResult.data.exn.e.acdc,
+      });
+    } else {
+      return failure(new Error(`ACDC with wrong format`));
+    }
+  } catch (e) {
+    return failure(e);
+  }
+};
+
+const triggerServerToDiscloseACDC = async (
+  aidPrefix: string,
+  schemaSaid: string,
+): Promise<ResponseData<void>> => {
+  try {
+    await fetch(`${SERVER_ENDPOINT}/disclosure-acdc`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        aidPrefix,
+        schemaSaid,
+      }),
+    });
+    return success(undefined);
+  } catch (e) {
+    return failure(e);
+  }
+};
+
+const waitForNotificationsToAppear = async (
+  retryTimes: number,
+): Promise<ResponseData<any>> => {
+  try {
+    let noty = await signifyApi.getUnreadNotifications();
+    if (!noty.success) {
+      return failure(
+        new Error(`Error trying to get the notifications from Keria`),
+      );
+    }
+    let notes = noty.data.notes;
+    let tries = 0;
+    while (!notes?.length) {
+      if (tries > retryTimes) {
+        throw new Error("not acdc");
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      noty = await signifyApi.getUnreadNotifications();
+      if (!noty.success) {
+        return failure(
+          new Error(`Error trying to get the notifications from Keria`),
+        );
+      }
+      notes = noty.data.notes;
+      tries++;
+    }
+    return success(notes);
+  } catch (e) {
+    return failure(e);
+  }
+};
+
 const createSession = async (): Promise<ResponseData<undefined>> => {
   // @TODO - foconnor: SERVER_ENDPOINT shouldn't be hardcoded.
   const urlF = new URL(SERVER_ENDPOINT);
@@ -242,14 +327,14 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
     );
   }
 
-  const oobiUrl = (await response.json()).oobis[0];
+  const serverOobiUrl = (await response.json()).oobis[0];
   await logger.addLog(`⏳ Resolving OOBI URL...`);
 
-  const resolveOobiResult = await signifyApi.resolveOOBI(oobiUrl);
+  const resolveOobiResult = await signifyApi.resolveOOBI(serverOobiUrl);
   if (!resolveOobiResult.success) {
     return failure(
       new Error(
-        `Error resolving OOBI URL ${oobiUrl}: ${resolveOobiResult.error}`,
+        `Error resolving server OOBI URL ${serverOobiUrl}: ${resolveOobiResult.error}`,
       ),
     );
   }
@@ -275,7 +360,9 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
     );
   }
 
-  await logger.addLog(`✅ AID created successfully with name ${urlF.hostname}`);
+  await logger.addLog(
+    `✅ AID created successfully with domain ${urlF.hostname}`,
+  );
 
   try {
     await fetch(`${SERVER_ENDPOINT}/resolve-oobi`, {
@@ -290,19 +377,107 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
   }
 
   await logger.addLog(
-    `✅ Server has resolved our OOBI for identifier ${urlF.hostname}`,
+    `✅ Server has resolved the OOBI for domain ${urlF.hostname}`,
   );
 
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const disclosedAcdcResult = await triggerServerToDiscloseACDC(
+    createIdentifierResult.data.serder.ked.i,
+    SignifyApi.ENTERPRISE_SCHEMA_SAID,
+  );
+
+  if (!disclosedAcdcResult.success) {
+    return failure(
+      new Error(
+        `Error trigger server to disclose ACDC ${createIdentifierResult.data.serder.ked.i}
+        and server schema ${SignifyApi.ENTERPRISE_SCHEMA_SAID}. Error: ${disclosedAcdcResult.error}`,
+      ),
+    );
+  }
+
+  await logger.addLog(
+    `✅ Server has disclosed the ACDC for the identifier ${createIdentifierResult.data.serder.ked.i}
+      and schema ${SignifyApi.ENTERPRISE_SCHEMA_SAID}`,
+  );
+
+  const notificationsResult = await waitForNotificationsToAppear(140);
+
+  if (!notificationsResult.success) {
+    return failure(new Error(`Error getting notifications from Keria`));
+  }
+
+  await logger.addLog(
+    `✅ Notifications received from Keria: ${JSON.stringify(
+      notificationsResult.data,
+      null,
+      2,
+    )}`,
+  );
+
+  const said = notificationsResult.data[0].a.d;
+  const notei = notificationsResult.data[0].i;
+  const acdcResponse = await getServerACDC(said);
+
+  if (!acdcResponse.success) {
+    return failure(new Error(`Error getting ACDC from Keria`));
+  }
+
+  await logger.addLog(
+    `✅ ACDC received from Keria: ${JSON.stringify(
+      acdcResponse.data,
+      null,
+      2,
+    )}`,
+  );
+
+  const acdc = acdcResponse.data.acdc;
+  const serverAid = resolveOobiResult.data.response.i;
+
+  const isTrusted = isTrustedDomain(acdc, SERVER_ENDPOINT, serverAid);
+
+  await logger.addLog(
+    `${isTrusted ? "✅" : "❌"}🌐 Domain is ${
+      isTrusted ? "" : "not"
+    } fully trusted: ${SERVER_ENDPOINT}`,
+  );
+
+  const makedAsRead = await signifyApi.markNotificationAsRead(notei);
+
+  if (!makedAsRead.success) {
+    return failure(new Error(`Error marking notification as read ${notei}`));
+  }
+
+  const issuerAid = acdcResponse.data.acdc.a.i;
+
+  if (isTrusted) {
+    const admitIpexResult = await signifyApi.admitIpex(
+      said,
+      urlF.hostname,
+      issuerAid,
+    );
+
+    if (!admitIpexResult.success) {
+      return failure(new Error(`Error trying to admit ipex with said ${said}`));
+    }
+  }
+
+  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+
   const newSession: Session = {
     id: uid(24),
     tunnelAid: createIdentifierResult.data.serder.ked.i,
-    serverAid: oobiUrl.split("/oobi/")[1].split("/")[0], // todo get from oobiresult
+    serverAid,
     expiryDate: "",
     name: urlF.hostname,
-    logo: tab.favIconUrl ? await convertURLImageToBase64(tab.favIconUrl) : "",
-    oobi: resolveOobiResult.data,
+    logo: tabs[0]?.favIconUrl
+      ? await convertURLImageToBase64(tabs[0]?.favIconUrl)
+      : "",
+    serverOobi: resolveOobiResult.data,
+    tunnelOobiUrl: getOobiResult.data.oobis[0],
     createdAt: Date.now(),
+    acdc: {
+      isTrusted,
+      ...acdc,
+    },
   };
 
   const { sessions } = await chrome.storage.local.get([LOCAL_STORAGE_SESSIONS]);
@@ -311,7 +486,7 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
   await chrome.storage.local.set({ sessions: sessionsArray });
 
   await logger.addLog(
-    `🗃 New session stored in db: ${JSON.stringify(newSession)}`,
+    `🗃 New session stored in db: ${JSON.stringify(newSession, null, 2)}`,
   );
 
   return success(undefined);
@@ -438,7 +613,13 @@ async function processMessage(
       await logger.addLog(
         `📤 Request signed and encrypted. Headers: ${JSON.stringify(
           serializeHeaders(encryptSignResult.data.signedHeaders),
-        )} // Body: ${JSON.stringify(encryptSignResult.data.essrBody)}`,
+          null,
+          2,
+        )} // Body: ${JSON.stringify(
+          encryptSignResult.data.essrBody,
+          null,
+          2,
+        )}`,
       );
 
       return successExt(message.id, getReturnMessageType(message.type), {

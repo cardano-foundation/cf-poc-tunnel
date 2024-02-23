@@ -1,6 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
 import { ExtensionMessageInbound, ExtensionMessageOutbound } from "./types";
 
+const COMMUNICATION_TIMEOUT = 10000;
+
 const generateMessageId = (type: string) => {
   return `${type}:${uuidv4()}`;
 };
@@ -34,8 +36,8 @@ const listenForExtensionMessage = <T>(
     window.addEventListener("message", handler);
     setTimeout(() => {
       window.removeEventListener("message", handler);
-      reject(new Error("Timeout waiting for extension message"));
-    }, 5000);
+      reject(new Error(`Timeout waiting for extension message:${COMMUNICATION_TIMEOUT/1000} seconds`));
+    }, COMMUNICATION_TIMEOUT);
   });
 };
 

@@ -53,12 +53,23 @@ function SessionDetails() {
             {session.expiryDate}
           </p>
           <p>
+            <strong>Server AID:</strong> {shortenText(session.serverAid, 24)}
+          </p>
+          <p>
             <strong>Tunnel AID:</strong> {shortenText(session.tunnelAid, 24)}
           </p>
           <p>
-            <strong>OOBI: </strong>
-            {shortenText(session.oobi?.metadata?.oobi, 32)}
-            {session.oobi?.done ? " ✅" : ""}
+            <strong>Server OOBI: </strong>
+            {shortenText(session.serverOobi?.metadata?.oobi, 24)}
+            {session.serverOobi?.done ? " ✅" : ""}
+          </p>
+          <p>
+            <strong>Tunnel OOBI:</strong>{" "}
+            {shortenText(session.tunnelOobiUrl, 24)}
+          </p>
+          <p>
+            <strong>Created at:</strong>{" "}
+            {new Date(session.createdAt).toLocaleString()}
           </p>
         </div>
         <button className="deleteButton" onClick={() => deleteSession()}>

@@ -18,6 +18,8 @@ class SignifyApi {
   static readonly KERIA_URL = import.meta.env.VITE_KERIA_URL;
   static readonly KERIA_BOOT_URL = import.meta.env.VITE_KERIA_BOOT_ENDPOINT;
   static readonly SIGNIFY_BRAN_STORAGE_KEY = "SIGNIFY_BRAN";
+  static readonly ENTERPRISE_SCHEMA_SAID =
+    "EGjD1gCLi9ecZSZp9zevkgZGyEX_MbOdmhBFt4o0wvdb";
 
   constructor() {
     this.started = false;
@@ -120,6 +122,73 @@ class SignifyApi {
       return failure(
         new Error(`Resolving OOBI failed for URL: ${url}. \nError: ${e}`),
       );
+    }
+  }
+
+  async getNotifications(): Promise<
+    ResponseData<{
+      start: number;
+      end: number;
+      total: number;
+      notes: any[];
+    }>
+  > {
+    try {
+      return success(await this.signifyClient.notifications().list());
+    } catch (e) {
+      return failure(e);
+    }
+  }
+
+  async getUnreadNotifications(): Promise<
+    ResponseData<{
+      notes: any[];
+    }>
+  > {
+    try {
+      const notes = (await this.signifyClient.notifications().list()).notes;
+      return success({
+        notes: notes.filter(
+          (note: any) => note.r === false && note.a.r === "/exn/ipex/grant",
+        ),
+      });
+    } catch (e) {
+      return failure(e);
+    }
+  }
+  async markNotificationAsRead(noteId: string): Promise<ResponseData<void>> {
+    try {
+      await this.signifyClient.notifications().mark(noteId);
+      return success(undefined);
+    } catch (e) {
+      return failure(e);
+    }
+  }
+
+  async getExchangeMessage(notificationD: string): Promise<any> {
+    try {
+      return success(await this.signifyClient.exchanges().get(notificationD));
+    } catch (e) {
+      return failure(e);
+    }
+  }
+
+  async admitIpex(
+    said: string,
+    aidName: string,
+    issuerAid: string,
+  ): Promise<ResponseData<any>> {
+    try {
+      const dt = new Date().toISOString().replace("Z", "000+00:00");
+      const [admit, sigs, aend] = await this.signifyClient
+        .ipex()
+        .admit(aidName, "", said, dt);
+      const submitAdmitResponse = await this.signifyClient
+        .ipex()
+        .submitAdmit(aidName, admit, sigs, aend, [issuerAid]);
+      return success(submitAdmitResponse);
+    } catch (e) {
+      return failure(e);
     }
   }
 
