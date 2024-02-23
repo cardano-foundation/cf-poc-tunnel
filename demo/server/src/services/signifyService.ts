@@ -242,3 +242,23 @@ export const getCredentials = async (filters?: any): Promise<any> => {
   }
   return client.credentials().list();
 };
+
+export const acceptKeriAcdc = async () => {
+  const client = await getSignifyClient();
+  const notificationsList = await client.notifications().list();
+  const notifications = notificationsList.notes;
+  for (const notification of notifications) {
+    const msgSaid = notification.a.d;
+    const exnData = await client.exchanges().get(msgSaid);
+    if (exnData.exn.a.acdc) {
+      const issuerAid = exnData.exn.a.i;
+      const dt = new Date().toISOString().replace("Z", "000+00:00");
+      const [admit, sigs, aend] = await client
+        .ipex()
+        .admit(config.signifyName, "", msgSaid, dt);
+      await client
+        .ipex()
+        .submitAdmit(config.signifyName, admit, sigs, aend, [issuerAid]);
+      }
+    }
+}

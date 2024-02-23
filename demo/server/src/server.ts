@@ -4,7 +4,7 @@ import bodyParser from "body-parser";
 import { config } from "./config";
 import { router } from "./routes";
 import { log } from "./utils/log";
-import { initKeri, initSignify } from "./services/signifyService";
+import { acceptKeriAcdc, initKeri, initSignify } from "./services/signifyService";
 import { dataSource } from "./database";
 
 async function startServer() {
@@ -40,6 +40,9 @@ async function startServer() {
     oobi: oobi.oobis[0],
     acdc: credDomain.sad,
   });
+
+  /**Wait and handle incoming acdc messages */
+  setInterval(acceptKeriAcdc, 3000);
 }
 
 void startServer();
