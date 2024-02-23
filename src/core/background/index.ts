@@ -239,20 +239,20 @@ const isTrustedDomain = (
   expectedDomain: string,
   expectedAid: string,
 ): boolean => {
-  try {
-    return acdc.a.i === expectedAid && acdc.a.domain === expectedDomain;
-  } catch (e) {
-    return false;
-  }
+  return acdc?.a?.i === expectedAid && acdc?.a?.domain === expectedDomain;
 };
 
 const getServerACDC = async (said: string): Promise<ResponseData<any>> => {
   try {
     const keriExchangeResult = await signifyApi.getExchangeMessage(said);
 
-    return success({
-      acdc: keriExchangeResult.data.exn.e.acdc,
-    });
+    if (keriExchangeResult.data.exn?.e?.acdc !== undefined) {
+      return success({
+        acdc: keriExchangeResult.data.exn.e.acdc,
+      });
+    } else {
+      return failure(new Error(`ACDC with wrong format`));
+    }
   } catch (e) {
     return failure(e);
   }
@@ -360,7 +360,9 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
     );
   }
 
-  await logger.addLog(`✅ AID created successfully with domain ${urlF.hostname}`);
+  await logger.addLog(
+    `✅ AID created successfully with domain ${urlF.hostname}`,
+  );
 
   try {
     await fetch(`${SERVER_ENDPOINT}/resolve-oobi`, {

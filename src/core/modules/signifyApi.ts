@@ -147,7 +147,11 @@ class SignifyApi {
   > {
     try {
       const notes = (await this.signifyClient.notifications().list()).notes;
-      return success({ notes: notes.filter((note: any) => note.r === false) });
+      return success({
+        notes: notes.filter(
+          (note: any) => note.r === false && note.a.r === "/exn/ipex/grant",
+        ),
+      });
     } catch (e) {
       return failure(e);
     }
@@ -156,19 +160,6 @@ class SignifyApi {
     try {
       await this.signifyClient.notifications().mark(noteId);
       return success(undefined);
-    } catch (e) {
-      return failure(e);
-    }
-  }
-
-  async getCredentialBySaid(sad: string): Promise<ResponseData<any>> {
-    try {
-      const results = await this.signifyClient.credentials().list({
-        filter: {
-          "-d": { $eq: sad },
-        },
-      });
-      return success(results[0]);
     } catch (e) {
       return failure(e);
     }

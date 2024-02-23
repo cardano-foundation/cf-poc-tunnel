@@ -15,7 +15,7 @@ interface Session {
   tunnelAid: string;
   serverAid: string;
   serverOobi: any;
-  tunnelOobiUrl: any;
+  tunnelOobiUrl: string;
   createdAt: number;
   acdc: any;
 }
