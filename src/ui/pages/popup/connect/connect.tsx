@@ -16,13 +16,8 @@ interface Comm {
 }
 
 function Connect() {
-  const location = useLocation();
-  const [session] = useState(location.state?.session);
   const [comm, setComm] = useState<Comm | undefined>(undefined);
   const [showSpinner, setShowSpinner] = useState(true);
-  if (!session) {
-    return <div>No session data available</div>;
-  }
 
   useEffect(() => {
     chrome.storage.local.get([COMMUNICATION_AID]).then((c) => {
@@ -31,7 +26,7 @@ function Connect() {
       setComm(c.idw);
       setShowSpinner(false);
     });
-  });
+  },[]);
 
   return (
     <div className="sessionDetails">
@@ -45,8 +40,8 @@ function Connect() {
           <div>
             <QRCode
               value={JSON.stringify({
-                type: "tunnelOobiUrl",
-                url: comm?.tunnelOobiUrl,
+                t: "tunnelOobiUrl",
+                s: comm?.tunnelOobiUrl,
               })}
               size={192}
               fgColor={"black"}
@@ -66,15 +61,15 @@ function Connect() {
           )}
         </div>
         <p>
-          <strong>Name: </strong> {session.name.replace("-", ":")}
+          <strong>Name: </strong> {comm?.name.replace("-", ":")}
         </p>
         <p>
-          <strong>Tunnel AID: </strong>
-          {session.tunnelAid.length && shortenText(session.tunnelAid, 24)}
+          <strong>Comm AID: </strong>
+          {comm?.tunnelAid.length && shortenText(comm?.tunnelAid, 24)}
         </p>
         <p>
-          <strong>Tunnel OOBI: </strong>
-          {shortenText(session.tunnelOobiUrl, 24)}
+          <strong>Comm OOBI: </strong>
+          {shortenText(comm?.tunnelOobiUrl, 24)}
         </p>
       </div>
     </div>

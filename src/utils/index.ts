@@ -53,7 +53,7 @@ const convertURLImageToBase64 = (url: string): Promise<string> => {
     });
 };
 
-const shortenText = (text: string, maxLength = 10) => {
+const shortenText = (text: string | undefined, maxLength = 10) => {
   if (!text) return;
   if (text.length > maxLength) {
     const half = Math.floor(maxLength / 2);
