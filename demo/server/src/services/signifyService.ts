@@ -246,16 +246,16 @@ export const getCredentials = async (filters?: any): Promise<any> => {
 export const getUnhandledGrants = async (sender: string) => {
   const client = await getSignifyClient();
   const notificationsList = await client.notifications().list();
-  const notificationsData = await Promise.all(notificationsList.notes.map(async note => {
+  const unreadGrantNotificationsList = notificationsList.notes.filter(note => !note.r && note.a.r === '/exn/ipex/grant');
+  const notificationsData = await Promise.all(unreadGrantNotificationsList.map(async note => {
     const exchange = await client.exchanges().get(note.a.d);
     return {
       notiId: note.i,
       notiSaid: note.a.d,
-      read: note.r,
       exchange,
     }
   }));
-  return notificationsData.filter(notification => notification.exchange.exn.i === sender && notification.exchange.exn.a.acdc && !notification.read);
+  return notificationsData.filter(notification => notification.exchange.exn.i === sender && notification.exchange.exn.a.acdc);
 }
 
 export const admitIpex = async (
