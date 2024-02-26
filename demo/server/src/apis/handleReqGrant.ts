@@ -39,11 +39,9 @@ async function handleReqGrant(req: Request, res: Response) {
     await entityManager.save(session);
 
     /**admit and mark the notification */
-    await Promise.all(unhandledGrants.map(async grant => {
-      const exnData = grant.exchange.exn;
-      await admitIpex(grant.notiSaid, config.signifyName, exnData.i);
-      await markNotification(grant.notiId);
-    }));
+    const exnData = latestGrant.exchange.exn;
+    await admitIpex(latestGrant.notiSaid, config.signifyName, exnData.i);
+    await markNotification(latestGrant.notiId);;
       
     return res.status(200).send(exchange);
   } catch (error) {
