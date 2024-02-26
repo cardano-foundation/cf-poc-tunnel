@@ -500,13 +500,15 @@ chrome.runtime.onInstalled.addListener(async () => {
     await signifyApi.start();
   }
   await logger.addLog(`✅ Signify initialized successfully`);
-  const createIdentifierResult = await signifyApi.createIdentifier(COMMUNICATION_AID);
+  const createIdentifierResult = await signifyApi.createIdentifier(
+    COMMUNICATION_AID,
+  );
 
   if (!createIdentifierResult.success) {
     return failure(
-        new Error(
-            `Error trying to create an AID for the IDW: ${createIdentifierResult.error}`,
-        ),
+      new Error(
+        `Error trying to create an AID for the IDW: ${createIdentifierResult.error}`,
+      ),
     );
   }
 
@@ -514,9 +516,9 @@ chrome.runtime.onInstalled.addListener(async () => {
 
   if (!getOobiResult.success) {
     return failure(
-        new Error(
-            `Error trying to create an OOBI url for the IDW AID: ${createIdentifierResult.data.serder.ked.i}`,
-        ),
+      new Error(
+        `Error trying to create an OOBI url for the IDW AID: ${createIdentifierResult.data.serder.ked.i}`,
+      ),
     );
   }
 
@@ -524,13 +526,14 @@ chrome.runtime.onInstalled.addListener(async () => {
     id: uid(24),
     tunnelAid: createIdentifierResult.data.serder.ked.i,
     name: COMMUNICATION_AID,
-    tunnelOobiUrl: getOobiResult.data.oobis[0]
+    tunnelOobiUrl: getOobiResult.data.oobis[0],
   };
 
   await chrome.storage.local.set({ [COMMUNICATION_AID]: commAid });
 
-  await logger.addLog(`✅ AID and OOBI created for IDW communication: ${getOobiResult.data.oobis[0]}`);
-
+  await logger.addLog(
+    `✅ AID and OOBI created for IDW communication: ${getOobiResult.data.oobis[0]}`,
+  );
 });
 
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
