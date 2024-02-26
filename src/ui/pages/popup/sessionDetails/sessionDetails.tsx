@@ -6,8 +6,6 @@ import MobileConnectIcon from "@assets/mobile-connect-icon.svg";
 import { shortenText } from "@src/utils";
 import { Session } from "../sessionList/sessionList";
 
-const LOCAL_STORAGE_SESSIONS = "sessions";
-
 function SessionDetails() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -80,4 +78,4 @@ function SessionDetails() {
   );
 }
 
-export { SessionDetails, LOCAL_STORAGE_SESSIONS };
+export { SessionDetails };

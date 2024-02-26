@@ -5,7 +5,7 @@ import "./sessionList.scss";
 import MobileConnectIcon from "../../../assets/mobile-connect-icon.svg";
 import webLogo from "../../../assets/web.png";
 import { isExpired } from "@src/utils";
-import { LOCAL_STORAGE_SESSIONS } from "../sessionDetails/sessionDetails";
+import {LOCAL_STORAGE_SESSIONS} from "@src/core/background";
 
 interface Session {
   id: string;
