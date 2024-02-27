@@ -39,10 +39,7 @@ function Connect() {
         <div>
           <div>
             <QRCode
-              value={JSON.stringify({
-                t: "tunnelOobiUrl",
-                s: comm?.tunnelOobiUrl,
-              })}
+              value={comm?.tunnelOobiUrl}
               size={192}
               fgColor={"black"}
               bgColor={"white"}
