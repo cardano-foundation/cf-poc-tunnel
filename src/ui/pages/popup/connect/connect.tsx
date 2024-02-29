@@ -37,13 +37,13 @@ function Connect() {
       const resolveOobiResult = await signifyApi.resolveOOBI(oobiUrl);
 
       if (!resolveOobiResult.success) {
+        await logger.addLog(`❌ Resolving wallet OOBI failed: ${oobiUrl}`);
         return failure(
           new Error(
             `Error resolving server OOBI URL ${oobiUrl}: ${resolveOobiResult.error}`,
           ),
         );
       }
-      await logger.addLog(`✅ Wallet OOBI resolved successfully: ${oobiUrl}`);
 
       const { walletConnections } = await chrome.storage.local.get([
         LOCAL_STORAGE_WALLET_CONNECTIONS,
@@ -55,6 +55,8 @@ function Connect() {
       await chrome.storage.local.set({
         walletConnections: walletConnectionsObj,
       });
+
+      await logger.addLog(`✅ Wallet OOBI resolved successfully: ${oobiUrl}`);
 
       setOobiUrl("");
       setIsResolving(false);
