@@ -102,7 +102,7 @@ class SignifyApi {
   async resolveOOBI(url: string): Promise<ResponseData<any>> {
     try {
       if (!this.started) {
-        return failure(new Error("Signify not initialized"));
+        await this.checkInitialized();
       }
 
       const oobiOperation = await this.signifyClient.oobis().resolve(url);
@@ -215,6 +215,12 @@ class SignifyApi {
       return success(new Verfer({ qb64: pubKey }));
     } catch (e) {
       return failure(e);
+    }
+  }
+
+  private async checkInitialized(): Promise<void> {
+    if (!this.started) {
+      await this.start();
     }
   }
 

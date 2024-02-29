@@ -87,10 +87,17 @@
       border: none;
       border-radius: 4px;
       cursor: pointer;
-
     }
   }
 
+  .spinner-button {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid whitesmoke;
+    border-radius: 50%;
+    width: 15px;
+    height: 15px;
+    animation: spin 1s linear infinite;
+  }
 
   @keyframes spin {
     0% {

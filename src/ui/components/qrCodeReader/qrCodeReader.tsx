@@ -19,13 +19,7 @@ const QrCodeReader = () => {
     setIsCameraActive(false);
   };
 
-  return (
-    <div>
-
-    </div>
-  );
+  return <div></div>;
 };
 
 export { QrCodeReader };
-
-
