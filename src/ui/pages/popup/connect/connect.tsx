@@ -105,6 +105,7 @@ function Connect() {
       <hr className="separator" />
       <div className="resolve-section">
         <input
+          value={oobiUrl}
           type="text"
           className="resolve-input"
           placeholder="Insert OOBI URL"
