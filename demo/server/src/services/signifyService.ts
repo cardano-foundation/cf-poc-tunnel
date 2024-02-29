@@ -12,6 +12,8 @@ import { Aid, ERROR_ACDC_NOT_FOUND } from "./signifyService.types";
 import { config } from "../config";
 import { log } from "../utils/log";
 import { v4 as uuidv4 } from "uuid";
+import { Session } from "../database/entities/session";
+import { dataSource } from "../database";
 
 const { keriaUrl, keriaBootUrl } = config;
 let signifyClient: SignifyClient;
@@ -243,11 +245,28 @@ export const getCredentials = async (filters?: any): Promise<any> => {
   return client.credentials().list();
 };
 
-export const getUnhandledGrants = async (sender: string) => {
+export const getUnhandledTunnelRequestNotifications = async () => {
   const client = await getSignifyClient();
-  const notificationsList = await client.notifications().list();
-  const unreadGrantNotificationsList = notificationsList.notes.filter(note => !note.r && note.a.r === '/exn/ipex/grant');
-  const notificationsData = await Promise.all(unreadGrantNotificationsList.map(async note => {
+  const notificationsList = await client.notifications().list(0, 100); //TODO: Add pagination later. Use fixed range at the moment
+  const unreadNotificationsList = notificationsList.notes
+    .filter(note => !note.r && note.a.r === '/tunnel/server/request');
+  const notificationsData = await Promise.all(unreadNotificationsList.map(async note => {
+    const exchange = await client.exchanges().get(note.a.d);
+    return {
+      notiId: note.i,
+      notiSaid: note.a.d,
+      exchange,
+    }
+  }));
+  return notificationsData;
+}
+
+export const getUnhandledGrantNotifications = async (sender: string) => {
+  const client = await getSignifyClient();
+  const notificationsList = await client.notifications().list(0, 100); //TODO: Add pagination later. Use fixed range at the moment
+  const unreadNotificationsList = notificationsList.notes
+    .filter(note => !note.r && note.a.r === '/exn/ipex/grant');
+  const notificationsData = await Promise.all(unreadNotificationsList.map(async note => {
     const exchange = await client.exchanges().get(note.a.d);
     return {
       notiId: note.i,
@@ -276,4 +295,57 @@ export const admitIpex = async (
 export const markNotification = async (id: string) => {
   const client = await getSignifyClient();
   return client.notifications().mark(id);
+}
+
+export const handleTunnelRequestNotifications = async () => {
+  const tunnelRequestNotificationsList = await getUnhandledTunnelRequestNotifications();
+  const tunnelAidNotifications = tunnelRequestNotificationsList.filter(notification => notification.exchange.exn.a.sid);
+  if (!tunnelAidNotifications.length) {
+    console.log("Don't have unhandled tunnel AID exchange yet.");
+    return;
+  }
+
+  for (const tunnelAidNotification of tunnelAidNotifications) {
+    const aid = tunnelAidNotification.exchange.exn.a.sid;
+    const idWalletAid = tunnelAidNotification.exchange.exn.i;
+    const acdcNotifications = await getUnhandledGrantNotifications(idWalletAid);
+    if (!acdcNotifications.length) {
+      console.log(`AID ${idWalletAid} has not completed the ACDC disclosure yet.`);
+      continue;
+    }
+    const latestGrant = acdcNotifications.reduce((latestObj, currentObj) => {
+      const maxDateTime = latestObj.exchange.exn.a.dt;
+      const currentDateTime = currentObj.exchange.exn.a.dt;
+      return currentDateTime > maxDateTime ? currentObj : latestObj;
+    });
+    if (
+      new Date(latestGrant.exchange.exn.a.dt).getTime() <
+      new Date().getTime() - 60000
+    ) {
+      console.log(`Latest ACDC disclosure from ${tunnelAidNotification.exchange.exn.i} is too old`);
+      continue;
+    }
+  
+    const acdcSchema = latestGrant.exchange.exn.acdc.sad.s;
+  
+    const session = new Session();
+    if (acdcSchema === config.qviSchemaSaid) {
+      session.role = "user";
+    } else {
+      continue;
+    }
+    session.aid = aid;
+    const currentTime = new Date().getTime();
+    const sessionDuration = 5 * 60000; //5 mins
+    session.validUntil = new Date(currentTime + sessionDuration);
+    const entityManager = dataSource.manager;
+    await entityManager.save(session);
+  
+    /**admit and mark the notification */
+    const exnData = latestGrant.exchange.exn;
+    await admitIpex(latestGrant.notiSaid, config.signifyName, exnData.i);
+    await markNotification(latestGrant.notiId);
+    await admitIpex(tunnelAidNotification.notiSaid, config.signifyName, exnData.i);
+    await markNotification(tunnelAidNotification.notiId);
+  }
 }
