@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
 import "./connect.scss";
 import { BackButton } from "@components/backButton";
 import { QRCode } from "react-qrcode-logo";
-import { shortenText } from "@src/utils";
-import webLogo from "@assets/web.png";
-import { COMMUNICATION_AID } from "@src/core/background";
+import {failure, shortenText} from "@src/utils";
+import {
+  COMMUNICATION_AID,
+  LOCAL_STORAGE_SESSIONS,
+  LOCAL_STORAGE_WALLET_CONNECTIONS,
+  logger,
+  signifyApi
+} from "@src/core/background";
 import idwLogo from "@assets/idw.png";
 
 interface Comm {
@@ -18,15 +22,44 @@ interface Comm {
 function Connect() {
   const [comm, setComm] = useState<Comm | undefined>(undefined);
   const [showSpinner, setShowSpinner] = useState(true);
+  const [oobiUrl, setOobiUrl] = useState("");
 
   useEffect(() => {
     chrome.storage.local.get([COMMUNICATION_AID]).then((c) => {
-      console.log("comm");
-      console.log(c);
       setComm(c.idw);
       setShowSpinner(false);
     });
-  },[]);
+  }, []);
+
+  const handleResolveOObi = async () => {
+
+    console.log('handleResolveOObi');
+    if (oobiUrl.includes("oobi")){
+      const resolveOobiResult = await signifyApi.resolveOOBI(oobiUrl);
+      console.log('resolveOobiResult');
+      console.log(resolveOobiResult);
+
+      if (!resolveOobiResult.success) {
+        return failure(
+            new Error(
+                `Error resolving server OOBI URL ${oobiUrl}: ${resolveOobiResult.error}`,
+            ),
+        );
+      }
+      await logger.addLog(`✅ Wallet OOBI resolved successfully`);
+
+
+
+
+      const { walletConnections } = await chrome.storage.local.get([LOCAL_STORAGE_WALLET_CONNECTIONS]);
+      const walletConnectionsObj = walletConnections || {};
+
+      await chrome.storage.local.set({ walletConnections: walletConnectionsObj });
+    }
+
+
+  };
+
 
   return (
     <div className="sessionDetails">
@@ -68,6 +101,16 @@ function Connect() {
           <strong>Comm OOBI: </strong>
           {shortenText(comm?.tunnelOobiUrl, 24)}
         </p>
+      </div>
+      <hr className="separator" />
+      <div className="resolve-section">
+        <input
+            type="text"
+            className="resolve-input"
+            placeholder="Insert OOBI URL"
+            onChange={(e) => setOobiUrl(e.target.value)}
+        />
+        <button className="resolve-button" onClick={() => handleResolveOObi()}>Resolve</button>
       </div>
     </div>
   );

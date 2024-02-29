@@ -20,11 +20,12 @@ import {
 import { Session } from "@src/ui/pages/popup/sessionList/sessionList";
 
 export const LOCAL_STORAGE_SESSIONS = "sessions";
+export const LOCAL_STORAGE_WALLET_CONNECTIONS = "walletConnections";
 export const COMMUNICATION_AID = "idw";
 
 const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
-const signifyApi: SignifyApi = new SignifyApi();
-const logger = new Logger();
+export const signifyApi: SignifyApi = new SignifyApi();
+export const logger = new Logger();
 
 const signEncryptRequest = async (
   ourAidName: string,

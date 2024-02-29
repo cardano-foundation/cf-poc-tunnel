@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { QrScanner } from "@yudiel/react-qr-scanner";
 import "./qrCodeReader.scss";
 
 const QrCodeReader = () => {
@@ -22,14 +21,11 @@ const QrCodeReader = () => {
 
   return (
     <div>
-      {isCameraActive ? (
-        <QrScanner onError={handleError} onDecode={handleScan} />
-      ) : (
-        <p>{error || "Camera access is not active."}</p>
-      )}
-      <p>{data}</p>
+
     </div>
   );
 };
 
 export { QrCodeReader };
+
+
