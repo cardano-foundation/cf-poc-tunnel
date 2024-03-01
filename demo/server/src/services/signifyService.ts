@@ -301,7 +301,6 @@ export const handleTunnelRequestNotifications = async () => {
   const tunnelRequestNotificationsList = await getUnhandledTunnelRequestNotifications();
   const tunnelAidNotifications = tunnelRequestNotificationsList.filter(notification => notification.exchange.exn.a.sid);
   if (!tunnelAidNotifications.length) {
-    console.log("Don't have unhandled tunnel AID exchange yet.");
     return;
   }
 
