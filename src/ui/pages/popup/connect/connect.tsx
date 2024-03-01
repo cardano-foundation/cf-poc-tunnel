@@ -70,18 +70,25 @@ function Connect() {
         </p>
         <div>
           <div>
-            <QRCode
-              value={comm?.tunnelOobiUrl}
-              size={192}
-              fgColor={"black"}
-              bgColor={"white"}
-              qrStyle={"squares"}
-              logoImage={idwLogo}
-              logoWidth={60}
-              logoHeight={60}
-              logoOpacity={1}
-              quietZone={10}
-            />
+            {
+              !comm ? <>
+                <p>
+                  Something went wrong during installation while generating the communication OOBI
+                </p>
+              </> :<QRCode
+                  value={comm?.tunnelOobiUrl}
+                  size={192}
+                  fgColor={"black"}
+                  bgColor={"white"}
+                  qrStyle={"squares"}
+                  logoImage={idwLogo}
+                  logoWidth={60}
+                  logoHeight={60}
+                  logoOpacity={1}
+                  quietZone={10}
+              />
+            }
+
           </div>
           {showSpinner && (
             <div className="spinnerOverlay">
