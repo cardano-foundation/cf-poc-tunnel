@@ -98,7 +98,7 @@ function Connect() {
         </p>
         <p>
           <strong>Comm OOBI: </strong>
-          {shortenText(comm?.tunnelOobiUrl, 24)}
+          {comm?.tunnelOobiUrl ? shortenText(comm?.tunnelOobiUrl, 24) : ""}
         </p>
       </div>
       <hr className="separator" />
