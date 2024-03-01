@@ -506,21 +506,13 @@ chrome.runtime.onInstalled.addListener(async () => {
   );
 
   if (!createIdentifierResult.success) {
-    return failure(
-      new Error(
-        `Error trying to create an AID for the IDW: ${createIdentifierResult.error}`,
-      ),
-    );
+    await logger.addLog(`❌ Error trying to create an AID for the IDW: ${createIdentifierResult.error}`);
   }
 
   const getOobiResult = await signifyApi.createOOBI(COMMUNICATION_AID);
 
   if (!getOobiResult.success) {
-    return failure(
-      new Error(
-        `Error trying to create an OOBI url for the IDW AID: ${createIdentifierResult.data.serder.ked.i}`,
-      ),
-    );
+    await logger.addLog(`❌ Error trying to create an OOBI url for the IDW AID: ${createIdentifierResult.data.serder.ked.i}`);
   }
 
   const commAid = {

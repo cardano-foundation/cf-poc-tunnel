@@ -101,9 +101,7 @@ class SignifyApi {
 
   async resolveOOBI(url: string): Promise<ResponseData<any>> {
     try {
-      if (!this.started) {
-        await this.checkInitialized();
-      }
+      await this.checkInitialized();
 
       const oobiOperation = await this.signifyClient.oobis().resolve(url);
       const r = await this.waitAndGetDoneOp(oobiOperation, 15000, 250);
