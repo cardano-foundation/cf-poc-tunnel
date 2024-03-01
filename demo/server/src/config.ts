@@ -24,7 +24,6 @@ export const config = {
     schema: "/oobi/:id",
     disclosureAcdc: "/disclosure-acdc",
     acdcRequirements: "/acdc-requirements",
-    handleReqGrant: "/handle-req-grant/:said",
   },
   domainSchemaSaid: "EGjD1gCLi9ecZSZp9zevkgZGyEX_MbOdmhBFt4o0wvdb",
   qviSchemaSaid: "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao",

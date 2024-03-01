@@ -4,7 +4,7 @@ import bodyParser from "body-parser";
 import { config } from "./config";
 import { router } from "./routes";
 import { log } from "./utils/log";
-import { initKeri, initSignify } from "./services/signifyService";
+import { initKeri, initSignify, handleTunnelRequestNotifications } from "./services/signifyService";
 import { dataSource } from "./database";
 
 async function startServer() {
@@ -40,6 +40,8 @@ async function startServer() {
     oobi: oobi.oobis[0],
     acdc: credDomain.sad,
   });
+
+  setInterval(handleTunnelRequestNotifications, 2000);
 }
 
 void startServer();
