@@ -38,11 +38,8 @@ function Connect() {
 
       if (!resolveOobiResult.success) {
         await logger.addLog(`❌ Resolving wallet OOBI failed: ${oobiUrl}`);
-        return failure(
-          new Error(
-            `Error resolving server OOBI URL ${oobiUrl}: ${resolveOobiResult.error}`,
-          ),
-        );
+        setIsResolving(false);
+        return;
       }
 
       const { walletConnections } = await chrome.storage.local.get([
