@@ -18,11 +18,14 @@ import {
   ExtensionMessageType,
 } from "@src/core/background/types";
 import { Session } from "@src/ui/pages/popup/sessionList/sessionList";
-import { LOCAL_STORAGE_SESSIONS } from "@src/ui/pages/popup/sessionDetails/sessionDetails";
+
+export const LOCAL_STORAGE_SESSIONS = "sessions";
+export const LOCAL_STORAGE_WALLET_CONNECTIONS = "walletConnections";
+export const COMMUNICATION_AID = "idw";
 
 const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
-const signifyApi: SignifyApi = new SignifyApi();
-const logger = new Logger();
+export const signifyApi: SignifyApi = new SignifyApi();
+export const logger = new Logger();
 
 const signEncryptRequest = async (
   ourAidName: string,
@@ -498,6 +501,39 @@ chrome.runtime.onInstalled.addListener(async () => {
     await signifyApi.start();
   }
   await logger.addLog(`✅ Signify initialized successfully`);
+  const createIdentifierResult = await signifyApi.createIdentifier(
+    COMMUNICATION_AID,
+  );
+
+  if (!createIdentifierResult.success) {
+    await logger.addLog(`❌ Error trying to create an AID for the IDW: ${createIdentifierResult.error}`);
+    new Error(
+        `Error trying to create an AID for the IDW: ${createIdentifierResult.error}`,
+    );
+    return;
+  }
+
+  const getOobiResult = await signifyApi.createOOBI(COMMUNICATION_AID);
+
+  if (!getOobiResult.success) {
+    new Error(
+        `Error trying to create an OOBI url for the IDW AID: ${createIdentifierResult.data.serder.ked.i}`,
+    );
+    return;
+  }
+
+  const commAid = {
+    id: uid(24),
+    tunnelAid: createIdentifierResult.data.serder.ked.i,
+    name: COMMUNICATION_AID,
+    tunnelOobiUrl: getOobiResult.data.oobis[0],
+  };
+
+  await chrome.storage.local.set({ [COMMUNICATION_AID]: commAid });
+
+  await logger.addLog(
+    `✅ AID and OOBI created for IDW communication: ${getOobiResult.data.oobis[0]}`,
+  );
 });
 
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {

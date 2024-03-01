@@ -1,37 +1,63 @@
-import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import "./connect.scss";
 import { BackButton } from "@components/backButton";
 import { QRCode } from "react-qrcode-logo";
-import { shortenText } from "@src/utils";
-import webLogo from "@assets/web.png";
+import { failure, shortenText } from "@src/utils";
+import {
+  COMMUNICATION_AID,
+  LOCAL_STORAGE_WALLET_CONNECTIONS,
+  logger,
+  signifyApi,
+} from "@src/core/background";
+import idwLogo from "@assets/idw.png";
+
+interface Comm {
+  id: string;
+  name: string;
+  tunnelAid: string;
+  tunnelOobiUrl: string;
+}
 
 function Connect() {
-  const location = useLocation();
-  const [session] = useState(location.state?.session);
-  const [showSpinner, setShowSpinner] = useState(false);
-  if (!session) {
-    return <div>No session data available</div>;
-  }
+  const [comm, setComm] = useState<Comm | undefined>(undefined);
+  const [showSpinner, setShowSpinner] = useState(true);
+  const [oobiUrl, setOobiUrl] = useState("");
+  const [isResolving, setIsResolving] = useState(false);
 
-  const handleGenerateEaid = () => {
-    if (showSpinner) return;
+  useEffect(() => {
+    chrome.storage.local.get([COMMUNICATION_AID]).then((c) => {
+      setComm(c.idw);
+      setShowSpinner(false);
+    });
+  }, []);
 
-    setShowSpinner(true);
+  const handleResolveOObi = async () => {
+    if (oobiUrl.length && oobiUrl.includes("oobi")) {
+      setIsResolving(true);
+      const resolveOobiResult = await signifyApi.resolveOOBI(oobiUrl);
 
-    chrome.runtime.sendMessage(
-      {
-        type: "SET_PRIVATE_KEY",
-        data: {
-          ...session,
-        },
-      },
-      (response: { status: string; data: any }) => {
-        setShowSpinner(false);
-        // setSession(response.data);
-        // setQrCodeValue(response.data.oobi);
-      },
-    );
+      if (!resolveOobiResult.success) {
+        await logger.addLog(`❌ Resolving wallet OOBI failed: ${oobiUrl}`);
+        setIsResolving(false);
+        return;
+      }
+
+      const { walletConnections } = await chrome.storage.local.get([
+        LOCAL_STORAGE_WALLET_CONNECTIONS,
+      ]);
+      const walletConnectionsObj = walletConnections || {};
+      walletConnectionsObj[resolveOobiResult.data.response.i] =
+        resolveOobiResult.data;
+
+      await chrome.storage.local.set({
+        walletConnections: walletConnectionsObj,
+      });
+
+      await logger.addLog(`✅ Wallet OOBI resolved successfully: ${oobiUrl}`);
+
+      setOobiUrl("");
+      setIsResolving(false);
+    }
   };
 
   return (
@@ -44,18 +70,25 @@ function Connect() {
         </p>
         <div>
           <div>
-            <QRCode
-              value={session.tunnelOobiUrl}
-              size={192}
-              fgColor={"black"}
-              bgColor={"white"}
-              qrStyle={"squares"}
-              logoImage={session.logo?.length ? session.logo : webLogo}
-              logoWidth={60}
-              logoHeight={60}
-              logoOpacity={1}
-              quietZone={10}
-            />
+            {
+              !comm ? <>
+                <p>
+                  Something went wrong during installation while generating the communication OOBI
+                </p>
+              </> :<QRCode
+                  value={comm?.tunnelOobiUrl}
+                  size={192}
+                  fgColor={"black"}
+                  bgColor={"white"}
+                  qrStyle={"squares"}
+                  logoImage={idwLogo}
+                  logoWidth={60}
+                  logoHeight={60}
+                  logoOpacity={1}
+                  quietZone={10}
+              />
+            }
+
           </div>
           {showSpinner && (
             <div className="spinnerOverlay">
@@ -64,22 +97,33 @@ function Connect() {
           )}
         </div>
         <p>
-          <strong>Name: </strong> {session.name.replace("-", ":")}
+          <strong>Name: </strong> {comm?.name.replace("-", ":")}
         </p>
         <p>
-          <strong>Tunnel AID: </strong>
-          {session.tunnelAid.length ? (
-            shortenText(session.tunnelAid, 24)
-          ) : (
-            <span className="generateLabel" onClick={handleGenerateEaid}>
-              Generate eAID
-            </span>
-          )}
+          <strong>Comm AID: </strong>
+          {comm?.tunnelAid.length && shortenText(comm?.tunnelAid, 24)}
         </p>
         <p>
-          <strong>Tunnel OOBI: </strong>
-          {shortenText(session.tunnelOobiUrl, 24)}
+          <strong>Comm OOBI: </strong>
+          {comm?.tunnelOobiUrl ? shortenText(comm?.tunnelOobiUrl, 24) : ""}
         </p>
+      </div>
+      <hr className="separator" />
+      <div className="resolve-section">
+        <input
+          value={oobiUrl}
+          type="text"
+          className="resolve-input"
+          placeholder="Insert OOBI URL"
+          onChange={(e) => setOobiUrl(e.target.value)}
+        />
+        <button
+          className="resolve-button"
+          onClick={() => handleResolveOObi()}
+          disabled={isResolving}
+        >
+          {isResolving ? <div className="spinner-button"></div> : "Resolve"}
+        </button>
       </div>
     </div>
   );
