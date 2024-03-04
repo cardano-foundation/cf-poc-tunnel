@@ -6,6 +6,7 @@ import {
   getRemoteVerfer,
   getKeyManager,
 } from "../services/signifyService";
+export var incomingRequestsCache = new Map();
 
 export async function decryptVerifyRequest(
   req: Request,
@@ -56,14 +57,14 @@ export async function decryptVerifyRequest(
       .status(400)
       .send("Signature header not valid for given Signify-Resource");
   }
-
+  let requestUniqueId = req.get("Signature");
   if (req.body) {
     if (!req.body.sig || !req.body.cipher) {
       return res
         .status(400)
         .send("Body must contain a valid ESSR ciphertext and signature");
     }
-
+    requestUniqueId = requestUniqueId.concat(req.body.sig);
     const signature = new Cigar({ qb64: req.body.sig }); // @TODO - foconnor: Will crash if not valid CESR - handle.
     if (
       !reqVerfer.verify(
@@ -95,6 +96,14 @@ export async function decryptVerifyRequest(
 
     req.body = decrypted.data;
   }
+  if (incomingRequestsCache.get(requestUniqueId)) {
+    return res
+      .status(409)
+      .send("Request replay detected");
+  };  
+  /**Set the request in the cache then remove the signature from the cache after 1 second*/
+  incomingRequestsCache.set(requestUniqueId, true);
+  setTimeout(() => incomingRequestsCache.delete(requestUniqueId), 1000);
 
   return next();
 }
