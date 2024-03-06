@@ -23,7 +23,7 @@ export const LOCAL_STORAGE_SESSIONS = "sessions";
 export const LOCAL_STORAGE_WALLET_CONNECTIONS = "walletConnections";
 export const COMMUNICATION_AID = "idw";
 
-const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
+export const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
 export const signifyApi: SignifyApi = new SignifyApi();
 export const logger = new Logger();
 
@@ -506,9 +506,11 @@ chrome.runtime.onInstalled.addListener(async () => {
   );
 
   if (!createIdentifierResult.success) {
-    await logger.addLog(`❌ Error trying to create an AID for the IDW: ${createIdentifierResult.error}`);
+    await logger.addLog(
+      `❌ Error trying to create an AID for the IDW: ${createIdentifierResult.error}`,
+    );
     new Error(
-        `Error trying to create an AID for the IDW: ${createIdentifierResult.error}`,
+      `Error trying to create an AID for the IDW: ${createIdentifierResult.error}`,
     );
     return;
   }
@@ -517,7 +519,7 @@ chrome.runtime.onInstalled.addListener(async () => {
 
   if (!getOobiResult.success) {
     new Error(
-        `Error trying to create an OOBI url for the IDW AID: ${createIdentifierResult.data.serder.ked.i}`,
+      `Error trying to create an OOBI url for the IDW AID: ${createIdentifierResult.data.serder.ked.i}`,
     );
     return;
   }

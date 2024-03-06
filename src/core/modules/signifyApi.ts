@@ -7,6 +7,7 @@ import {
   SignifyClient,
   Tier,
   EventResult,
+  Dict
 } from "signify-ts";
 import { Aid } from "@src/core/modules/signifyApi.types";
 import { ResponseData } from "@src/core/background/types";
@@ -85,6 +86,7 @@ class SignifyApi {
 
   async getIdentifierByName(name: string): Promise<ResponseData<Aid>> {
     try {
+      await this.checkInitialized();
       return success(await this.signifyClient.identifiers().get(name));
     } catch (e) {
       return failure(e);
@@ -193,6 +195,44 @@ class SignifyApi {
   async getKeyManager(aid: Aid): Promise<ResponseData<any>> {
     try {
       return success(await this.signifyClient.manager?.get(aid));
+    } catch (e) {
+      return failure(e);
+    }
+  }
+  async sendMessasge(
+    name: string,
+    recipient: string,
+    payload: Dict<any>
+  ): Promise<ResponseData<any>> {
+    console.log('sendMessasge');
+    try {
+      const aidResult = await this.getIdentifierByName(name);
+
+      if (aidResult.success) {
+        const route = "/tunnel/wallet/request";
+
+
+        console.log('name');
+        console.log(name);
+        console.log('aidResult.data');
+        console.log(aidResult.data);
+        console.log('route');
+        console.log(route);
+        console.log('payload');
+        console.log(payload);
+        console.log('recipient');
+        console.log([recipient]);
+        const messageSent = await this.signifyClient
+          .exchanges()
+          .send(name, "tunnel", aidResult.data, route, payload, {}, [
+            recipient,
+          ]);
+        return success(messageSent);
+      } else {
+        return failure(
+          new Error(`Error trying to get the AID by name: ${name}`),
+        );
+      }
     } catch (e) {
       return failure(e);
     }
