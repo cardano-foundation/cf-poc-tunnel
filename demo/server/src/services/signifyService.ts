@@ -196,11 +196,11 @@ export const initKeri = async () => {
     await createIdentifier(issuerMainAcdcName);
     const keriRegistryRegk = await createRegistry(issuerMainAcdcName);
     await issueDomainCredential(
-      issuerMainAcdcName,
-      keriRegistryRegk,
-      schemaSaid,
-      identifier.prefix,
-      config.endpoint,
+        issuerMainAcdcName,
+        keriRegistryRegk,
+        schemaSaid,
+        identifier.prefix,
+        new URL(config.endpoint).hostname,
     );
     credDomain = await getServerAcdc(identifier.prefix, schemaSaid);
   }
