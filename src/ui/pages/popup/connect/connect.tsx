@@ -80,9 +80,6 @@ function Connect() {
 
       const acdcRequirements = await response.json();
 
-      console.log('acdcRequirements');
-      console.log(acdcRequirements);
-      
       const payload = {
         serverEndpoint: SERVER_ENDPOINT,
         serverOobiUrl,
@@ -97,8 +94,7 @@ function Connect() {
         await logger.addLog(`❌ Message sent to IDW failed: ${messageSent.error}`);
         return;
       }
-      console.log('messageSent in Connect.tsx');
-      console.log(messageSent);
+
       await logger.addLog(`📩 Message successfully sent to IDW with AID ${ids[0]}, message: ${JSON.stringify(messageSent )}`);
     }
 
@@ -119,11 +115,6 @@ function Connect() {
         LOCAL_STORAGE_WALLET_CONNECTIONS,
       ]);
       const walletConnectionsObj = walletConnections || {};
-
-      console.log('oobiUrl');
-      console.log(oobiUrl);
-      console.log('resolveOobiResult');
-      console.log(resolveOobiResult);
 
       walletConnectionsObj[resolveOobiResult.data.response.i] =
         resolveOobiResult.data;

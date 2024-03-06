@@ -204,24 +204,12 @@ class SignifyApi {
     recipient: string,
     payload: Dict<any>
   ): Promise<ResponseData<any>> {
-    console.log('sendMessasge');
     try {
       const aidResult = await this.getIdentifierByName(name);
 
       if (aidResult.success) {
         const route = "/tunnel/wallet/request";
 
-
-        console.log('name');
-        console.log(name);
-        console.log('aidResult.data');
-        console.log(aidResult.data);
-        console.log('route');
-        console.log(route);
-        console.log('payload');
-        console.log(payload);
-        console.log('recipient');
-        console.log([recipient]);
         const messageSent = await this.signifyClient
           .exchanges()
           .send(name, "tunnel", aidResult.data, route, payload, {}, [
