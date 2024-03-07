@@ -75,3 +75,25 @@
   color: #a9abb1;
   cursor: pointer;
 }
+
+.separator {
+  margin-bottom: 20px;
+}
+
+.connectButtonContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 15px;
+
+  .iconButton {
+    display: flex;
+    align-items: center;
+
+    .icon {
+    }
+
+    .label {
+    }
+  }
+}

@@ -7,7 +7,7 @@ import {
   SignifyClient,
   Tier,
   EventResult,
-  Dict
+  Dict,
 } from "signify-ts";
 import { Aid } from "@src/core/modules/signifyApi.types";
 import { ResponseData } from "@src/core/background/types";
@@ -202,7 +202,7 @@ class SignifyApi {
   async sendMessasge(
     name: string,
     recipient: string,
-    payload: Dict<any>
+    payload: Dict<any>,
   ): Promise<ResponseData<any>> {
     try {
       const aidResult = await this.getIdentifierByName(name);

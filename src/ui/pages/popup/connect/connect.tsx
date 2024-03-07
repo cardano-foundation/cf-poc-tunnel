@@ -2,17 +2,16 @@ import React, { useEffect, useState } from "react";
 import "./connect.scss";
 import { BackButton } from "@components/backButton";
 import { QRCode } from "react-qrcode-logo";
-import {failure, shortenText} from "@src/utils";
+import { shortenText } from "@src/utils";
 import {
-  COMMUNICATION_AID, LOCAL_STORAGE_SESSIONS,
+  COMMUNICATION_AID,
   LOCAL_STORAGE_WALLET_CONNECTIONS,
-  logger, SERVER_ENDPOINT,
+  logger,
   signifyApi,
 } from "@src/core/background";
 import idwLogo from "@assets/idw.png";
-import {Session} from "@pages/popup/sessionList/sessionList";
 
-interface Comm {
+export interface Comm {
   id: string;
   name: string;
   tunnelAid: string;
@@ -31,74 +30,6 @@ function Connect() {
       setShowSpinner(false);
     });
   }, []);
-
-  const handleSendMessage = async () => {
-    const { walletConnections } = await chrome.storage.local.get([
-      LOCAL_STORAGE_WALLET_CONNECTIONS,
-    ]);
-    const ids = Object.keys(walletConnections);
-
-    console.log('ids');
-    console.log(ids);
-    if (comm) {
-
-      const currentTab = (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
-
-      if (!currentTab.url) return;
-      const webDomain = (new URL(currentTab.url)).hostname;
-
-      let response;
-      try {
-        response = await fetch(`${SERVER_ENDPOINT}/oobi`);
-        await logger.addLog(`✅ Received OOBI URL from ${SERVER_ENDPOINT}/oobi`);
-      } catch (e) {
-        await logger.addLog(`❌ Error getting OOBI URL from server: ${SERVER_ENDPOINT}/oobi: ${e}`);
-        return;
-      }
-
-      const serverOobiUrl = (await response.json()).oobis[0];
-
-      const { sessions } = await chrome.storage.local.get([LOCAL_STORAGE_SESSIONS]);
-
-      const aid = sessions.find((session:Session) => session.name === webDomain);
-
-      if (!aid){
-        await logger.addLog(`❌ Error getting the AID by name: ${webDomain}`);
-        return;
-      }
-
-      try {
-        response = await fetch(`${SERVER_ENDPOINT}/acdc-requirements`);
-        await logger.addLog(`✅ Received ACDC requirements from ${SERVER_ENDPOINT}/acdc-requirements`);
-      } catch (e) {
-        return failure(
-            new Error(
-                `Error getting ACDC requirements from server: ${SERVER_ENDPOINT}/acdc-requirements: ${e}`,
-            ),
-        );
-      }
-
-      const acdcRequirements = await response.json();
-
-      const payload = {
-        serverEndpoint: SERVER_ENDPOINT,
-        serverOobiUrl,
-        logo: aid.logo,
-        tunnelAid: aid.tunnelAid,
-        filter: acdcRequirements.user
-      }
-
-      const messageSent = await signifyApi.sendMessasge(comm.name, ids[0], payload);
-
-      if (!messageSent.success){
-        await logger.addLog(`❌ Message sent to IDW failed: ${messageSent.error}`);
-        return;
-      }
-
-      await logger.addLog(`📩 Message successfully sent to IDW with AID ${ids[0]}, message: ${JSON.stringify(messageSent )}`);
-    }
-
-  }
 
   const handleResolveOObi = async () => {
     if (oobiUrl.length && oobiUrl.includes("oobi")) {
@@ -135,9 +66,9 @@ function Connect() {
       if (!comm) return;
       await navigator.clipboard.writeText(comm?.tunnelOobiUrl);
     } catch (error) {
-      console.error('Clipboard error: ', error);
+      console.error("Clipboard error: ", error);
     }
-  }
+  };
 
   return (
     <div className="sessionDetails">
@@ -157,20 +88,20 @@ function Connect() {
                 </p>
               </>
             ) : (
-                <div className="pointer" onClick={() => copyQrCode()}>
-                  <QRCode
-                      value={comm?.tunnelOobiUrl}
-                      size={192}
-                      fgColor={"black"}
-                      bgColor={"white"}
-                      qrStyle={"squares"}
-                      logoImage={idwLogo}
-                      logoWidth={60}
-                      logoHeight={60}
-                      logoOpacity={1}
-                      quietZone={10}
-                  />
-                </div>
+              <div className="pointer" onClick={() => copyQrCode()}>
+                <QRCode
+                  value={comm?.tunnelOobiUrl}
+                  size={192}
+                  fgColor={"black"}
+                  bgColor={"white"}
+                  qrStyle={"squares"}
+                  logoImage={idwLogo}
+                  logoWidth={60}
+                  logoHeight={60}
+                  logoOpacity={1}
+                  quietZone={10}
+                />
+              </div>
             )}
           </div>
           {showSpinner && (
@@ -206,15 +137,6 @@ function Connect() {
           disabled={isResolving}
         >
           {isResolving ? <div className="spinner-button"></div> : "Resolve"}
-        </button>
-      </div>
-      <div className="resolve-section">
-        <button
-            className="resolve-button"
-            onClick={() => handleSendMessage()}
-            disabled={isResolving}
-        >
-          Login
         </button>
       </div>
     </div>
