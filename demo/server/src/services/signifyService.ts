@@ -291,10 +291,6 @@ export const admitIpex = async (
     .ipex()
     .submitAdmit(signifyName, admit, sigs, aend, [recpAid]);
 }
-
-export const markNotification = async (id: string) => {
-  const client = await getSignifyClient();
-  return client.notifications().mark(id);
 }
 
 export const deleteNotification = async (id: string) => {
@@ -345,7 +341,7 @@ export const handleTunnelRequestNotifications = async () => {
     const entityManager = dataSource.manager;
     await entityManager.save(session);
   
-    /**admit and mark the notification */
+    /**admit and delete the notification */
     const exnData = latestGrant.exchange.exn;
     await admitIpex(latestGrant.notiSaid, config.signifyName, exnData.i);
     await deleteNotification(latestGrant.notiId);
