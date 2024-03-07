@@ -297,6 +297,11 @@ export const markNotification = async (id: string) => {
   return client.notifications().mark(id);
 }
 
+export const deleteNotification = async (id: string) => {
+  const client = await getSignifyClient();
+  return client.notifications().delete(id);
+}
+
 export const handleTunnelRequestNotifications = async () => {
   const tunnelRequestNotificationsList = await getUnhandledTunnelRequestNotifications();
   const tunnelAidNotifications = tunnelRequestNotificationsList.filter(notification => notification.exchange.exn.a.sid);
@@ -343,8 +348,8 @@ export const handleTunnelRequestNotifications = async () => {
     /**admit and mark the notification */
     const exnData = latestGrant.exchange.exn;
     await admitIpex(latestGrant.notiSaid, config.signifyName, exnData.i);
-    await markNotification(latestGrant.notiId);
+    await deleteNotification(latestGrant.notiId);
     await admitIpex(tunnelAidNotification.notiSaid, config.signifyName, exnData.i);
-    await markNotification(tunnelAidNotification.notiId);
+    await deleteNotification(tunnelAidNotification.notiId);
   }
 }
