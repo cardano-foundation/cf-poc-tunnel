@@ -54,17 +54,11 @@ function SessionList() {
       });
   }, []);
 
-  console.log("walletConnect");
-  console.log(walletConnect);
-
   const handleLogin = async (session: Session) => {
-    // Lets login
     const comm: Comm | undefined = (
       await chrome.storage.local.get([COMMUNICATION_AID])
     ).idw;
 
-    console.log("handleLogin");
-    console.log(comm);
     if (!comm) return;
 
     const { walletConnections } = await chrome.storage.local.get([
