@@ -55,7 +55,7 @@ const routes: Array<RouteObject> = [
     ),
   },
   {
-    path: "/:id/connect",
+    path: "/connect",
     element: (
       <ProtectedRoute>
         <Connect />

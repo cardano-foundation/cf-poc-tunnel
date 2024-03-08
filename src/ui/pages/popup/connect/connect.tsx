@@ -13,7 +13,7 @@ import idwLogo from "@assets/idw.png";
 import { Session } from "@pages/popup/sessionList/sessionList";
 import { ExtensionMessageType } from "@src/core/background/types";
 
-interface Comm {
+export interface Comm {
   id: string;
   name: string;
   tunnelAid: string;
@@ -128,9 +128,9 @@ function Connect() {
       if (!comm) return;
       await navigator.clipboard.writeText(comm?.tunnelOobiUrl);
     } catch (error) {
-      console.error('Clipboard error: ', error);
+      console.error("Clipboard error: ", error);
     }
-  }
+  };
 
   return (
     <div className="sessionDetails">
@@ -150,20 +150,20 @@ function Connect() {
                 </p>
               </>
             ) : (
-                <div className="pointer" onClick={() => copyQrCode()}>
-                  <QRCode
-                      value={comm?.tunnelOobiUrl}
-                      size={192}
-                      fgColor={"black"}
-                      bgColor={"white"}
-                      qrStyle={"squares"}
-                      logoImage={idwLogo}
-                      logoWidth={60}
-                      logoHeight={60}
-                      logoOpacity={1}
-                      quietZone={10}
-                  />
-                </div>
+              <div className="pointer" onClick={() => copyQrCode()}>
+                <QRCode
+                  value={comm?.tunnelOobiUrl}
+                  size={192}
+                  fgColor={"black"}
+                  bgColor={"white"}
+                  qrStyle={"squares"}
+                  logoImage={idwLogo}
+                  logoWidth={60}
+                  logoHeight={60}
+                  logoOpacity={1}
+                  quietZone={10}
+                />
+              </div>
             )}
           </div>
           {showSpinner && (

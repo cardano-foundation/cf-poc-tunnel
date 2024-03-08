@@ -464,6 +464,7 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
     tunnelAid: createIdentifierResult.data.serder.ked.i,
     serverAid,
     expiryDate: "",
+    loggedIn: false,
     name: urlF.hostname,
     logo: tabs[0]?.favIconUrl
       ? await convertURLImageToBase64(tabs[0]?.favIconUrl)
