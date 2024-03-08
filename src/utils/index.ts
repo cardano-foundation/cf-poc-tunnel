@@ -116,7 +116,7 @@ const failureExt = <T>(
     success: false,
     id,
     type,
-    error,
+    error: error instanceof Error ? error.message : error,
   };
 };
 

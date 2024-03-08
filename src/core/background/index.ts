@@ -1,6 +1,6 @@
 import { uid } from "uid";
 import { Authenticater, b, Cipher, Matter, Cigar, Decrypter } from "signify-ts";
-import { SignifyApi } from "@src/core/modules/signifyApi";
+import { signifyApiInstance as signifyApi } from "@src/core/modules/signifyApi";
 import {
   convertURLImageToBase64,
   failure,
@@ -20,12 +20,12 @@ import {
 import { Session } from "@src/ui/pages/popup/sessionList/sessionList";
 
 export const LOCAL_STORAGE_SESSIONS = "sessions";
-export const LOCAL_STORAGE_WALLET_CONNECTIONS = "walletConnections";
-export const COMMUNICATION_AID = "idw";
+export const IDW_COMMUNICATION_AID_NAME = "idw";
 
 export const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
-export const signifyApi: SignifyApi = new SignifyApi();
 export const logger = new Logger();
+
+const ENTERPRISE_SCHEMA_SAID = "EGjD1gCLi9ecZSZp9zevkgZGyEX_MbOdmhBFt4o0wvdb";
 
 const signEncryptRequest = async (
   ourAidName: string,
@@ -379,21 +379,21 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
 
   const disclosedAcdcResult = await triggerServerToDiscloseACDC(
     createIdentifierResult.data.serder.ked.i,
-    SignifyApi.ENTERPRISE_SCHEMA_SAID,
+    ENTERPRISE_SCHEMA_SAID,
   );
 
   if (!disclosedAcdcResult.success) {
     return failure(
       new Error(
         `Error trigger server to disclose ACDC ${createIdentifierResult.data.serder.ked.i}
-        and server schema ${SignifyApi.ENTERPRISE_SCHEMA_SAID}. Error: ${disclosedAcdcResult.error}`,
+        and server schema ${ENTERPRISE_SCHEMA_SAID}. Error: ${disclosedAcdcResult.error}`,
       ),
     );
   }
 
   await logger.addLog(
     `✅ Server has disclosed the ACDC for the identifier ${createIdentifierResult.data.serder.ked.i}
-      and schema ${SignifyApi.ENTERPRISE_SCHEMA_SAID}`,
+      and schema ${ENTERPRISE_SCHEMA_SAID}`,
   );
 
   const notificationsResult = await waitForNotificationsToAppear(140);
@@ -429,7 +429,7 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
   const acdc = acdcResponse.data.acdc;
   const serverAid = resolveOobiResult.data.response.i;
 
-  const isTrusted = isTrustedDomain(acdc, SERVER_ENDPOINT, serverAid);
+  const isTrusted = isTrustedDomain(acdc, new URL(SERVER_ENDPOINT).hostname, serverAid);
 
   await logger.addLog(
     `${isTrusted ? "✅" : "❌"}🌐 Domain is ${
@@ -491,12 +491,10 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
 
 chrome.runtime.onInstalled.addListener(async () => {
   await logger.addLog(`✅ Extension successfully installed!`);
-  if (!signifyApi.started) {
-    await signifyApi.start();
-  }
+  await signifyApi.start();
   await logger.addLog(`✅ Signify initialized successfully`);
   const createIdentifierResult = await signifyApi.createIdentifier(
-    COMMUNICATION_AID,
+    IDW_COMMUNICATION_AID_NAME,
   );
 
   if (!createIdentifierResult.success) {
@@ -509,7 +507,7 @@ chrome.runtime.onInstalled.addListener(async () => {
     return;
   }
 
-  const getOobiResult = await signifyApi.createOOBI(COMMUNICATION_AID);
+  const getOobiResult = await signifyApi.createOOBI(IDW_COMMUNICATION_AID_NAME);
 
   if (!getOobiResult.success) {
     new Error(
@@ -521,11 +519,11 @@ chrome.runtime.onInstalled.addListener(async () => {
   const commAid = {
     id: uid(24),
     tunnelAid: createIdentifierResult.data.serder.ked.i,
-    name: COMMUNICATION_AID,
+    name: IDW_COMMUNICATION_AID_NAME,
     tunnelOobiUrl: getOobiResult.data.oobis[0],
   };
 
-  await chrome.storage.local.set({ [COMMUNICATION_AID]: commAid });
+  await chrome.storage.local.set({ [IDW_COMMUNICATION_AID_NAME]: commAid });
 
   await logger.addLog(
     `✅ AID and OOBI created for IDW communication: ${getOobiResult.data.oobis[0]}`,
@@ -534,8 +532,8 @@ chrome.runtime.onInstalled.addListener(async () => {
 
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
   processMessage(request)
-    .then((response) => response && sendResponse(response))
-    .catch(console.error);
+  .then((response) => response && sendResponse(response))
+  .catch(console.error);
   return true;
 });
 
@@ -549,6 +547,10 @@ function getReturnMessageType(
       return ExtensionMessageType.SIGN_ENCRPYT_REQ_RESULT;
     case ExtensionMessageType.VERIFY_DECRYPT_RESP:
       return ExtensionMessageType.VERIFY_DECRYPT_RESP_RESULT;
+    case ExtensionMessageType.RESOLVE_WALLET_OOBI:
+      return ExtensionMessageType.RESOLVE_WALLET_OOBI_RESULT;
+    case ExtensionMessageType.LOGIN_REQUEST:
+      return ExtensionMessageType.LOGIN_REQUEST_RESULT;
     default:
       return ExtensionMessageType.GENERIC_ERROR;
   }
@@ -707,6 +709,43 @@ async function processMessage(
         getReturnMessageType(message.type),
         verifyDecryptResult.data,
       );
+    }
+    case ExtensionMessageType.RESOLVE_WALLET_OOBI: {
+      // @TODO - foconnor: Should only be accepted from the extension UI!!!
+      const { url } = message.data;
+
+      const resolveOobiResult = await signifyApi.resolveOOBI(url);
+      if (!resolveOobiResult.success) {
+        return failureExt(
+          message.id,
+          getReturnMessageType(message.type),
+          resolveOobiResult.error,
+        );
+      }
+      
+      return successExt(
+        message.id,
+        getReturnMessageType(message.type),
+        resolveOobiResult.data,
+      )
+    }
+    case ExtensionMessageType.LOGIN_REQUEST: {
+      const { recipient, payload } = message.data;
+      
+      const sendMsgResult = await signifyApi.sendMessage(IDW_COMMUNICATION_AID_NAME, recipient, payload);  
+      if (!sendMsgResult.success) {
+        return failureExt(
+          message.id,
+          getReturnMessageType(message.type),
+          sendMsgResult.error,
+        );
+      }
+
+      return successExt(
+        message.id,
+        getReturnMessageType(message.type),
+        sendMsgResult.data,
+      )
     }
   }
 }

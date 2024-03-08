@@ -18,21 +18,21 @@ class SignifyApi {
   public started: boolean;
   static readonly KERIA_URL = import.meta.env.VITE_KERIA_URL;
   static readonly KERIA_BOOT_URL = import.meta.env.VITE_KERIA_BOOT_ENDPOINT;
-  static readonly SIGNIFY_BRAN_STORAGE_KEY = "SIGNIFY_BRAN";
-  static readonly ENTERPRISE_SCHEMA_SAID =
-    "EGjD1gCLi9ecZSZp9zevkgZGyEX_MbOdmhBFt4o0wvdb";
 
   constructor() {
     this.started = false;
   }
 
   async start(): Promise<ResponseData<undefined>> {
+    if (this.started) {
+      return success(undefined);
+    }
+
     await ready();
-    const bran = await this.getBran();
 
     this.signifyClient = new SignifyClient(
       SignifyApi.KERIA_URL as string,
-      bran,
+      randomPasscode(),
       Tier.low,
       SignifyApi.KERIA_BOOT_URL,
     );
@@ -53,22 +53,6 @@ class SignifyApi {
     }
   }
 
-  private async getBran(): Promise<string> {
-    const bran = await chrome.storage.local.get([
-      SignifyApi.SIGNIFY_BRAN_STORAGE_KEY,
-    ]);
-
-    if (bran[SignifyApi.SIGNIFY_BRAN_STORAGE_KEY] === undefined) {
-      const newBran = randomPasscode();
-      await chrome.storage.local.set({
-        [SignifyApi.SIGNIFY_BRAN_STORAGE_KEY]: newBran,
-      });
-      return newBran;
-    } else {
-      return bran[SignifyApi.SIGNIFY_BRAN_STORAGE_KEY] as string;
-    }
-  }
-
   async createIdentifier(name: string): Promise<ResponseData<EventResult>> {
     try {
       const op = await this.signifyClient.identifiers().create(name);
@@ -86,7 +70,7 @@ class SignifyApi {
 
   async getIdentifierByName(name: string): Promise<ResponseData<Aid>> {
     try {
-      await this.checkInitialized();
+      await this.start();
       return success(await this.signifyClient.identifiers().get(name));
     } catch (e) {
       return failure(e);
@@ -103,7 +87,7 @@ class SignifyApi {
 
   async resolveOOBI(url: string): Promise<ResponseData<any>> {
     try {
-      await this.checkInitialized();
+      await this.start();
 
       const oobiOperation = await this.signifyClient.oobis().resolve(url);
       const r = await this.waitAndGetDoneOp(oobiOperation, 15000, 250);
@@ -199,40 +183,28 @@ class SignifyApi {
       return failure(e);
     }
   }
-  async sendMessasge(
+
+  async sendMessage(
     name: string,
     recipient: string,
     payload: Dict<any>
   ): Promise<ResponseData<any>> {
-    console.log('sendMessasge');
+    const aidResult = await this.getIdentifierByName(name);
+    if (!aidResult.success) {
+      return failure(
+        new Error(`Error trying to get the AID by name: ${name}`),
+      );
+    }
+
     try {
-      const aidResult = await this.getIdentifierByName(name);
+      const route = "/tunnel/wallet/request";
 
-      if (aidResult.success) {
-        const route = "/tunnel/wallet/request";
-
-
-        console.log('name');
-        console.log(name);
-        console.log('aidResult.data');
-        console.log(aidResult.data);
-        console.log('route');
-        console.log(route);
-        console.log('payload');
-        console.log(payload);
-        console.log('recipient');
-        console.log([recipient]);
-        const messageSent = await this.signifyClient
-          .exchanges()
-          .send(name, "tunnel", aidResult.data, route, payload, {}, [
-            recipient,
-          ]);
-        return success(messageSent);
-      } else {
-        return failure(
-          new Error(`Error trying to get the AID by name: ${name}`),
-        );
-      }
+      const messageSent = await this.signifyClient
+        .exchanges()
+        .send(name, "tunnel", aidResult.data, route, payload, {}, [
+          recipient,
+        ]);
+      return success(messageSent);
     } catch (e) {
       return failure(e);
     }
@@ -256,12 +228,6 @@ class SignifyApi {
     }
   }
 
-  private async checkInitialized(): Promise<void> {
-    if (!this.started) {
-      await this.start();
-    }
-  }
-
   private async waitAndGetDoneOp(
     op: Operation,
     timeout: number,
@@ -276,4 +242,5 @@ class SignifyApi {
   }
 }
 
-export { SignifyApi };
+const signifyApiInstance  = new SignifyApi();
+export { signifyApiInstance };

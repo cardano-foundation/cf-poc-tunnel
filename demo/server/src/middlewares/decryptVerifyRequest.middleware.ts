@@ -23,12 +23,16 @@ export async function decryptVerifyRequest(
     return res.status(400).send("Missing Signify-Timestamp header");
   }
 
-  // For now this isn't full protection - we need to verify that the request is unique.
-  // Follow up story will cover this.
+  // Replay attack window.
   if (Date.now() - new Date(reqDateTime).getTime() > 1000) {
     return res.status(409).send("Signify-Timestamp too old");
   }
+
   let requestUniqueId = req.get("Signature");
+  if (!requestUniqueId) {
+    return res.status(400).send("Missing Signature header");
+  }
+  
   if (req.body?.sig) {
     requestUniqueId = requestUniqueId.concat(req.body.sig);
   }
@@ -38,6 +42,7 @@ export async function decryptVerifyRequest(
       .status(409)
       .send("Request replay detected");
   };
+
   const reqVerfer = await getRemoteVerfer(reqAid);
   const serverAid = await getIdentifierByName(config.signifyName);
   const keyManager = await getKeyManager(serverAid);

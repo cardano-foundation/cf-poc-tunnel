@@ -1,9 +1,9 @@
 import { v4 as uuidv4 } from "uuid";
-import { ExtensionMessageInbound, ExtensionMessageOutbound } from "./types";
+import { ExtensionMessageInbound, ExtensionMessageOutbound, ExtensionMessageType } from "./types";
 
 const COMMUNICATION_TIMEOUT = 10000;
 
-const generateMessageId = (type: string) => {
+const generateMessageId = (type: ExtensionMessageType) => {
   return `${type}:${uuidv4()}`;
 };
 
