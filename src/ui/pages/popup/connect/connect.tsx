@@ -40,7 +40,8 @@ function Connect() {
     if (!walletConnectionAid) {
       return failure(new Error("Cannot request a log in as we are not connected to the identity wallet"));
     }
-    
+   
+    // @TODO - foconnor: This won't be hard-coded after Jaime's refactor.
     const webDomain = "127.0.0.1";
 
     let response;
