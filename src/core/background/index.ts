@@ -155,12 +155,6 @@ const verifyDecryptResponse = async (
     return failure(new Error("Response missing Signify-Timestamp header"));
   }
 
-  // For now this isn't full protection - we need to verify that the request is unique.
-  // Follow up story will cover this.
-  if (Date.now() - new Date(reqDateTime).getTime() > 1000) {
-    return failure(new Error("Signify-Timestamp of response is too old"));
-  }
-
   const getReqVerferResult = await signifyApi.getRemoveVerfer(reqAid);
   if (!getReqVerferResult.success) {
     return getReqVerferResult;
