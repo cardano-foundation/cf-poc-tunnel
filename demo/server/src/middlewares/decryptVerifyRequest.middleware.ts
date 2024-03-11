@@ -6,6 +6,7 @@ import {
   getRemoteVerfer,
   getKeyManager,
 } from "../services/signifyService";
+export var incomingRequestsCache = new Map();
 
 export async function decryptVerifyRequest(
   req: Request,
@@ -22,11 +23,25 @@ export async function decryptVerifyRequest(
     return res.status(400).send("Missing Signify-Timestamp header");
   }
 
-  // For now this isn't full protection - we need to verify that the request is unique.
-  // Follow up story will cover this.
+  // Replay attack window.
   if (Date.now() - new Date(reqDateTime).getTime() > 1000) {
     return res.status(409).send("Signify-Timestamp too old");
   }
+
+  let requestUniqueId = req.get("Signature");
+  if (!requestUniqueId) {
+    return res.status(400).send("Missing Signature header");
+  }
+  
+  if (req.body?.sig) {
+    requestUniqueId = requestUniqueId.concat(req.body.sig);
+  }
+
+  if (incomingRequestsCache.get(requestUniqueId)) {
+    return res
+      .status(409)
+      .send("Request replay detected");
+  };
 
   const reqVerfer = await getRemoteVerfer(reqAid);
   const serverAid = await getIdentifierByName(config.signifyName);
@@ -56,14 +71,12 @@ export async function decryptVerifyRequest(
       .status(400)
       .send("Signature header not valid for given Signify-Resource");
   }
-
   if (req.body) {
     if (!req.body.sig || !req.body.cipher) {
       return res
         .status(400)
         .send("Body must contain a valid ESSR ciphertext and signature");
     }
-
     const signature = new Cigar({ qb64: req.body.sig }); // @TODO - foconnor: Will crash if not valid CESR - handle.
     if (
       !reqVerfer.verify(
@@ -95,6 +108,10 @@ export async function decryptVerifyRequest(
 
     req.body = decrypted.data;
   }
+
+  /**Set the request in the cache then remove the signature from the cache after 1 second*/
+  incomingRequestsCache.set(requestUniqueId, true);
+  setTimeout(() => incomingRequestsCache.delete(requestUniqueId), 1000);
 
   return next();
 }

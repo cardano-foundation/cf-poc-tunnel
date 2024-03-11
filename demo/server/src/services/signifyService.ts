@@ -196,11 +196,11 @@ export const initKeri = async () => {
     await createIdentifier(issuerMainAcdcName);
     const keriRegistryRegk = await createRegistry(issuerMainAcdcName);
     await issueDomainCredential(
-        issuerMainAcdcName,
-        keriRegistryRegk,
-        schemaSaid,
-        identifier.prefix,
-        new URL(config.endpoint).hostname,
+      issuerMainAcdcName,
+      keriRegistryRegk,
+      schemaSaid,
+      identifier.prefix,
+      new URL(config.endpoint).hostname,
     );
     credDomain = await getServerAcdc(identifier.prefix, schemaSaid);
   }
@@ -249,7 +249,7 @@ export const getUnhandledTunnelRequestNotifications = async () => {
   const client = await getSignifyClient();
   const notificationsList = await client.notifications().list(0, 100); //TODO: Add pagination later. Use fixed range at the moment
   const unreadNotificationsList = notificationsList.notes
-    .filter(note => !note.r && note.a.r === '/tunnel/server/request');
+    .filter(note => !note.r && note.a.r === "/tunnel/server/request");
   const notificationsData = await Promise.all(unreadNotificationsList.map(async note => {
     const exchange = await client.exchanges().get(note.a.d);
     return {
@@ -265,7 +265,7 @@ export const getUnhandledGrantNotifications = async (sender: string) => {
   const client = await getSignifyClient();
   const notificationsList = await client.notifications().list(0, 100); //TODO: Add pagination later. Use fixed range at the moment
   const unreadNotificationsList = notificationsList.notes
-    .filter(note => !note.r && note.a.r === '/exn/ipex/grant');
+    .filter(note => !note.r && note.a.r === "/exn/ipex/grant");
   const notificationsData = await Promise.all(unreadNotificationsList.map(async note => {
     const exchange = await client.exchanges().get(note.a.d);
     return {
@@ -274,11 +274,11 @@ export const getUnhandledGrantNotifications = async (sender: string) => {
       exchange,
     }
   }));
-  return notificationsData.filter(notification => notification.exchange.exn.i === sender && notification.exchange.exn.a.acdc);
+  return notificationsData.filter(notification => notification.exchange.exn.i === sender && notification.exchange.exn.e.acdc);
 }
 
 export const admitIpex = async (
-  notificationSaid: string,
+  grantSaid: string,
   signifyName: string,
   recpAid: string
 )=> {
@@ -286,15 +286,15 @@ export const admitIpex = async (
   const dt = new Date().toISOString().replace("Z", "000+00:00");
   const [admit, sigs, aend] = await client
     .ipex()
-    .admit(signifyName, "", notificationSaid, dt);
+    .admit(signifyName, "", grantSaid, dt);
   await client
     .ipex()
     .submitAdmit(signifyName, admit, sigs, aend, [recpAid]);
 }
 
-export const markNotification = async (id: string) => {
+export const deleteNotification = async (id: string) => {
   const client = await getSignifyClient();
-  return client.notifications().mark(id);
+  return client.notifications().delete(id);
 }
 
 export const handleTunnelRequestNotifications = async () => {
@@ -305,13 +305,15 @@ export const handleTunnelRequestNotifications = async () => {
   }
 
   for (const tunnelAidNotification of tunnelAidNotifications) {
-    const aid = tunnelAidNotification.exchange.exn.a.sid;
+    const tunnelAid = tunnelAidNotification.exchange.exn.a.sid;
     const idWalletAid = tunnelAidNotification.exchange.exn.i;
     const acdcNotifications = await getUnhandledGrantNotifications(idWalletAid);
     if (!acdcNotifications.length) {
       console.log(`AID ${idWalletAid} has not completed the ACDC disclosure yet.`);
       continue;
     }
+
+    // @TODO - foconnor: For now, just get the latest disclosure from that wallet - this needs work long term.
     const latestGrant = acdcNotifications.reduce((latestObj, currentObj) => {
       const maxDateTime = latestObj.exchange.exn.a.dt;
       const currentDateTime = currentObj.exchange.exn.a.dt;
@@ -325,26 +327,25 @@ export const handleTunnelRequestNotifications = async () => {
       continue;
     }
   
-    const acdcSchema = latestGrant.exchange.exn.acdc.sad.s;
-  
+    const acdcSchema = latestGrant.exchange.exn.e.acdc.s;
     const session = new Session();
     if (acdcSchema === config.qviSchemaSaid) {
       session.role = "user";
+      session.lei = latestGrant.exchange.exn.e.acdc.a.LEI;
     } else {
       continue;
     }
-    session.aid = aid;
+    session.aid = tunnelAid;
     const currentTime = new Date().getTime();
     const sessionDuration = 5 * 60000; //5 mins
     session.validUntil = new Date(currentTime + sessionDuration);
     const entityManager = dataSource.manager;
     await entityManager.save(session);
   
-    /**admit and mark the notification */
+    /**admit and delete the notification */
     const exnData = latestGrant.exchange.exn;
     await admitIpex(latestGrant.notiSaid, config.signifyName, exnData.i);
-    await markNotification(latestGrant.notiId);
-    await admitIpex(tunnelAidNotification.notiSaid, config.signifyName, exnData.i);
-    await markNotification(tunnelAidNotification.notiId);
+    await deleteNotification(latestGrant.notiId);
+    await deleteNotification(tunnelAidNotification.notiId);
   }
 }

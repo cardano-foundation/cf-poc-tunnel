@@ -4,12 +4,11 @@ import { BackButton } from "@components/backButton";
 import { QRCode } from "react-qrcode-logo";
 import { shortenText } from "@src/utils";
 import {
-  COMMUNICATION_AID,
-  LOCAL_STORAGE_WALLET_CONNECTIONS,
+  IDW_COMMUNICATION_AID_NAME,
   logger,
-  signifyApi,
 } from "@src/core/background";
 import idwLogo from "@assets/idw.png";
+import { ExtensionMessageType } from "@src/core/background/types";
 
 export interface Comm {
   id: string;
@@ -18,6 +17,8 @@ export interface Comm {
   tunnelOobiUrl: string;
 }
 
+export const LOCAL_STORAGE_WALLET_CONNECTION = "walletConnectionAid";
+
 function Connect() {
   const [comm, setComm] = useState<Comm | undefined>(undefined);
   const [showSpinner, setShowSpinner] = useState(true);
@@ -25,40 +26,36 @@ function Connect() {
   const [isResolving, setIsResolving] = useState(false);
 
   useEffect(() => {
-    chrome.storage.local.get([COMMUNICATION_AID]).then((c) => {
+    chrome.storage.local.get([IDW_COMMUNICATION_AID_NAME]).then((c) => {
       setComm(c.idw);
       setShowSpinner(false);
     });
   }, []);
 
   const handleResolveOObi = async () => {
-    if (oobiUrl.length && oobiUrl.includes("oobi")) {
-      setIsResolving(true);
-      const resolveOobiResult = await signifyApi.resolveOOBI(oobiUrl);
-
-      if (!resolveOobiResult.success) {
-        await logger.addLog(`❌ Resolving wallet OOBI failed: ${oobiUrl}`);
-        setIsResolving(false);
-        return;
+    setIsResolving(true);
+    
+    const resolveOobiResult = await chrome.runtime.sendMessage({
+      type: ExtensionMessageType.RESOLVE_WALLET_OOBI,
+      data: {
+        url: oobiUrl,
       }
+    });
 
-      const { walletConnections } = await chrome.storage.local.get([
-        LOCAL_STORAGE_WALLET_CONNECTIONS,
-      ]);
-      const walletConnectionsObj = walletConnections || {};
-
-      walletConnectionsObj[resolveOobiResult.data.response.i] =
-        resolveOobiResult.data;
-
-      await chrome.storage.local.set({
-        walletConnections: walletConnectionsObj,
-      });
-
-      await logger.addLog(`✅ Wallet OOBI resolved successfully: ${oobiUrl}`);
-
-      setOobiUrl("");
+    if (!resolveOobiResult.success) {
+      await logger.addLog(`❌ Resolving wallet OOBI failed: ${oobiUrl}`);
       setIsResolving(false);
+      return;
     }
+
+    await chrome.storage.local.set({
+      [LOCAL_STORAGE_WALLET_CONNECTION]: resolveOobiResult.data.response.i,
+    });
+
+    await logger.addLog(`✅ Wallet OOBI resolved successfully: ${oobiUrl}`);
+
+    setOobiUrl("");
+    setIsResolving(false);
   };
 
   const copyQrCode = async () => {
