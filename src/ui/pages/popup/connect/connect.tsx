@@ -2,15 +2,12 @@ import React, { useEffect, useState } from "react";
 import "./connect.scss";
 import { BackButton } from "@components/backButton";
 import { QRCode } from "react-qrcode-logo";
-import { failure, shortenText } from "@src/utils";
+import { shortenText } from "@src/utils";
 import {
   IDW_COMMUNICATION_AID_NAME,
-  LOCAL_STORAGE_SESSIONS,
   logger,
-  SERVER_ENDPOINT,
 } from "@src/core/background";
 import idwLogo from "@assets/idw.png";
-import { Session } from "@pages/popup/sessionList/sessionList";
 import { ExtensionMessageType } from "@src/core/background/types";
 
 export interface Comm {
@@ -34,69 +31,6 @@ function Connect() {
       setShowSpinner(false);
     });
   }, []);
-
-  const handleLoginRequest = async () => {
-    const walletConnectionAid = await chrome.storage.local.get(LOCAL_STORAGE_WALLET_CONNECTION);
-    if (!walletConnectionAid) {
-      return failure(new Error("Cannot request a log in as we are not connected to the identity wallet"));
-    }
-   
-    // @TODO - foconnor: This won't be hard-coded after Jaime's refactor.
-    const webDomain = "127.0.0.1";
-
-    let response;
-    try {
-      response = await fetch(`${SERVER_ENDPOINT}/oobi`);
-      await logger.addLog(`✅ Received OOBI URL from ${SERVER_ENDPOINT}/oobi`);
-    } catch (e) {
-      await logger.addLog(`❌ Error getting OOBI URL from server: ${SERVER_ENDPOINT}/oobi: ${e}`);
-      return;
-    }
-
-    const serverOobiUrl = (await response.json()).oobis[0];
-
-    const { sessions } = await chrome.storage.local.get([LOCAL_STORAGE_SESSIONS]);
-    const aid = sessions.find((session: Session) => session.name === webDomain);
-
-    if (!aid) {
-      await logger.addLog(`❌ Error getting the AID by name: ${webDomain}`);
-      return;
-    }
-
-    try {
-      response = await fetch(`${SERVER_ENDPOINT}/acdc-requirements`);
-      await logger.addLog(`✅ Received ACDC requirements from ${SERVER_ENDPOINT}/acdc-requirements`);
-    } catch (e) {
-      return failure(
-        new Error(
-          `Error getting ACDC requirements from server: ${SERVER_ENDPOINT}/acdc-requirements: ${e}`,
-        ),
-      );
-    }
-
-    const acdcRequirements = await response.json();
-    const payload = {
-      serverEndpoint: SERVER_ENDPOINT,
-      serverOobiUrl,
-      logo: aid.logo,
-      tunnelAid: aid.tunnelAid,
-      filter: acdcRequirements.user
-    }
-
-    const loginRequestResult = await chrome.runtime.sendMessage({
-      type: ExtensionMessageType.LOGIN_REQUEST,
-      data: {
-        recipient: walletConnectionAid[LOCAL_STORAGE_WALLET_CONNECTION],
-        payload,
-      }
-    });
-
-    if (!loginRequestResult.success) {
-      await logger.addLog(`❌ Message sent to IDW failed: ${loginRequestResult.error}`);
-      return;
-    }
-    await logger.addLog(`📩 Message successfully sent to IDW, message: ${JSON.stringify(payload)}`);
-  }
 
   const handleResolveOObi = async () => {
     setIsResolving(true);
@@ -200,15 +134,6 @@ function Connect() {
           disabled={isResolving}
         >
           {isResolving ? <div className="spinner-button"></div> : "Resolve"}
-        </button>
-      </div>
-      <div className="resolve-section">
-        <button
-            className="resolve-button"
-            onClick={() => handleLoginRequest()}
-            disabled={isResolving}
-        >
-          Login
         </button>
       </div>
     </div>

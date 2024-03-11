@@ -6,14 +6,12 @@ import MobileConnectIcon from "../../../assets/mobile-connect-icon.svg";
 import webLogo from "../../../assets/web.png";
 import { failure, isExpired } from "@src/utils";
 import {
-  COMMUNICATION_AID,
   LOCAL_STORAGE_SESSIONS,
-  LOCAL_STORAGE_WALLET_CONNECTIONS,
   logger,
   SERVER_ENDPOINT,
-  signifyApi,
 } from "@src/core/background";
-import { Comm } from "@pages/popup/connect/connect";
+import { LOCAL_STORAGE_WALLET_CONNECTION } from "@pages/popup/connect/connect";
+import { ExtensionMessageType } from "@src/core/background/types";
 
 interface Session {
   id: string;
@@ -33,7 +31,7 @@ function SessionList() {
   const navigate = useNavigate();
 
   const [sessions, setSessions] = useState<Session[]>([]);
-  const [walletConnect, setWalletConnect] = useState(undefined);
+  const [walletConnectionAid, setWalletConnectionAid] = useState<string | undefined>(undefined);
 
   const handleNavigation = (
     option: string,
@@ -48,62 +46,40 @@ function SessionList() {
     });
 
     chrome.storage.local
-      .get([LOCAL_STORAGE_WALLET_CONNECTIONS])
+      .get([LOCAL_STORAGE_WALLET_CONNECTION])
       .then((result) => {
-        setWalletConnect(result.walletConnections);
+        setWalletConnectionAid(result[LOCAL_STORAGE_WALLET_CONNECTION]);
       });
   }, []);
 
-  const handleLogin = async (session: Session) => {
-    const comm: Comm | undefined = (
-      await chrome.storage.local.get([COMMUNICATION_AID])
-    ).idw;
-
-    if (!comm) return;
-
-    const { walletConnections } = await chrome.storage.local.get([
-      LOCAL_STORAGE_WALLET_CONNECTIONS,
-    ]);
-
-    if (!walletConnections) return;
-
-    const ids = Object.keys(walletConnections);
-
-    const currentTab = (
-      await chrome.tabs.query({ active: true, currentWindow: true })
-    )[0];
-
-    if (!currentTab.url) return;
-
+  const handleLoginRequest = async (webDomain: string) => {
+    const walletConnectionAid = await chrome.storage.local.get(LOCAL_STORAGE_WALLET_CONNECTION);
+    if (!walletConnectionAid) {
+      return failure(new Error("Cannot request a log in as we are not connected to the identity wallet"));
+    }
+   
     let response;
     try {
       response = await fetch(`${SERVER_ENDPOINT}/oobi`);
       await logger.addLog(`✅ Received OOBI URL from ${SERVER_ENDPOINT}/oobi`);
     } catch (e) {
-      await logger.addLog(
-        `❌ Error getting OOBI URL from server: ${SERVER_ENDPOINT}/oobi: ${e}`,
-      );
+      await logger.addLog(`❌ Error getting OOBI URL from server: ${SERVER_ENDPOINT}/oobi: ${e}`);
       return;
     }
-
+  
     const serverOobiUrl = (await response.json()).oobis[0];
-
-    const { sessions } = await chrome.storage.local.get([
-      LOCAL_STORAGE_SESSIONS,
-    ]);
-
-    const aid = sessions.find((s: Session) => s.name === session.name);
-
+  
+    const { sessions } = await chrome.storage.local.get([LOCAL_STORAGE_SESSIONS]);
+    const aid = sessions.find((session: Session) => session.name === webDomain);
+  
     if (!aid) {
-      await logger.addLog(`❌ Error getting the AID by name: ${session.name}`);
+      await logger.addLog(`❌ Error getting the AID by name: ${webDomain}`);
       return;
     }
-
+  
     try {
       response = await fetch(`${SERVER_ENDPOINT}/acdc-requirements`);
-      await logger.addLog(
-        `✅ Received ACDC requirements from ${SERVER_ENDPOINT}/acdc-requirements`,
-      );
+      await logger.addLog(`✅ Received ACDC requirements from ${SERVER_ENDPOINT}/acdc-requirements`);
     } catch (e) {
       return failure(
         new Error(
@@ -111,46 +87,30 @@ function SessionList() {
         ),
       );
     }
-
+  
     const acdcRequirements = await response.json();
-
     const payload = {
       serverEndpoint: SERVER_ENDPOINT,
       serverOobiUrl,
       logo: aid.logo,
       tunnelAid: aid.tunnelAid,
-      filter: acdcRequirements.user,
-    };
-
-    const messageSent = await signifyApi.sendMessasge(
-      comm.name,
-      ids[0],
-      payload,
-    );
-
-    if (!messageSent.success) {
-      await logger.addLog(
-        `❌ Message sent to IDW failed: ${messageSent.error}`,
-      );
+      filter: acdcRequirements.user
+    }
+  
+    const loginRequestResult = await chrome.runtime.sendMessage({
+      type: ExtensionMessageType.LOGIN_REQUEST,
+      data: {
+        recipient: walletConnectionAid[LOCAL_STORAGE_WALLET_CONNECTION],
+        payload,
+      }
+    });
+  
+    if (!loginRequestResult.success) {
+      await logger.addLog(`❌ Message sent to IDW failed: ${loginRequestResult.error}`);
       return;
     }
-
-    await logger.addLog(
-      `📩 Login message successfully sent to IDW with AID ${
-        ids[0]
-      }, message: ${JSON.stringify(messageSent)}`,
-    );
-
-    for (const s of sessions) {
-      if (s.name === session.name) {
-        s.loggedIn = true;
-        break;
-      }
-    }
-
-    await chrome.storage.local.set({ sessions });
-    setSessions(sessions);
-  };
+    await logger.addLog(`📩 Message successfully sent to IDW, message: ${JSON.stringify(payload)}`);
+  }
 
   const handleConnect = () => {
     handleNavigation(`/connect`);
@@ -166,7 +126,7 @@ function SessionList() {
 
   return (
     <>
-      {!walletConnect ? (
+      {!walletConnectionAid ? (
         <>
           <div className="connectButtonContainer">
             {/*@TODO: implement ping condition to check connection status*/}
@@ -199,10 +159,10 @@ function SessionList() {
                   )}
                 </div>
               </div>
-              {walletConnect && !session.loggedIn ? (
+              {walletConnectionAid && !session.loggedIn ? (
                 <button
                   className="iconButton"
-                  onClick={() => handleLogin(session)}
+                  onClick={() => handleLoginRequest(session.name)}
                 >
                   <img className="icon" src={MobileConnectIcon} width={30} />
                   <span className="label">Login</span>
