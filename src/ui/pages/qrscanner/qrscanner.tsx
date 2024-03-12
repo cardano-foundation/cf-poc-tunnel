@@ -5,13 +5,18 @@ import {Html5QrcodeScanner} from "html5-qrcode";
 import {LOCAL_STORAGE_WALLET_CONNECTIONS, logger} from "@src/core/background";
 import {signifyApiInstance} from "@src/core/modules/signifyApi";
 
+enum ContentType {
+  SCANNER = "scanner",
+  RESOLVING = "resolving",
+  RESOLVED = "resolved",
+}
+
 const Qrscanner = () => {
-  const [scanResult, setScanResult] = useState<string>("");
   const { isLoggedIn, isLoggedInFromStorage, logout, login } = useAuth();
-  const [isResolving, setIsResolving] = useState(false);
+  const [restartCamera, setRestartCamera] = useState(false);
+  const [contentType, setContentType] = useState<ContentType>(ContentType.SCANNER);
 
   useEffect(() => {
-
     const scanner = new Html5QrcodeScanner("reader", {
       qrbox: {
         width: 250,
@@ -22,17 +27,19 @@ const Qrscanner = () => {
 
     const success = (result:string) => {
       scanner.clear();
-      setScanResult(result);
       handleResolveOObi(result);
     }
     const error = (err:any) => {
       console.warn(err);
     }
-
     scanner.render(success, error);
 
-  }, [isLoggedIn]);
+  }, [isLoggedIn, restartCamera]);
 
+  const restartScanner = async () => {
+    setRestartCamera(!restartCamera);
+    setContentType(ContentType.SCANNER)
+  }
   const checkIsLogged = async () => {
     const isLogged = await isLoggedInFromStorage();
     if (!isLogged) logout();
@@ -53,14 +60,45 @@ const Qrscanner = () => {
     };
   }, [isLoggedIn]);
 
+  const renderContent = () => {
+    switch (contentType) {
+      case ContentType.SCANNER:
+        return {
+          component: <div id="reader"/>,
+          title: "Scan your wallet QR Code"
+        }
+      case ContentType.RESOLVING:
+        return {
+          component:  <></>,
+          title: "Resolving wallet OOBI"
+        }
+      case ContentType.RESOLVED:
+        return {
+          component:  <>
+            <button
+              className="resolve-button"
+              onClick={() => window.close()}
+          >
+              Close
+          </button>
+            <button
+              className="resolve-button"
+              onClick={() => restartScanner()}
+          >
+            Scan QR Code again
+          </button>
+          </>,
+          title: "The wallet OOBI was resolved successfully"
+        }
+    }
+  }
   const handleResolveOObi = async (oobi: string) => {
     if (oobi.length && oobi.includes("oobi")) {
-      setIsResolving(true);
+      setContentType(ContentType.RESOLVING);
       const resolveOobiResult = await signifyApiInstance.resolveOOBI(oobi);
 
       if (!resolveOobiResult.success) {
         await logger.addLog(`❌ Resolving wallet OOBI failed: ${oobi}`);
-        setIsResolving(false);
         return;
       }
 
@@ -78,22 +116,20 @@ const Qrscanner = () => {
 
       await logger.addLog(`✅ Wallet OOBI resolved successfully: ${oobi}`);
 
-      setIsResolving(false);
+      setContentType(ContentType.RESOLVED);
     }
   };
+
+  const content = renderContent();
 
   return (
     <div className="scannerPage">
       {isLoggedIn ? (
         <>
           <div className="section">
-            <h2 className=""> Scan your wallet QR Code </h2>
+            <h2 className="">{content?.title}  </h2>
             {
-              scanResult ? <>
-                <p>{scanResult}</p>
-              </> : <>
-                <div id="reader"/>
-              </>
+              content?.component
             }
           </div>
         </>
