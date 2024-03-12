@@ -57,5 +57,12 @@ export default defineConfig({
     outDir,
     sourcemap: true,
     emptyOutDir: false,
+    rollupOptions: {
+      input: {
+        popup: resolve(__dirname, "src/ui/pages/popup/index.html"),
+        options: resolve(__dirname, "src/ui/pages/options/index.html"),
+        qrScanner: resolve(__dirname, "src/ui/pages/qrScanner/index.html")
+      },
+    },
   },
 });

@@ -1,0 +1,24 @@
+body {
+  background-color: #787A83;
+  color: whitesmoke;
+}
+
+#reader {
+  margin: 0 auto;
+}
+
+.scannerPage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  text-align: center;
+}
+
+.section, .lockMessage {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}

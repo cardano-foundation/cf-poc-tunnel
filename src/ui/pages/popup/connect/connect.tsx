@@ -32,6 +32,10 @@ function Connect() {
     });
   }, []);
 
+  const openQRScanner = async () => {
+    chrome.tabs.create({url: chrome.runtime.getURL("/src/ui/pages/qrscanner/index.html")})
+  }
+
   const handleResolveOObi = async () => {
     setIsResolving(true);
     
@@ -128,6 +132,12 @@ function Connect() {
           placeholder="Insert OOBI URL"
           onChange={(e) => setOobiUrl(e.target.value)}
         />
+        <button
+            className="resolve-button"
+            onClick={() => openQRScanner()}
+        >
+          QR Code
+        </button>
         <button
           className="resolve-button"
           onClick={() => handleResolveOObi()}

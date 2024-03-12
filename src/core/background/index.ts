@@ -20,6 +20,8 @@ import {
 import { Session } from "@src/ui/pages/popup/sessionList/sessionList";
 
 export const LOCAL_STORAGE_SESSIONS = "sessions";
+export const LOCAL_STORAGE_WALLET_CONNECTIONS = "walletConnections";
+export const COMMUNICATION_AID = "idw";
 export const IDW_COMMUNICATION_AID_NAME = "idw";
 
 export const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
