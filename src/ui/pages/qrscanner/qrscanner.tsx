@@ -4,6 +4,7 @@ import { useAuth } from "@components/router/authProvider";
 import {Html5QrcodeScanner} from "html5-qrcode";
 import {LOCAL_STORAGE_WALLET_CONNECTIONS, logger} from "@src/core/background";
 import {signifyApiInstance} from "@src/core/modules/signifyApi";
+import {LOCAL_STORAGE_WALLET_CONNECTION} from "@pages/popup/connect/connect";
 
 enum ContentType {
   SCANNER = "scanner",
@@ -111,7 +112,7 @@ const Qrscanner = () => {
           resolveOobiResult.data;
 
       await chrome.storage.local.set({
-        walletConnections: walletConnectionsObj,
+        [LOCAL_STORAGE_WALLET_CONNECTION]: walletConnectionsObj,
       });
 
       await logger.addLog(`✅ Wallet OOBI resolved successfully: ${oobi}`);
