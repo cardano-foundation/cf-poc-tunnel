@@ -13,4 +13,7 @@ export class Session {
 
   @Column()
   validUntil: Date;
+
+  @Column()
+  lei: string;  // @TODO - foconnor: This shouldn't be in the session table but OK for PoC.
 }

@@ -2,21 +2,22 @@ import React, { useEffect, useState } from "react";
 import "./connect.scss";
 import { BackButton } from "@components/backButton";
 import { QRCode } from "react-qrcode-logo";
-import { failure, shortenText } from "@src/utils";
+import { shortenText } from "@src/utils";
 import {
-  COMMUNICATION_AID,
-  LOCAL_STORAGE_WALLET_CONNECTIONS,
+  IDW_COMMUNICATION_AID_NAME,
   logger,
-  signifyApi,
 } from "@src/core/background";
 import idwLogo from "@assets/idw.png";
+import { ExtensionMessageType } from "@src/core/background/types";
 
-interface Comm {
+export interface Comm {
   id: string;
   name: string;
   tunnelAid: string;
   tunnelOobiUrl: string;
 }
+
+export const LOCAL_STORAGE_WALLET_CONNECTION = "walletConnectionAid";
 
 function Connect() {
   const [comm, setComm] = useState<Comm | undefined>(undefined);
@@ -25,38 +26,48 @@ function Connect() {
   const [isResolving, setIsResolving] = useState(false);
 
   useEffect(() => {
-    chrome.storage.local.get([COMMUNICATION_AID]).then((c) => {
+    chrome.storage.local.get([IDW_COMMUNICATION_AID_NAME]).then((c) => {
       setComm(c.idw);
       setShowSpinner(false);
     });
   }, []);
 
+  const openQRScanner = async () => {
+    chrome.tabs.create({url: chrome.runtime.getURL("/src/ui/pages/qrscanner/index.html")})
+  }
+
   const handleResolveOObi = async () => {
-    if (oobiUrl.length && oobiUrl.includes("oobi")) {
-      setIsResolving(true);
-      const resolveOobiResult = await signifyApi.resolveOOBI(oobiUrl);
-
-      if (!resolveOobiResult.success) {
-        await logger.addLog(`❌ Resolving wallet OOBI failed: ${oobiUrl}`);
-        setIsResolving(false);
-        return;
+    setIsResolving(true);
+    
+    const resolveOobiResult = await chrome.runtime.sendMessage({
+      type: ExtensionMessageType.RESOLVE_WALLET_OOBI,
+      data: {
+        url: oobiUrl,
       }
+    });
 
-      const { walletConnections } = await chrome.storage.local.get([
-        LOCAL_STORAGE_WALLET_CONNECTIONS,
-      ]);
-      const walletConnectionsObj = walletConnections || {};
-      walletConnectionsObj[resolveOobiResult.data.response.i] =
-        resolveOobiResult.data;
-
-      await chrome.storage.local.set({
-        walletConnections: walletConnectionsObj,
-      });
-
-      await logger.addLog(`✅ Wallet OOBI resolved successfully: ${oobiUrl}`);
-
-      setOobiUrl("");
+    if (!resolveOobiResult.success) {
+      await logger.addLog(`❌ Resolving wallet OOBI failed: ${oobiUrl}`);
       setIsResolving(false);
+      return;
+    }
+
+    await chrome.storage.local.set({
+      [LOCAL_STORAGE_WALLET_CONNECTION]: resolveOobiResult.data.response.i,
+    });
+
+    await logger.addLog(`✅ Wallet OOBI resolved successfully: ${oobiUrl}`);
+
+    setOobiUrl("");
+    setIsResolving(false);
+  };
+
+  const copyQrCode = async () => {
+    try {
+      if (!comm) return;
+      await navigator.clipboard.writeText(comm?.tunnelOobiUrl);
+    } catch (error) {
+      console.error("Clipboard error: ", error);
     }
   };
 
@@ -70,12 +81,16 @@ function Connect() {
         </p>
         <div>
           <div>
-            {
-              !comm ? <>
+            {!comm ? (
+              <>
                 <p>
-                  Something went wrong during installation while generating the communication OOBI
+                  Something went wrong during installation while generating the
+                  communication OOBI
                 </p>
-              </> :<QRCode
+              </>
+            ) : (
+              <div className="pointer" onClick={() => copyQrCode()}>
+                <QRCode
                   value={comm?.tunnelOobiUrl}
                   size={192}
                   fgColor={"black"}
@@ -86,9 +101,9 @@ function Connect() {
                   logoHeight={60}
                   logoOpacity={1}
                   quietZone={10}
-              />
-            }
-
+                />
+              </div>
+            )}
           </div>
           {showSpinner && (
             <div className="spinnerOverlay">
@@ -117,6 +132,12 @@ function Connect() {
           placeholder="Insert OOBI URL"
           onChange={(e) => setOobiUrl(e.target.value)}
         />
+        <button
+            className="resolve-button"
+            onClick={() => openQRScanner()}
+        >
+          QR Code
+        </button>
         <button
           className="resolve-button"
           onClick={() => handleResolveOObi()}

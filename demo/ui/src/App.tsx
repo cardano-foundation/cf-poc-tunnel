@@ -8,6 +8,7 @@ import {
   sendMessageToExtension,
 } from "./extension/communication";
 import { ExtensionMessageType } from "./extension/types";
+import { AxiosError } from "axios";
 
 const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
 
@@ -39,12 +40,22 @@ const App: React.FC = () => {
 
   const handleFetch = async () => {
     const axiosClient = createAxiosClient();
-    const response = await axiosClient.post(`${SERVER_ENDPOINT}/ping`, {
-      dummy: "data",
-    });
-    setSignedHeaders(JSON.parse(JSON.stringify(response.headers)));
-    setResponseBody(response.data);
-  };
+    try {
+      const response = await axiosClient.post(`${SERVER_ENDPOINT}/ping`, {
+        dummy: "data",
+      });
+      setSignedHeaders(JSON.parse(JSON.stringify(response.headers)));
+      setResponseBody(response.data);
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        if (err.response?.status === 401) {
+          alert(err.response.data ?? "Not logged in!");
+          return;
+        }
+      }
+      throw err;
+    }
+    };
 
   return (
     <>
@@ -59,7 +70,7 @@ const App: React.FC = () => {
         {sessionCreated ? (
           <>
             <button className="button" onClick={() => handleFetch()}>
-              2. Call backend {Object.keys(signedHeaders).length ? "✅" : null}
+              2. View LEI details {Object.keys(signedHeaders).length ? "✅" : null}
             </button>
           </>
         ) : null}
