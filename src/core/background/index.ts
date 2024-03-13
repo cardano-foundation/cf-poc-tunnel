@@ -569,6 +569,14 @@ async function processMessage(
       const { origin } = message;
       const { serverEndpoint } = message.data;
 
+      if (new URL(origin).hostname !== new URL(serverEndpoint).hostname) {
+        return failureExt(
+            message.id,
+            getReturnMessageType(message.type),
+            "The web hostname and the server hostname does not match",
+        );
+      }
+
       const urlF = new URL(origin);
       const { sessions } = await chrome.storage.local.get([
         LOCAL_STORAGE_SESSIONS,
@@ -738,6 +746,14 @@ async function processMessage(
       const { origin, data } = message;
       const { filter, serverEndpoint } = data;
 
+      if (new URL(origin).hostname !== new URL(serverEndpoint).hostname) {
+        return failureExt(
+            message.id,
+            getReturnMessageType(message.type),
+            "The web hostname and the server hostname does not match",
+        );
+      }
+
       const walletConnectionAid = await chrome.storage.local.get(LOCAL_STORAGE_WALLET_CONNECTION);
       if (!walletConnectionAid) {
         return failureExt(
@@ -747,26 +763,11 @@ async function processMessage(
         );
       }
 
-      let response;
-      try {
-        response = await fetch(`${serverEndpoint}/oobi`);
-        await logger.addLog(`✅ Received OOBI URL from ${serverEndpoint}/oobi`);
-      } catch (e) {
-        await logger.addLog(`❌ Error getting OOBI URL from server: ${serverEndpoint}/oobi: ${e}`);
-        return failureExt(
-            message.id,
-            getReturnMessageType(message.type),
-            `Error getting OOBI URL from server: ${serverEndpoint}/oobi: ${e}`,
-        );
-      }
-
-      const serverOobiUrl = (await response.json()).oobis[0];
-
       const webDomain = new URL(origin).hostname;
       const { sessions } = await chrome.storage.local.get([LOCAL_STORAGE_SESSIONS]);
-      const aid = sessions.find((session: Session) => session.name === webDomain);
+      const session = sessions.find((session: Session) => session.name === webDomain);
 
-      if (!aid) {
+      if (!session) {
         await logger.addLog(`❌ Error getting the AID by name: ${webDomain}`);
         return failureExt(
             message.id,
@@ -777,9 +778,9 @@ async function processMessage(
 
       const payload = {
         serverEndpoint,
-        serverOobiUrl,
-        logo: aid.logo,
-        tunnelAid: aid.tunnelAid,
+        serverOobiUrl: session.serverOobiUrl,
+        logo: session.logo,
+        tunnelAid: session.tunnelAid,
         filter
       }
       const recipient = walletConnectionAid[LOCAL_STORAGE_WALLET_CONNECTION];

@@ -43,15 +43,14 @@ const App: React.FC = () => {
 
   const handleLogin = async () => {
 
-    let response;
+    let response, acdcRequirements;
     try {
       response = await fetch(`${SERVER_ENDPOINT}/acdc-requirements`);
+      acdcRequirements = await response.json();
     } catch (e) {
-      // TODO: handle error
+      console.error(e);
       return;
     }
-
-    const acdcRequirements = await response.json();
 
     const messageId = generateMessageId(ExtensionMessageType.LOGIN_REQUEST);
     const extMessage = listenForExtensionMessage<Record<string, string>>(
