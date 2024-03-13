@@ -746,6 +746,7 @@ async function processMessage(
       const { origin, data } = message;
       const { filter, serverEndpoint } = data;
 
+      // TODO:
       if (new URL(origin).hostname !== new URL(serverEndpoint).hostname) {
         return failureExt(
             message.id,
@@ -768,11 +769,11 @@ async function processMessage(
       const session = sessions.find((session: Session) => session.name === webDomain);
 
       if (!session) {
-        await logger.addLog(`❌ Error getting the AID by name: ${webDomain}`);
+        await logger.addLog(`❌ Error getting the session by name: ${webDomain}`);
         return failureExt(
             message.id,
             getReturnMessageType(message.type),
-            `Error getting the AID by name: ${webDomain}`,
+            `Error getting the session by name: ${webDomain}`,
         );
       }
 
