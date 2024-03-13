@@ -2,9 +2,9 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./sessionDetails.scss";
 import { BackButton } from "@components/backButton";
-import MobileConnectIcon from "@assets/mobile-connect-icon.svg";
 import { shortenText } from "@src/utils";
 import { Session } from "../sessionList/sessionList";
+import { LocalStorageKeys } from "@src/core/background";
 
 function SessionDetails() {
   const navigate = useNavigate();
@@ -13,15 +13,12 @@ function SessionDetails() {
   if (!session) {
     return <div>No session data available</div>;
   }
-  const handleLogin = () => {
-    navigate(`/${session.id}/connect`, { state: { session } });
-  };
 
   const deleteSession = () => {
-    chrome.storage.local.get(["sessions"], function (result) {
+    chrome.storage.local.get([LocalStorageKeys.SESSIONS], function (result) {
       const ss = result.sessions.filter((s: Session) => session.id !== s.id);
 
-      chrome.storage.local.set({ sessions: ss }, function () {
+      chrome.storage.local.set({ [LocalStorageKeys.SESSIONS]: ss }, function () {
         navigate(-1);
       });
     });
@@ -35,21 +32,6 @@ function SessionDetails() {
           {session.name} <span className="starIcon">★</span>
         </h1>
         <div className="session-info">
-          <p>
-            <strong>
-              {session.expiryDate ? (
-                <>Expiration:</>
-              ) : (
-                <>
-                  <div className="loginLabel" onClick={handleLogin}>
-                    <img src={MobileConnectIcon} width={20} /> Login with your
-                    wallet{" "}
-                  </div>
-                </>
-              )}
-            </strong>{" "}
-            {session.expiryDate}
-          </p>
           <p>
             <strong>Server AID:</strong> {shortenText(session.serverAid, 24)}
           </p>

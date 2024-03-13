@@ -4,7 +4,7 @@ import { BackButton } from "@components/backButton";
 import { QRCode } from "react-qrcode-logo";
 import { shortenText } from "@src/utils";
 import {
-  IDW_COMMUNICATION_AID_NAME,
+  LocalStorageKeys,
   logger,
 } from "@src/core/background";
 import idwLogo from "@assets/idw.png";
@@ -17,8 +17,6 @@ export interface Comm {
   tunnelOobiUrl: string;
 }
 
-export const LOCAL_STORAGE_WALLET_CONNECTION = "walletConnectionAid";
-
 function Connect() {
   const [comm, setComm] = useState<Comm | undefined>(undefined);
   const [showSpinner, setShowSpinner] = useState(true);
@@ -26,8 +24,8 @@ function Connect() {
   const [isResolving, setIsResolving] = useState(false);
 
   useEffect(() => {
-    chrome.storage.local.get([IDW_COMMUNICATION_AID_NAME]).then((c) => {
-      setComm(c.idw);
+    chrome.storage.local.get([LocalStorageKeys.WALLET_CONNECTION_TUNNEL_AID]).then((c) => {
+      setComm(c[LocalStorageKeys.WALLET_CONNECTION_TUNNEL_AID]);
       setShowSpinner(false);
     });
   }, []);
@@ -53,7 +51,7 @@ function Connect() {
     }
 
     await chrome.storage.local.set({
-      [LOCAL_STORAGE_WALLET_CONNECTION]: resolveOobiResult.data.response.i,
+      [LocalStorageKeys.WALLET_CONNECTION_IDW_AID]: resolveOobiResult.data.response.i,
     });
 
     await logger.addLog(`✅ Wallet OOBI resolved successfully: ${oobiUrl}`);
@@ -133,17 +131,17 @@ function Connect() {
           onChange={(e) => setOobiUrl(e.target.value)}
         />
         <button
-            className="resolve-button"
-            onClick={() => openQRScanner()}
-        >
-          QR Code
-        </button>
-        <button
           className="resolve-button"
           onClick={() => handleResolveOObi()}
           disabled={isResolving}
         >
           {isResolving ? <div className="spinner-button"></div> : "Resolve"}
+        </button>
+        <button
+            className="resolve-button"
+            onClick={() => openQRScanner()}
+        >
+          Scan QR 
         </button>
       </div>
     </div>

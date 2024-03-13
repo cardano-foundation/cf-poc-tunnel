@@ -1,19 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Countdown } from "@components/countdown";
 import "./sessionList.scss";
 import MobileConnectIcon from "../../../assets/mobile-connect-icon.svg";
 import webLogo from "../../../assets/web.png";
-import { isExpired } from "@src/utils";
-import {
-  LOCAL_STORAGE_SESSIONS,
-} from "@src/core/background";
-import { LOCAL_STORAGE_WALLET_CONNECTION } from "@pages/popup/connect/connect";
+import { LocalStorageKeys } from "@src/core/background";
 
 interface Session {
   id: string;
   name: string;
-  expiryDate: string;
   loggedIn: boolean;
   logo: string;
   tunnelAid: string;
@@ -28,7 +22,7 @@ function SessionList() {
   const navigate = useNavigate();
 
   const [sessions, setSessions] = useState<Session[]>([]);
-  const [walletConnectionAid, setWalletConnectionAid] = useState<string | undefined>(undefined);
+  const [walletPongReceived, setWalletPongReceived] = useState(false);
 
   const handleNavigation = (
     option: string,
@@ -38,15 +32,15 @@ function SessionList() {
   };
 
   useEffect(() => {
-    chrome.storage.local.get([LOCAL_STORAGE_SESSIONS], function (result) {
+    chrome.storage.local.get([LocalStorageKeys.SESSIONS], function (result) {
       setSessions(result.sessions || []);
     });
-
-    chrome.storage.local
-      .get([LOCAL_STORAGE_WALLET_CONNECTION])
-      .then((result) => {
-        setWalletConnectionAid(result[LOCAL_STORAGE_WALLET_CONNECTION]);
-      });
+    
+    chrome.storage.local.get([LocalStorageKeys.WALLET_PONG_RECEIVED]).then((result) => {
+      if (result[LocalStorageKeys.WALLET_PONG_RECEIVED] === true) {
+        setWalletPongReceived(true);
+      }
+    });
   }, []);
 
   const handleConnect = () => {
@@ -57,24 +51,20 @@ function SessionList() {
     handleNavigation(`/${session.id}`, { state: { session } });
   };
 
-  if (!sessions.length) {
-    return <h2>No sessions yet</h2>;
-  }
-
   return (
     <>
-      {!walletConnectionAid ? (
-        <>
-          <div className="connectButtonContainer">
-            {/*@TODO: implement ping condition to check connection status*/}
-            <button className="iconButton" onClick={() => handleConnect()}>
-              <img className="icon" src={MobileConnectIcon} width={30} />
-              <span className="label">Connect with Wallet</span>
-            </button>
-          </div>
-          <hr className="separator" />
-        </>
-      ) : null}
+      {walletPongReceived ?
+      <h2 className="centerText">Wallet connected</h2> :
+      <>
+        <div className="connectButtonContainer">
+          <button className="iconButton" onClick={() => handleConnect()}>
+            <img className="icon" src={MobileConnectIcon} width={30} />
+            <span className="label">Connect with Wallet</span>
+          </button>
+        </div>
+        <hr className="separator" />
+      </>}
+      {sessions.length > 0 ?
       <ul className="list">
         {sessions.map((session) => {
           return (
@@ -88,13 +78,6 @@ function SessionList() {
                   />
                 </div>
                 <div className="primaryText domainName">{session.name}</div>
-                <div className="secondaryText">
-                  {session.expiryDate && isExpired(session.expiryDate) ? (
-                    <>Expired</>
-                  ) : (
-                    <Countdown expiryDate={session.expiryDate} />
-                  )}
-                </div>
               </div>
               <div className="buttonGroup">
                 <span
@@ -108,7 +91,8 @@ function SessionList() {
             </li>
           );
         })}
-      </ul>
+      </ul> :
+      <h2 className="centerText">No sessions yet</h2>}
     </>
   );
 }

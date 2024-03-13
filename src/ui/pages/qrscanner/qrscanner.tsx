@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import "./qrscanner.scss";
 import { useAuth } from "@components/router/authProvider";
-import {Html5QrcodeScanner} from "html5-qrcode";
-import {LOCAL_STORAGE_WALLET_CONNECTIONS, logger} from "@src/core/background";
-import {signifyApiInstance} from "@src/core/modules/signifyApi";
-import {LOCAL_STORAGE_WALLET_CONNECTION} from "@pages/popup/connect/connect";
+import { Html5QrcodeScanner } from "html5-qrcode";
+import { LocalStorageKeys, logger } from "@src/core/background";
+import { ExtensionMessageType } from "@src/core/background/types";
 
 enum ContentType {
   SCANNER = "scanner",
@@ -12,7 +11,7 @@ enum ContentType {
   RESOLVED = "resolved",
 }
 
-const Qrscanner = () => {
+const QRScanner = () => {
   const { isLoggedIn, isLoggedInFromStorage, logout, login } = useAuth();
   const [restartCamera, setRestartCamera] = useState(false);
   const [contentType, setContentType] = useState<ContentType>(ContentType.SCANNER);
@@ -26,7 +25,7 @@ const Qrscanner = () => {
       fps: 5,
     }, false);
 
-    const success = (result:string) => {
+    const success = (result: string) => {
       scanner.clear();
       handleResolveOObi(result);
     }
@@ -41,6 +40,7 @@ const Qrscanner = () => {
     setRestartCamera(!restartCamera);
     setContentType(ContentType.SCANNER)
   }
+
   const checkIsLogged = async () => {
     const isLogged = await isLoggedInFromStorage();
     if (!isLogged) logout();
@@ -93,30 +93,29 @@ const Qrscanner = () => {
         }
     }
   }
+
   const handleResolveOObi = async (oobi: string) => {
+    // @TODO - foconnor: Handle if not (i.e. scans different QR code)
     if (oobi.length && oobi.includes("oobi")) {
       setContentType(ContentType.RESOLVING);
-      const resolveOobiResult = await signifyApiInstance.resolveOOBI(oobi);
-
+      const resolveOobiResult = await chrome.runtime.sendMessage({
+        type: ExtensionMessageType.RESOLVE_WALLET_OOBI,
+        data: {
+          url: oobi,
+        }
+      });
+  
       if (!resolveOobiResult.success) {
         await logger.addLog(`❌ Resolving wallet OOBI failed: ${oobi}`);
+        setContentType(ContentType.SCANNER);
         return;
       }
-
-      const { walletConnections } = await chrome.storage.local.get([
-        LOCAL_STORAGE_WALLET_CONNECTIONS,
-      ]);
-      const walletConnectionsObj = walletConnections || {};
-
-      walletConnectionsObj[resolveOobiResult.data.response.i] =
-          resolveOobiResult.data;
-
+  
       await chrome.storage.local.set({
-        [LOCAL_STORAGE_WALLET_CONNECTION]: walletConnectionsObj,
+        [LocalStorageKeys.WALLET_CONNECTION_IDW_AID]: resolveOobiResult.data.response.i,
       });
-
+      
       await logger.addLog(`✅ Wallet OOBI resolved successfully: ${oobi}`);
-
       setContentType(ContentType.RESOLVED);
     }
   };
@@ -143,4 +142,4 @@ const Qrscanner = () => {
   );
 };
 
-export { Qrscanner };
+export { QRScanner };

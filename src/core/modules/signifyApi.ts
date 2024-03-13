@@ -23,9 +23,9 @@ class SignifyApi {
     this.started = false;
   }
 
-  async start(): Promise<ResponseData<undefined>> {
+  async start(): Promise<void> {
     if (this.started) {
-      return success(undefined);
+      return;
     }
 
     await ready();
@@ -37,20 +37,10 @@ class SignifyApi {
       SignifyApi.KERIA_BOOT_URL,
     );
 
-    try {
-      await this.signifyClient.connect();
-      this.started = true;
-      return success(undefined);
-    } catch (err) {
-      await this.signifyClient.boot();
-      try {
-        await this.signifyClient.connect();
-        this.started = true;
-        return success(undefined);
-      } catch (e) {
-        return failure(e);
-      }
-    }
+    // No point try catching as cannot use the extension without KERIA booted.
+    await this.signifyClient.boot();
+    await this.signifyClient.connect();
+    this.started = true;
   }
 
   async createIdentifier(name: string): Promise<ResponseData<EventResult>> {
@@ -109,37 +99,35 @@ class SignifyApi {
     }
   }
 
-  async getNotifications(): Promise<
+  async getUnreadIpexGrants(): Promise<
     ResponseData<{
-      start: number;
-      end: number;
-      total: number;
       notes: any[];
     }>
   > {
-    try {
-      return success(await this.signifyClient.notifications().list());
-    } catch (e) {
-      return failure(e);
-    }
+    return this.getUnreadRouteNotifications("/exn/ipex/grant");
   }
 
-  async getUnreadNotifications(): Promise<
+  private async getUnreadPongs(): Promise<
     ResponseData<{
       notes: any[];
     }>
   > {
+    return this.getUnreadRouteNotifications("/tunnel/pong");
+  }
+
+  private async getUnreadRouteNotifications(route: string): Promise<ResponseData<{ notes: any[] }>> {
     try {
       const notes = (await this.signifyClient.notifications().list()).notes;
       return success({
         notes: notes.filter(
-          (note: any) => note.r === false && note.a.r === "/exn/ipex/grant",
+          (note: any) => note.r === false && note.a.r === route,
         ),
       });
     } catch (e) {
       return failure(e);
-    }
+    } 
   }
+  
   async markNotificationAsRead(noteId: string): Promise<ResponseData<void>> {
     try {
       await this.signifyClient.notifications().mark(noteId);
@@ -184,7 +172,7 @@ class SignifyApi {
     }
   }
 
-  async sendMessage(
+  async sendTunnelRequest(
     name: string,
     recipient: string,
     payload: Dict<any>,
@@ -207,6 +195,53 @@ class SignifyApi {
       return success(messageSent);
     } catch (e) {
       return failure(e);
+    }
+  }
+
+  async sendPing(name: string, recipient: string, pongCallback: (idwAid: string) => void): Promise<ResponseData<any>> {
+    const aidResult = await this.getIdentifierByName(name);
+    if (!aidResult.success) {
+      return failure(
+        new Error(`Error trying to get the AID by name: ${name}`),
+      );
+    }
+
+    try {
+      const messageSent = await this.signifyClient
+        .exchanges()
+        .send(name, "tunnel", aidResult.data, "/tunnel/ping", {
+          to: recipient
+        }, {}, [
+          recipient,
+        ]);
+      this.setupPongCallback(recipient, pongCallback);
+      return success(messageSent);
+    } catch (e) {
+      return failure(e);
+    }
+  }
+
+  private async setupPongCallback(from: string, callback: (idwAid: string) => void): Promise<void> {
+    while (true) {
+      const getPongsResult = await this.getUnreadPongs();
+      if (!getPongsResult.success) {
+        console.warn("Failed to fetch /tunnel/pong notifications");
+        continue;
+      }
+
+      for (const note of getPongsResult.data.notes) {
+        const getExnResult = await this.getExchangeMessage(note.a.d);
+        if (!getExnResult.success) {
+          console.warn(`Received notification with SAID ${note.a.d}, but the exn message was not found`);
+          continue;
+        }
+        if (getExnResult.data.exn?.i === from) {
+          callback(from);
+          return;
+        }
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
 
