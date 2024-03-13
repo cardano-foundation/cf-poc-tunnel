@@ -90,6 +90,10 @@ const App: React.FC = () => {
 
   return (
     <>
+      <div className="text-3xl underline text-red-600">
+        Simple React Typescript Tailwind Sample
+      </div>
+
       <div>
         <img src={govLogo} className="logo" alt="Vite logo" />
       </div>
