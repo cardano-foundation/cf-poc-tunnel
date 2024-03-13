@@ -7,13 +7,14 @@ import {
   listenForExtensionMessage,
   sendMessageToExtension,
 } from "./extension/communication";
-import { ExtensionMessageType } from "./extension/types";
+import {ExtensionMessageType, RolesType} from "./extension/types";
 import { AxiosError } from "axios";
 
 const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
 
 const App: React.FC = () => {
   const [sessionCreated, setSessionCreated] = useState(false);
+  const [selectedRole] = useState(RolesType.User);
   const [signedHeaders, setSignedHeaders] = useState<Record<string, string>>(
     {},
   );
@@ -39,6 +40,17 @@ const App: React.FC = () => {
   };
 
   const handleLogin = async () => {
+
+    let response;
+    try {
+      response = await fetch(`${SERVER_ENDPOINT}/acdc-requirements`);
+    } catch (e) {
+      // TODO: handle error
+      return;
+    }
+
+    const acdcRequirements = await response.json();
+
     const messageId = generateMessageId(ExtensionMessageType.LOGIN_REQUEST);
     const extMessage = listenForExtensionMessage<Record<string, string>>(
         ExtensionMessageType.LOGIN_REQUEST_RESULT,
@@ -50,6 +62,7 @@ const App: React.FC = () => {
       type: ExtensionMessageType.LOGIN_REQUEST,
       data: {
         serverEndpoint: SERVER_ENDPOINT,
+        filter: acdcRequirements[selectedRole]
       },
     });
 

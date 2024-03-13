@@ -25,9 +25,13 @@ interface SignEncryptResponse {
   essrBody?: any; // We just pass this directly though, so doesn't need strict typing.
 }
 
+enum RolesType {
+  User = "user"
+}
+
 export type {
   ExtensionMessageInbound,
   ExtensionMessageOutbound,
-  SignEncryptResponse,
+  SignEncryptResponse
 };
-export { ExtensionMessageType };
+export { ExtensionMessageType, RolesType };

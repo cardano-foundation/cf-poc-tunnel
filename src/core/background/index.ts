@@ -736,6 +736,7 @@ async function processMessage(
     }
     case ExtensionMessageType.LOGIN_REQUEST: {
       const { origin, data } = message;
+      const { filter, serverEndpoint } = data;
 
       const walletConnectionAid = await chrome.storage.local.get(LOCAL_STORAGE_WALLET_CONNECTION);
       if (!walletConnectionAid) {
@@ -745,7 +746,6 @@ async function processMessage(
             "Cannot request a log in as we are not connected to the identity wallet",
         );
       }
-      const { serverEndpoint } = data;
 
       let response;
       try {
@@ -775,24 +775,12 @@ async function processMessage(
         );
       }
 
-      try {
-        response = await fetch(`${serverEndpoint}/acdc-requirements`);
-        await logger.addLog(`✅ Received ACDC requirements from ${serverEndpoint}/acdc-requirements`);
-      } catch (e) {
-        return failureExt(
-            message.id,
-            getReturnMessageType(message.type),
-            `Error getting ACDC requirements from server: ${serverEndpoint}/acdc-requirements: ${e}`,
-        );
-      }
-
-      const acdcRequirements = await response.json();
       const payload = {
         serverEndpoint,
         serverOobiUrl,
         logo: aid.logo,
         tunnelAid: aid.tunnelAid,
-        filter: acdcRequirements.user
+        filter
       }
       const recipient = walletConnectionAid[LOCAL_STORAGE_WALLET_CONNECTION];
 
