@@ -9,6 +9,8 @@ import {
 } from "./extension/communication";
 import {ExtensionMessageType, RolesType} from "./extension/types";
 import { AxiosError } from "axios";
+import {Header} from "./components/Header";
+import {HeroSection} from "./components/HeroSection";
 
 const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
 
@@ -90,9 +92,10 @@ const App: React.FC = () => {
 
   return (
     <>
-      <div className="text-3xl underline text-red-600">
-        Simple React Typescript Tailwind Sample
-      </div>
+      <Header />
+      <main>
+        <HeroSection />
+      </main>
 
       <div>
         <img src={govLogo} className="logo" alt="Vite logo" />
