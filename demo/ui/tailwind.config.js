@@ -2,7 +2,11 @@
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx,html,css,scss}"],
   theme: {
-    extend: {},
+    extend: {
+      backgroundImage: {
+        'hero': "url('./src/assets/IIW-photo.png')"
+      }
+    },
   },
   plugins: [],
 }
