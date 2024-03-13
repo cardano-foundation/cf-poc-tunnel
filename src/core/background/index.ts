@@ -747,21 +747,6 @@ async function processMessage(
         );
       }
 
-      let response;
-      try {
-        response = await fetch(`${serverEndpoint}/oobi`);
-        await logger.addLog(`✅ Received OOBI URL from ${serverEndpoint}/oobi`);
-      } catch (e) {
-        await logger.addLog(`❌ Error getting OOBI URL from server: ${serverEndpoint}/oobi: ${e}`);
-        return failureExt(
-            message.id,
-            getReturnMessageType(message.type),
-            `Error getting OOBI URL from server: ${serverEndpoint}/oobi: ${e}`,
-        );
-      }
-
-      const serverOobiUrl = (await response.json()).oobis[0];
-
       const webDomain = new URL(origin).hostname;
       const { sessions } = await chrome.storage.local.get([LOCAL_STORAGE_SESSIONS]);
       const aid = sessions.find((session: Session) => session.name === webDomain);
@@ -777,7 +762,7 @@ async function processMessage(
 
       const payload = {
         serverEndpoint,
-        serverOobiUrl,
+        serverOobiUrl: aid.serverOobiUrl,
         logo: aid.logo,
         tunnelAid: aid.tunnelAid,
         filter
