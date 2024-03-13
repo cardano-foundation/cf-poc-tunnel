@@ -569,6 +569,7 @@ async function processMessage(
       const { origin } = message;
       const { serverEndpoint } = message.data;
 
+      // TODO: the demo is restricted to one backend per domain
       if (new URL(origin).hostname !== new URL(serverEndpoint).hostname) {
         return failureExt(
             message.id,
@@ -746,7 +747,7 @@ async function processMessage(
       const { origin, data } = message;
       const { filter, serverEndpoint } = data;
 
-      // TODO:
+      // TODO: the demo is restricted to one backend per domain
       if (new URL(origin).hostname !== new URL(serverEndpoint).hostname) {
         return failureExt(
             message.id,
