@@ -749,9 +749,9 @@ async function processMessage(
 
       const webDomain = new URL(origin).hostname;
       const { sessions } = await chrome.storage.local.get([LOCAL_STORAGE_SESSIONS]);
-      const aid = sessions.find((session: Session) => session.name === webDomain);
+      const session = sessions.find((session: Session) => session.name === webDomain);
 
-      if (!aid) {
+      if (!session) {
         await logger.addLog(`❌ Error getting the AID by name: ${webDomain}`);
         return failureExt(
             message.id,
@@ -762,9 +762,9 @@ async function processMessage(
 
       const payload = {
         serverEndpoint,
-        serverOobiUrl: aid.serverOobiUrl,
-        logo: aid.logo,
-        tunnelAid: aid.tunnelAid,
+        serverOobiUrl: session.serverOobiUrl,
+        logo: session.logo,
+        tunnelAid: session.tunnelAid,
         filter
       }
       const recipient = walletConnectionAid[LOCAL_STORAGE_WALLET_CONNECTION];
