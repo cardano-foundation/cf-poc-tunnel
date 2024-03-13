@@ -30,7 +30,7 @@ const App: React.FC = () => {
       id: messageId,
       type: ExtensionMessageType.CREATE_SESSION,
       data: {
-        url: SERVER_ENDPOINT,
+        serverEndpoint: SERVER_ENDPOINT,
       },
     });
 
@@ -38,6 +38,23 @@ const App: React.FC = () => {
     setSessionCreated(true);
   };
 
+  const handleLogin = async () => {
+    const messageId = generateMessageId(ExtensionMessageType.LOGIN_REQUEST);
+    const extMessage = listenForExtensionMessage<Record<string, string>>(
+        ExtensionMessageType.LOGIN_REQUEST_RESULT,
+        messageId,
+    );
+
+    sendMessageToExtension({
+      id: messageId,
+      type: ExtensionMessageType.LOGIN_REQUEST,
+      data: {
+        serverEndpoint: SERVER_ENDPOINT,
+      },
+    });
+
+    await extMessage;
+  }
   const handleFetch = async () => {
     const axiosClient = createAxiosClient();
     try {
@@ -69,8 +86,15 @@ const App: React.FC = () => {
         </button>
         {sessionCreated ? (
           <>
+            <button className="button" onClick={() => handleLogin()}>
+              2. Login
+            </button>
+          </>
+        ) : null}
+        {sessionCreated ? (
+          <>
             <button className="button" onClick={() => handleFetch()}>
-              2. View LEI details {Object.keys(signedHeaders).length ? "✅" : null}
+              3. View LEI details {Object.keys(signedHeaders).length ? "✅" : null}
             </button>
           </>
         ) : null}
