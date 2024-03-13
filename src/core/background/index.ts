@@ -569,6 +569,14 @@ async function processMessage(
       const { origin } = message;
       const { serverEndpoint } = message.data;
 
+      if (new URL(origin).hostname !== new URL(serverEndpoint).hostname) {
+        return failureExt(
+            message.id,
+            getReturnMessageType(message.type),
+            "The web hostname and the server hostname does not match",
+        );
+      }
+
       const urlF = new URL(origin);
       const { sessions } = await chrome.storage.local.get([
         LOCAL_STORAGE_SESSIONS,
@@ -737,6 +745,14 @@ async function processMessage(
     case ExtensionMessageType.LOGIN_REQUEST: {
       const { origin, data } = message;
       const { filter, serverEndpoint } = data;
+
+      if (new URL(origin).hostname !== new URL(serverEndpoint).hostname) {
+        return failureExt(
+            message.id,
+            getReturnMessageType(message.type),
+            "The web hostname and the server hostname does not match",
+        );
+      }
 
       const walletConnectionAid = await chrome.storage.local.get(LOCAL_STORAGE_WALLET_CONNECTION);
       if (!walletConnectionAid) {
