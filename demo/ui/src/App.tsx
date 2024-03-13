@@ -7,13 +7,14 @@ import {
   listenForExtensionMessage,
   sendMessageToExtension,
 } from "./extension/communication";
-import { ExtensionMessageType } from "./extension/types";
+import {ExtensionMessageType, RolesType} from "./extension/types";
 import { AxiosError } from "axios";
 
 const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
 
 const App: React.FC = () => {
   const [sessionCreated, setSessionCreated] = useState(false);
+  const [selectedRole] = useState(RolesType.User);
   const [signedHeaders, setSignedHeaders] = useState<Record<string, string>>(
     {},
   );
@@ -30,13 +31,42 @@ const App: React.FC = () => {
       id: messageId,
       type: ExtensionMessageType.CREATE_SESSION,
       data: {
-        url: SERVER_ENDPOINT,
+        serverEndpoint: SERVER_ENDPOINT,
       },
     });
 
     await extMessage;
     setSessionCreated(true);
   };
+
+  const handleLogin = async () => {
+
+    let response, acdcRequirements;
+    try {
+      response = await fetch(`${SERVER_ENDPOINT}/acdc-requirements`);
+      acdcRequirements = await response.json();
+    } catch (e) {
+      console.error(e);
+      return;
+    }
+
+    const messageId = generateMessageId(ExtensionMessageType.LOGIN_REQUEST);
+    const extMessage = listenForExtensionMessage<Record<string, string>>(
+        ExtensionMessageType.LOGIN_REQUEST_RESULT,
+        messageId,
+    );
+
+    sendMessageToExtension({
+      id: messageId,
+      type: ExtensionMessageType.LOGIN_REQUEST,
+      data: {
+        serverEndpoint: SERVER_ENDPOINT,
+        filter: acdcRequirements[selectedRole]
+      },
+    });
+
+    await extMessage;
+  }
 
   const handleFetch = async () => {
     const axiosClient = createAxiosClient();
@@ -68,9 +98,16 @@ const App: React.FC = () => {
           1. Init session {sessionCreated ? "✅" : null}
         </button>
         {sessionCreated ? (
+            <>
+              <button className="button" onClick={() => handleLogin()}>
+                2. Login
+              </button>
+            </>
+        ) : null}
+        {sessionCreated ? (
           <>
             <button className="button" onClick={() => handleFetch()}>
-              2. View LEI details {Object.keys(signedHeaders).length ? "✅" : null}
+              3. View LEI details {Object.keys(signedHeaders).length ? "✅" : null}
             </button>
           </>
         ) : null}

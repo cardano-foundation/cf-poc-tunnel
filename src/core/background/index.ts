@@ -18,13 +18,13 @@ import {
   ExtensionMessageType,
 } from "@src/core/background/types";
 import { Session } from "@src/ui/pages/popup/sessionList/sessionList";
+import {LOCAL_STORAGE_WALLET_CONNECTION} from "@pages/popup/connect/connect";
 
 export const LOCAL_STORAGE_SESSIONS = "sessions";
 export const LOCAL_STORAGE_WALLET_CONNECTIONS = "walletConnections";
 export const COMMUNICATION_AID = "idw";
 export const IDW_COMMUNICATION_AID_NAME = "idw";
 
-export const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
 export const logger = new Logger();
 
 const ENTERPRISE_SCHEMA_SAID = "EGjD1gCLi9ecZSZp9zevkgZGyEX_MbOdmhBFt4o0wvdb";
@@ -260,9 +260,10 @@ const getServerACDC = async (said: string): Promise<ResponseData<any>> => {
 const triggerServerToDiscloseACDC = async (
   aidPrefix: string,
   schemaSaid: string,
+  serverEndpoint: string,
 ): Promise<ResponseData<void>> => {
   try {
-    await fetch(`${SERVER_ENDPOINT}/disclosure-acdc`, {
+    await fetch(`${serverEndpoint}/disclosure-acdc`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -310,18 +311,17 @@ const waitForNotificationsToAppear = async (
   }
 };
 
-const createSession = async (): Promise<ResponseData<undefined>> => {
-  // @TODO - foconnor: SERVER_ENDPOINT shouldn't be hardcoded.
-  const urlF = new URL(SERVER_ENDPOINT);
+const createSession = async (serverEndpoint: string): Promise<ResponseData<undefined>> => {
+  const urlF = new URL(serverEndpoint);
 
   let response;
   try {
-    response = await fetch(`${SERVER_ENDPOINT}/oobi`);
-    await logger.addLog(`✅ Received OOBI URL from ${SERVER_ENDPOINT}/oobi`);
+    response = await fetch(`${serverEndpoint}/oobi`);
+    await logger.addLog(`✅ Received OOBI URL from ${serverEndpoint}/oobi`);
   } catch (e) {
     return failure(
       new Error(
-        `Error getting OOBI URL from server: ${SERVER_ENDPOINT}/oobi: ${e}`,
+        `Error getting OOBI URL from server: ${serverEndpoint}/oobi: ${e}`,
       ),
     );
   }
@@ -364,7 +364,7 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
   );
 
   try {
-    await fetch(`${SERVER_ENDPOINT}/resolve-oobi`, {
+    await fetch(`${serverEndpoint}/resolve-oobi`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ oobiUrl: getOobiResult.data.oobis[0] }),
@@ -382,6 +382,7 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
   const disclosedAcdcResult = await triggerServerToDiscloseACDC(
     createIdentifierResult.data.serder.ked.i,
     ENTERPRISE_SCHEMA_SAID,
+    serverEndpoint
   );
 
   if (!disclosedAcdcResult.success) {
@@ -431,12 +432,12 @@ const createSession = async (): Promise<ResponseData<undefined>> => {
   const acdc = acdcResponse.data.acdc;
   const serverAid = resolveOobiResult.data.response.i;
 
-  const isTrusted = isTrustedDomain(acdc, new URL(SERVER_ENDPOINT).hostname, serverAid);
+  const isTrusted = isTrustedDomain(acdc, new URL(serverEndpoint).hostname, serverAid);
 
   await logger.addLog(
     `${isTrusted ? "✅" : "❌"}🌐 Domain is ${
       isTrusted ? "" : "not"
-    } fully trusted: ${SERVER_ENDPOINT}`,
+    } fully trusted: ${serverEndpoint}`,
   );
 
   const makedAsRead = await signifyApi.markNotificationAsRead(notei);
@@ -565,9 +566,19 @@ async function processMessage(
   // @TODO - foconnor: Need better handling of message.data to avoid crashing.
   switch (message.type) {
     case ExtensionMessageType.CREATE_SESSION: {
-      const { url } = message.data;
+      const { origin } = message;
+      const { serverEndpoint } = message.data;
 
-      const urlF = new URL(url);
+      // TODO: the demo is restricted to one backend per domain
+      if (new URL(origin).hostname !== new URL(serverEndpoint).hostname) {
+        return failureExt(
+            message.id,
+            getReturnMessageType(message.type),
+            "The web hostname and the server hostname does not match",
+        );
+      }
+
+      const urlF = new URL(origin);
       const { sessions } = await chrome.storage.local.get([
         LOCAL_STORAGE_SESSIONS,
       ]);
@@ -582,7 +593,7 @@ async function processMessage(
         );
       }
 
-      const createSessionResult = await createSession();
+      const createSessionResult = await createSession(serverEndpoint);
       if (createSessionResult.success) {
         await logger.addLog(`✅ Session created successfully`);
         return successExt(
@@ -733,21 +744,65 @@ async function processMessage(
       )
     }
     case ExtensionMessageType.LOGIN_REQUEST: {
-      const { recipient, payload } = message.data;
-      
-      const sendMsgResult = await signifyApi.sendMessage(IDW_COMMUNICATION_AID_NAME, recipient, payload);  
-      if (!sendMsgResult.success) {
+      const { origin, data } = message;
+      const { filter, serverEndpoint } = data;
+
+      // TODO: the demo is restricted to one backend per domain
+      if (new URL(origin).hostname !== new URL(serverEndpoint).hostname) {
         return failureExt(
-          message.id,
-          getReturnMessageType(message.type),
-          sendMsgResult.error,
+            message.id,
+            getReturnMessageType(message.type),
+            "The web hostname and the server hostname does not match",
         );
       }
 
+      const walletConnectionAid = await chrome.storage.local.get(LOCAL_STORAGE_WALLET_CONNECTION);
+      if (!walletConnectionAid) {
+        return failureExt(
+            message.id,
+            getReturnMessageType(message.type),
+            "Cannot request a log in as we are not connected to the identity wallet",
+        );
+      }
+
+      const webDomain = new URL(origin).hostname;
+      const { sessions } = await chrome.storage.local.get([LOCAL_STORAGE_SESSIONS]);
+      const session = sessions.find((session: Session) => session.name === webDomain);
+
+      if (!session) {
+        await logger.addLog(`❌ Error getting the session by name: ${webDomain}`);
+        return failureExt(
+            message.id,
+            getReturnMessageType(message.type),
+            `Error getting the session by name: ${webDomain}`,
+        );
+      }
+
+      const payload = {
+        serverEndpoint,
+        serverOobiUrl: session.serverOobiUrl,
+        logo: session.logo,
+        tunnelAid: session.tunnelAid,
+        filter
+      }
+      const recipient = walletConnectionAid[LOCAL_STORAGE_WALLET_CONNECTION];
+
+      const sendMsgResult = await signifyApi.sendMessage(IDW_COMMUNICATION_AID_NAME, recipient, payload);
+      if (!sendMsgResult.success) {
+        await logger.addLog(`❌ Message sent to IDW failed: ${sendMsgResult.error}`);
+        return failureExt(
+            message.id,
+            getReturnMessageType(message.type),
+            sendMsgResult.error,
+        );
+      }
+
+      await logger.addLog(`📩 Message successfully sent to IDW, message: ${JSON.stringify(payload)}`);
+
       return successExt(
-        message.id,
-        getReturnMessageType(message.type),
-        sendMsgResult.data,
+          message.id,
+          getReturnMessageType(message.type),
+          sendMsgResult.data,
       )
     }
   }
