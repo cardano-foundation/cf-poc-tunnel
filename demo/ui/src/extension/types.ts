@@ -30,6 +30,6 @@ interface SignEncryptResponse {
 export type {
   ExtensionMessageInbound,
   ExtensionMessageOutbound,
-  SignEncryptResponse,
+  SignEncryptResponse
 };
 export { ExtensionMessageType };

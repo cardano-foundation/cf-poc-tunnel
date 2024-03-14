@@ -2,7 +2,7 @@ import { createRoot } from "react-dom/client";
 import React from "react";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "@components/router/authProvider";
-import { Qrscanner } from "@pages/qrscanner/qrscanner";
+import {QRScanner} from "@pages/qrscanner/qrscanner";
 
 function render() {
   const qrScannerContainer = document.querySelector("#qrscanner");
@@ -11,7 +11,7 @@ function render() {
   root.render(
     <BrowserRouter>
       <AuthProvider>
-        <Qrscanner />
+        <QRScanner />
       </AuthProvider>
     </BrowserRouter>,
   );
