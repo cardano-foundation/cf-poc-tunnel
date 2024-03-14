@@ -7,28 +7,10 @@ import {
   sendMessageToExtension,
 } from "../extension/communication";
 import { ExtensionMessageType } from "../extension/types";
-import { createAxiosClient } from "../extension/axiosClient";
-import { AxiosError } from "axios";
-
-const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
-
-const checkLogin = async (navigate: any) => {
-  const axiosClient = createAxiosClient();
-  try {
-    await axiosClient.post(`${SERVER_ENDPOINT}/ping`, {
-      dummy: "data",
-    });
-    navigate("/demo", { replace: true });
-  } catch (err) {
-    if (err instanceof AxiosError) {
-      if (err.response?.status === 401) {
-        navigate("/login", { replace: true });
-      }
-    }
-  }
-};
+import {SERVER_ENDPOINT, useAuth} from "../components/AuthProvider";
 
 const LoginPage: React.FC = () => {
+  const { setIsLoggedIn } = useAuth();
   const [selectedRole, setSelectedRole] = useState("");
 
   const handleLogin = async () => {
@@ -49,6 +31,7 @@ const LoginPage: React.FC = () => {
         type: "danger",
         duration: 5000,
       });
+      setIsLoggedIn(false);
       return;
     }
 
@@ -75,13 +58,14 @@ const LoginPage: React.FC = () => {
         type: "success",
         duration: 3000,
       });
-
+      setIsLoggedIn(true);
     } catch (e) {
       eventBus.publish("toast", {
         message: `Error: ${JSON.stringify(e)}`,
         type: "danger",
         duration: 5000,
       });
+      setIsLoggedIn(false);
     }
   };
 
@@ -132,4 +116,4 @@ const LoginPage: React.FC = () => {
   );
 };
 
-export { LoginPage, checkLogin };
+export { LoginPage };

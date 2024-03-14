@@ -1,11 +1,17 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { checkLogin } from "../pages/LoginPage";
+import {useAuth} from "./AuthProvider";
 
 const HeroSection: React.FC = () => {
   const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
+
   const handleDemo = async () => {
-    checkLogin(navigate);
+    if (!isLoggedIn) {
+      navigate("/login");
+    } else {
+      navigate("/demo");
+    }
   };
   return (
     <>

@@ -1,12 +1,15 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { checkLogin } from "./LoginPage";
+import { useAuth } from "../components/AuthProvider";
 
 const Demo: React.FC = () => {
   const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
 
   useEffect(() => {
-    checkLogin(navigate);
+    if (!isLoggedIn) {
+      navigate("/login");
+    }
   }, []);
 
   return (
