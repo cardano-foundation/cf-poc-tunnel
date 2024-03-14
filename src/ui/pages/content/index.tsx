@@ -1,6 +1,5 @@
 import { generateMessageId } from "../../../../demo/ui/src/extension/communication";
 import { ExtensionMessageType } from "../../../../demo/ui/src/extension/types";
-console.log("content script");
 
 window.addEventListener("message", (event) => {
   chrome.runtime.sendMessage(
@@ -13,7 +12,6 @@ window.addEventListener("message", (event) => {
   );
 });
 
-console.log("starting session");
 chrome.runtime.sendMessage(
   {
     id: generateMessageId(ExtensionMessageType.PAGE_ALREADY_VISITED_CEHCK),
@@ -21,8 +19,6 @@ chrome.runtime.sendMessage(
     origin: window.location.href,
   },
   function (response) {
-    console.log("response");
-    console.log(response);
       if (response) {
           window.postMessage(response, "*");
       }

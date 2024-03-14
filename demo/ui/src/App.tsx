@@ -27,8 +27,6 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const handleMessage = (event) => {
-      console.log('event.data');
-      console.log(event.data);
       if (event.data && event.data.type === ExtensionMessageType.PAGE_ALREADY_VISITED_RESULT) {
         if (event.data.success){
           eventBus.publish("toast", {

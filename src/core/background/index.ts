@@ -833,7 +833,6 @@ async function processMessage(
     }
 
     case ExtensionMessageType.PAGE_ALREADY_VISITED_CEHCK: {
-      console.log("BG PAGE_ALREADY_VISITED_CEHCK")
       const { origin } = message;
       const { sessions } = await chrome.storage.local.get([
         LOCAL_STORAGE_SESSIONS,
@@ -844,14 +843,9 @@ async function processMessage(
         sessionAlreadyCreated = true;
       }
 
-      console.log("sessionAlreadyCreated");
-      console.log(sessionAlreadyCreated);
-
       if (!sessionAlreadyCreated){
-        console.log("lets create a session");
         const createSessionResult = await createSession("http://127.0.0.1:3001");
         if (createSessionResult.success) {
-          console.log("created");
           await logger.addLog(`✅ Session created successfully`);
           return successExt(
               message.id,
@@ -859,8 +853,6 @@ async function processMessage(
               createSessionResult.data,
           );
         } else {
-          console.log("error on crrate");
-          console.log(createSessionResult.error);
           await logger.addLog(`❌ ${createSessionResult.error}`);
           return failureExt(
               message.id,
