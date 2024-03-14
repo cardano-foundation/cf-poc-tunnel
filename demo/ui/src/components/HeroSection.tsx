@@ -8,9 +8,9 @@ const HeroSection: React.FC = () => {
 
   const handleDemo = async () => {
     if (!isLoggedIn) {
-      navigate("/login");
+      navigate("/login", { replace: true });
     } else {
-      navigate("/demo");
+      navigate("/demo", { replace: true });
     }
   };
   return (

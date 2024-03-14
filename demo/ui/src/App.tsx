@@ -19,7 +19,6 @@ import { eventBus } from "./utils/EventBus";
 const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
 
 const App: React.FC = () => {
-  const [playDemo, setPlayDemo] = useState(true);
   const [sessionCreated, setSessionCreated] = useState(false);
   const [signedHeaders, setSignedHeaders] = useState<Record<string, string>>(
     {},
