@@ -30,6 +30,7 @@ class SignifyApi {
 
     await ready();
 
+    console.info(`Initialising new Signify client...`);
     this.signifyClient = new SignifyClient(
       SignifyApi.KERIA_URL as string,
       randomPasscode(),
@@ -180,7 +181,7 @@ class SignifyApi {
     const aidResult = await this.getIdentifierByName(name);
     if (!aidResult.success) {
       return failure(
-        new Error(`Error trying to get the AID by name: ${name}`),
+        new Error(`[TunnelRequest] Error trying to get the AID by name: ${name}, trace: ${aidResult.error}`),
       );
     }
 
@@ -198,11 +199,11 @@ class SignifyApi {
     }
   }
 
-  async sendPing(name: string, recipient: string, pongCallback: (idwAid: string) => void): Promise<ResponseData<any>> {
+  async sendPing(name: string, recipient: string, pongCallback: () => void): Promise<ResponseData<any>> {
     const aidResult = await this.getIdentifierByName(name);
     if (!aidResult.success) {
       return failure(
-        new Error(`Error trying to get the AID by name: ${name}`),
+        new Error(`[Ping] Error trying to get the AID by name: ${name}, trace: ${aidResult.error}`),
       );
     }
 
@@ -221,7 +222,7 @@ class SignifyApi {
     }
   }
 
-  private async setupPongCallback(from: string, callback: (idwAid: string) => void): Promise<void> {
+  private async setupPongCallback(from: string, callback: () => void): Promise<void> {
     while (true) {
       const getPongsResult = await this.getUnreadPongs();
       if (!getPongsResult.success) {
@@ -236,7 +237,7 @@ class SignifyApi {
           continue;
         }
         if (getExnResult.data.exn?.i === from) {
-          callback(from);
+          callback();
           return;
         }
       }

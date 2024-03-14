@@ -29,9 +29,7 @@ const QRScanner = () => {
       scanner.clear();
       handleResolveOObi(result);
     }
-    const error = (err:any) => {
-      console.warn(err);
-    }
+    const error = (_: any) => {} 
     scanner.render(success, error);
 
   }, [isLoggedIn, restartCamera]);
@@ -65,59 +63,52 @@ const QRScanner = () => {
     switch (contentType) {
       case ContentType.SCANNER:
         return {
-          component: <div id="reader"/>,
+          component: <div id="reader" />,
           title: "Scan your wallet QR Code"
         }
       case ContentType.RESOLVING:
         return {
-          component:  <></>,
+          component: <></>,
           title: "Resolving wallet OOBI"
         }
       case ContentType.RESOLVED:
         return {
-          component:  <>
+          component:
             <button
               className="resolve-button"
               onClick={() => window.close()}
-          >
+            >
               Close
-          </button>
-            <button
-              className="resolve-button"
-              onClick={() => restartScanner()}
-          >
-            Scan QR Code again
-          </button>
-          </>,
+            </button>,
           title: "The wallet OOBI was resolved successfully"
         }
     }
   }
 
   const handleResolveOObi = async (oobi: string) => {
-    // @TODO - foconnor: Handle if not (i.e. scans different QR code)
-    if (oobi.length && oobi.includes("oobi")) {
-      setContentType(ContentType.RESOLVING);
-      const resolveOobiResult = await chrome.runtime.sendMessage({
-        type: ExtensionMessageType.RESOLVE_WALLET_OOBI,
-        data: {
-          url: oobi,
-        }
-      });
-  
-      if (!resolveOobiResult.success) {
-        await logger.addLog(`❌ Resolving wallet OOBI failed: ${oobi}`);
-        setContentType(ContentType.SCANNER);
-        return;
-      }
-  
-      await chrome.storage.local.set({
-        [LocalStorageKeys.WALLET_CONNECTION_IDW_AID]: resolveOobiResult.data.response.i,
-      });
-      
-      await logger.addLog(`✅ Wallet OOBI resolved successfully: ${oobi}`);
-      setContentType(ContentType.RESOLVED);
+    if (!(oobi.length && oobi.includes("oobi"))) {
+      return restartScanner();
     }
+
+    setContentType(ContentType.RESOLVING);
+    const resolveOobiResult = await chrome.runtime.sendMessage({
+      type: ExtensionMessageType.RESOLVE_WALLET_OOBI,
+      data: {
+        url: oobi,
+      }
+    });
+
+    if (!resolveOobiResult.success) {
+      await logger.addLog(`❌ Resolving wallet OOBI failed: ${oobi} - trace: ${resolveOobiResult.error}`);
+      return restartScanner();
+    }
+
+    await chrome.storage.local.set({
+      [LocalStorageKeys.WALLET_CONNECTION_IDW_AID]: resolveOobiResult.data.response.i,
+    });
+
+    await logger.addLog(`✅ Wallet OOBI resolved successfully: ${oobi}`);
+    setContentType(ContentType.RESOLVED);
   };
 
   const content = renderContent();
@@ -125,18 +116,12 @@ const QRScanner = () => {
   return (
     <div className="scannerPage">
       {isLoggedIn ? (
-        <>
-          <div className="section">
-            <h2 className="">{content?.title}  </h2>
-            {
-              content?.component
-            }
-          </div>
-        </>
+        <div className="section">
+          <h2 className="">{content?.title}</h2>
+          { content?.component }
+        </div>
       ) : (
-        <>
-          <div className="lockMessage">Please, login again</div>
-        </>
+        <div className="lockMessage">Please, login again</div>
       )}
     </div>
   );

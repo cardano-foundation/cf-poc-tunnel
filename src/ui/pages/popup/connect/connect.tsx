@@ -9,6 +9,7 @@ import {
 } from "@src/core/background";
 import idwLogo from "@assets/idw.png";
 import { ExtensionMessageType } from "@src/core/background/types";
+import { useNavigate } from "react-router";
 
 export interface Comm {
   id: string;
@@ -22,11 +23,19 @@ function Connect() {
   const [showSpinner, setShowSpinner] = useState(true);
   const [oobiUrl, setOobiUrl] = useState("");
   const [isResolving, setIsResolving] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     chrome.storage.local.get([LocalStorageKeys.WALLET_CONNECTION_TUNNEL_AID]).then((c) => {
       setComm(c[LocalStorageKeys.WALLET_CONNECTION_TUNNEL_AID]);
       setShowSpinner(false);
+    });
+
+    // Shouldn't happen but just in case.
+    chrome.storage.local.get([LocalStorageKeys.WALLET_PONG_RECEIVED]).then((result) => {
+      if (result[LocalStorageKeys.WALLET_PONG_RECEIVED] === true) {
+        navigate(-1);
+      }
     });
   }, []);
 
@@ -36,6 +45,10 @@ function Connect() {
 
   const handleResolveOObi = async () => {
     setIsResolving(true);
+
+    // @TODO - foconnor: Instant feedback.
+    // chrome.runtime.onMessage.addListener((message, _, __) => {
+    // });
     
     const resolveOobiResult = await chrome.runtime.sendMessage({
       type: ExtensionMessageType.RESOLVE_WALLET_OOBI,
@@ -45,7 +58,7 @@ function Connect() {
     });
 
     if (!resolveOobiResult.success) {
-      await logger.addLog(`❌ Resolving wallet OOBI failed: ${oobiUrl}`);
+      await logger.addLog(`❌ Resolving wallet OOBI failed: ${oobiUrl} - trace: ${resolveOobiResult.error}`);
       setIsResolving(false);
       return;
     }
@@ -63,7 +76,7 @@ function Connect() {
   const copyQrCode = async () => {
     try {
       if (!comm) return;
-      await navigator.clipboard.writeText(comm?.tunnelOobiUrl);
+      await navigator.clipboard.writeText(comm.tunnelOobiUrl);
     } catch (error) {
       console.error("Clipboard error: ", error);
     }

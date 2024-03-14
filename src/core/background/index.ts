@@ -26,7 +26,6 @@ export enum LocalStorageKeys {
   WALLET_PONG_RECEIVED = "walletPongReceived",
 }
 
-export const COMMUNICATION_AID = "idw";
 export const IDW_COMMUNICATION_AID_NAME = "idw";
 
 export const logger = new Logger();
@@ -319,7 +318,7 @@ const createSession = async (serverEndpoint: string): Promise<ResponseData<undef
   } catch (e) {
     return failure(
       new Error(
-        `Error getting OOBI URL from server: ${serverEndpoint}/oobi: ${e}`,
+        `Error getting OOBI URL from server: ${serverEndpoint}/oobi - trace ${e}`,
       ),
     );
   }
@@ -494,25 +493,27 @@ chrome.runtime.onInstalled.addListener(async () => {
   await logger.addLog(`✅ Extension successfully installed!`);
   await signifyApi.start();
   await logger.addLog(`✅ Signify initialized successfully`);
+
   const createIdentifierResult = await signifyApi.createIdentifier(
     IDW_COMMUNICATION_AID_NAME,
   );
-
   if (!createIdentifierResult.success) {
     await logger.addLog(
-      `❌ Error trying to create an AID to communicate with IDW: ${createIdentifierResult.error}`,
+      `❌ Error trying to create an AID to communicate with IDW: ${createIdentifierResult.error} - trace: ${createIdentifierResult.error}`,
     );
     new Error(
-      `Error trying to create an AID to communicate with IDW: ${createIdentifierResult.error}`,
+      `Error trying to create an AID to communicate with IDW: ${createIdentifierResult.error} - trace: ${createIdentifierResult.error}`,
     );
     return;
   }
 
   const getOobiResult = await signifyApi.createOOBI(IDW_COMMUNICATION_AID_NAME);
-
   if (!getOobiResult.success) {
+    await logger.addLog(
+      `Error trying to create an OOBI URL for the IDW to connect: ${createIdentifierResult.data.serder.ked.i} - trace: ${getOobiResult.error}`,
+    );
     new Error(
-      `Error trying to create an OOBI URL for the IDW to connect: ${createIdentifierResult.data.serder.ked.i}`,
+      `Error trying to create an OOBI URL for the IDW to connect: ${createIdentifierResult.data.serder.ked.i} - trace: ${getOobiResult.error}`,
     );
     return;
   }
@@ -734,10 +735,16 @@ async function processMessage(
         );
       }
 
-      const sendPingResult = await signifyApi.sendPing(IDW_COMMUNICATION_AID_NAME, resolveOobiResult.data.response.i, async (idwAid: string) => {
+      const sendPingResult = await signifyApi.sendPing(IDW_COMMUNICATION_AID_NAME, resolveOobiResult.data.response.i, async () => {
         await chrome.storage.local.set({
           [LocalStorageKeys.WALLET_PONG_RECEIVED]: true,
         });
+
+        // @TODO - focoonnor: Instant feedback.
+        // await chrome.runtime.sendMessage({
+        //   type: ExtensionMessageType.WALLET_PONG_RECEIVED,
+        //   data: {}
+        // });
       });
 
       if (!sendPingResult.success) {
