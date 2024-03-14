@@ -1,28 +1,16 @@
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import "./sessionDetails.scss";
 import { BackButton } from "@components/backButton";
 import { shortenText } from "@src/utils";
-import { Session } from "../sessionList/sessionList";
-import { LocalStorageKeys } from "@src/core/background";
 
 function SessionDetails() {
-  const navigate = useNavigate();
   const location = useLocation();
   const session = location.state?.session;
+
   if (!session) {
     return <div>No session data available</div>;
   }
-
-  const deleteSession = () => {
-    chrome.storage.local.get([LocalStorageKeys.SESSIONS], function (result) {
-      const ss = result.sessions.filter((s: Session) => session.id !== s.id);
-
-      chrome.storage.local.set({ [LocalStorageKeys.SESSIONS]: ss }, function () {
-        navigate(-1);
-      });
-    });
-  };
 
   return (
     <div className="sessionDetails">
@@ -52,9 +40,6 @@ function SessionDetails() {
             {new Date(session.createdAt).toLocaleString()}
           </p>
         </div>
-        <button className="deleteButton" onClick={() => deleteSession()}>
-          Delete
-        </button>
       </div>
     </div>
   );
