@@ -6,8 +6,11 @@ const LoginPage: React.FC = () => {
     const [selectedRole, setSelectedRole] = useState('');
 
     useEffect(() => {
-        eventBus.publish('toast', { message: 'Este es un mensaje de toast!', type: 'success', duration: 3000 });
-        console.log("hey2")
+        eventBus.publish('toast', { message: 'Este es un mensaje de toast!', type: 'success', duration: 5000 });
+        eventBus.publish('toast', { message: 'Este es un mensaje de toast!', type: 'danger', duration: 5000 });
+        eventBus.publish('toast', { message: 'Este es un mensaje de toast!', type: 'warning', duration: 5000 });
+        console.log("hey3")
+        console.log("hey")
 
 
     }, [])
