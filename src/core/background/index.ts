@@ -561,7 +561,7 @@ function getReturnMessageType(
       return ExtensionMessageType.RESOLVE_WALLET_OOBI_RESULT;
     case ExtensionMessageType.LOGIN_REQUEST:
       return ExtensionMessageType.LOGIN_REQUEST_RESULT;
-    case ExtensionMessageType.PAGE_ALREADY_VISITED_CEHCK:
+    case ExtensionMessageType.PAGE_ALREADY_VISITED_CHECK:
       return ExtensionMessageType.PAGE_ALREADY_VISITED_RESULT;
     default:
       return ExtensionMessageType.GENERIC_ERROR;
@@ -832,7 +832,7 @@ async function processMessage(
       );
     }
 
-    case ExtensionMessageType.PAGE_ALREADY_VISITED_CEHCK: {
+    case ExtensionMessageType.PAGE_ALREADY_VISITED_CHECK: {
       const { origin } = message;
       const { sessions } = await chrome.storage.local.get([
         LOCAL_STORAGE_SESSIONS,
@@ -843,30 +843,13 @@ async function processMessage(
         sessionAlreadyCreated = true;
       }
 
-      if (!sessionAlreadyCreated){
-        const createSessionResult = await createSession("http://127.0.0.1:3001");
-        if (createSessionResult.success) {
-          await logger.addLog(`✅ Session created successfully`);
-          return successExt(
-              message.id,
-              getReturnMessageType(message.type),
-              createSessionResult.data,
-          );
-        } else {
-          await logger.addLog(`❌ ${createSessionResult.error}`);
-          return failureExt(
-              message.id,
-              getReturnMessageType(message.type),
-              createSessionResult.error,
-          );
-        }
-      } else {
-        return successExt(
-            message.id,
-            getReturnMessageType(message.type),
-            "Session previously created, ignoring.",
-        );
-      }
+      return successExt(
+          message.id,
+          getReturnMessageType(message.type),
+          {
+            sessionAlreadyCreated
+          },
+      );
     }
   }
 }

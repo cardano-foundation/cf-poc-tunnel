@@ -19,6 +19,7 @@ import { eventBus } from "./utils/EventBus";
 const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
 
 const App: React.FC = () => {
+  const [playDemo, setPlayDemo] = useState(true);
   const [sessionCreated, setSessionCreated] = useState(false);
   const [signedHeaders, setSignedHeaders] = useState<Record<string, string>>(
     {},
@@ -26,33 +27,26 @@ const App: React.FC = () => {
   const [responseBody, setResponseBody] = useState<any>();
 
   useEffect(() => {
-    const handleMessage = (event) => {
+    const handleMessage = (event:any) => {
       if (event.data && event.data.type === ExtensionMessageType.PAGE_ALREADY_VISITED_RESULT) {
-        if (event.data.success){
-          eventBus.publish("toast", {
-            message: typeof event.data?.data ? event.data.data : "Session created successfully",
-            type: "success",
-            duration: 3000,
-          });
+        if (!event.data.data.sessionAlreadyCreated){
+          handleCreateSession();
         } else {
           eventBus.publish("toast", {
-            message: event.data.error,
-            type: "danger",
-            duration: 5000,
+            message: "Session already created, ignore",
+            type: "success",
+            duration: 3000,
           });
         }
       }
     };
-
     window.addEventListener("message", handleMessage);
-
     return () => {
       window.removeEventListener("message", handleMessage);
     };
   }, []);
 
   const handleCreateSession = async () => {
-    console.log("handleCreateSession");
     try {
       const messageId = generateMessageId(ExtensionMessageType.CREATE_SESSION);
       const extMessage = listenForExtensionMessage<Record<string, string>>(
