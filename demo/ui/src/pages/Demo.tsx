@@ -57,15 +57,13 @@ const Demo: React.FC = () => {
     console.log(`Fetching content for: ${content.name}`);
     setSelectedContent(content);
     handleFetch();
-    // Implement your logic to call the backend here
-    // This might involve setting up a state for loading/error responses
   };
 
   return (
       <div className="relative h-screen flex items-center justify-center text-center bg-demo bg-cover bg-no-repeat">
         <div className="hero-content z-10 p-8 md:p-24 bg-black bg-opacity-80 rounded-lg">
-          <h2 className="font-bold break-normal text-white text-3xl md:text-5xl mb-4">
-            Decrypt resources with Keria
+          <h2 className="font-bold break-normal text-white text-3xl md:text-4xl mb-4">
+            Decrypt remote resources using Keria Identities
           </h2>
           <p className="text-sm md:text-base text-white font-bold mb-6">
             FILES <span className="text-gray-200">/ Server</span>

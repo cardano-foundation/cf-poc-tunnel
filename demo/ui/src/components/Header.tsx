@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import iiwLogo from "../assets/iiw-dog-logo.png";
+import cardanoLogo from "../assets/cardano.png";
 
 const Header: React.FC = () => {
   let navigate = useNavigate();
@@ -14,6 +15,8 @@ const Header: React.FC = () => {
         >
           <img src={iiwLogo} alt="Logo" className="w-12 mr-2" />
           <span className="text-xl">Demo IIW</span>
+          <span className="ml-2 pt-2 text-sm text-white opacity-55">by Cardano Foundation</span>
+          <img src={cardanoLogo} alt="Cardano Foundation Logo" className="h-6 ml-2 opacity-55" />
         </div>
         <nav className="md:ml-auto flex flex-wrap items-center text-base justify-center">
           <a href="#" className="mr-5 text-white hover:text-gray-300 cursor-pointer">
