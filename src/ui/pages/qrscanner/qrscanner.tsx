@@ -29,7 +29,8 @@ const QRScanner = () => {
       scanner.clear();
       handleResolveOObi(result);
     }
-    const error = (_: any) => {} 
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    const error = (_: any) => {}
     scanner.render(success, error);
 
   }, [isLoggedIn, restartCamera]);
