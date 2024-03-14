@@ -10,7 +10,10 @@ import {
 import {ExtensionMessageType, RolesType} from "./extension/types";
 import { AxiosError } from "axios";
 import {Header} from "./components/Header";
-import {HeroSection} from "./components/HeroSection";
+import {Route, BrowserRouter as Router, Routes} from "react-router-dom";
+import {HomePage} from "./pages/HomePage";
+import {LoginPage} from "./pages/LoginPage";
+import {Demo} from "./pages/Demo";
 
 const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
 
@@ -91,10 +94,18 @@ const App: React.FC = () => {
 
   return (
     <>
+      <Router>
+        <div>
+          <Header />
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/demo" element={<Demo />} />
+          </Routes>
+        </div>
+      </Router>
       <Header />
-      <main>
-        <HeroSection />
-      </main>
+
 
       <div>
         <img src={govLogo} className="logo" alt="Vite logo" />
