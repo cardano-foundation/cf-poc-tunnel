@@ -18,11 +18,14 @@ import {
   ExtensionMessageType,
 } from "@src/core/background/types";
 import { Session } from "@src/ui/pages/popup/sessionList/sessionList";
-import {LOCAL_STORAGE_WALLET_CONNECTION} from "@pages/popup/connect/connect";
 
-export const LOCAL_STORAGE_SESSIONS = "sessions";
-export const LOCAL_STORAGE_WALLET_CONNECTIONS = "walletConnections";
-export const COMMUNICATION_AID = "idw";
+export enum LocalStorageKeys {
+  SESSIONS = "sessions",
+  WALLET_CONNECTION_IDW_AID = "walletConnectionIdwAid",
+  WALLET_CONNECTION_TUNNEL_AID = "walletConnectionTunnelAid",
+  WALLET_PONG_RECEIVED = "walletPongReceived",
+}
+
 export const IDW_COMMUNICATION_AID_NAME = "idw";
 
 export const logger = new Logger();
@@ -279,30 +282,24 @@ const triggerServerToDiscloseACDC = async (
   }
 };
 
-const waitForNotificationsToAppear = async (
+const waitForGrantToAppear = async (
   retryTimes: number,
 ): Promise<ResponseData<any>> => {
   try {
-    let noty = await signifyApi.getUnreadNotifications();
-    if (!noty.success) {
-      return failure(
-        new Error(`Error trying to get the notifications from Keria`),
-      );
-    }
-    let notes = noty.data.notes;
+    let notes = [];
     let tries = 0;
-    while (!notes?.length) {
+    while (notes.length === 0) {
       if (tries > retryTimes) {
-        throw new Error("not acdc");
+        throw new Error("Grant is not appearing");
       }
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      noty = await signifyApi.getUnreadNotifications();
-      if (!noty.success) {
+      const fetchGrantsResult = await signifyApi.getUnreadIpexGrants();
+      if (!fetchGrantsResult.success) {
         return failure(
           new Error(`Error trying to get the notifications from Keria`),
         );
       }
-      notes = noty.data.notes;
+      notes = fetchGrantsResult.data.notes;
       tries++;
     }
     return success(notes);
@@ -321,7 +318,7 @@ const createSession = async (serverEndpoint: string): Promise<ResponseData<undef
   } catch (e) {
     return failure(
       new Error(
-        `Error getting OOBI URL from server: ${serverEndpoint}/oobi: ${e}`,
+        `Error getting OOBI URL from server: ${serverEndpoint}/oobi - trace ${e}`,
       ),
     );
   }
@@ -399,7 +396,7 @@ const createSession = async (serverEndpoint: string): Promise<ResponseData<undef
       and schema ${ENTERPRISE_SCHEMA_SAID}`,
   );
 
-  const notificationsResult = await waitForNotificationsToAppear(140);
+  const notificationsResult = await waitForGrantToAppear(140);
 
   if (!notificationsResult.success) {
     return failure(new Error(`Error getting notifications from Keria`));
@@ -466,7 +463,6 @@ const createSession = async (serverEndpoint: string): Promise<ResponseData<undef
     id: uid(24),
     tunnelAid: createIdentifierResult.data.serder.ked.i,
     serverAid,
-    expiryDate: "",
     loggedIn: false,
     name: urlF.hostname,
     logo: tabs[0]?.favIconUrl
@@ -481,10 +477,10 @@ const createSession = async (serverEndpoint: string): Promise<ResponseData<undef
     },
   };
 
-  const { sessions } = await chrome.storage.local.get([LOCAL_STORAGE_SESSIONS]);
+  const { sessions } = await chrome.storage.local.get([LocalStorageKeys.SESSIONS]);
   const sessionsArray = sessions || [];
   sessionsArray.push(newSession);
-  await chrome.storage.local.set({ sessions: sessionsArray });
+  await chrome.storage.local.set({ [LocalStorageKeys.SESSIONS]: sessionsArray });
 
   await logger.addLog(
     `🗃 New session stored in db: ${JSON.stringify(newSession, null, 2)}`,
@@ -497,25 +493,27 @@ chrome.runtime.onInstalled.addListener(async () => {
   await logger.addLog(`✅ Extension successfully installed!`);
   await signifyApi.start();
   await logger.addLog(`✅ Signify initialized successfully`);
+
   const createIdentifierResult = await signifyApi.createIdentifier(
     IDW_COMMUNICATION_AID_NAME,
   );
-
   if (!createIdentifierResult.success) {
     await logger.addLog(
-      `❌ Error trying to create an AID for the IDW: ${createIdentifierResult.error}`,
+      `❌ Error trying to create an AID to communicate with IDW: ${createIdentifierResult.error} - trace: ${createIdentifierResult.error}`,
     );
     new Error(
-      `Error trying to create an AID for the IDW: ${createIdentifierResult.error}`,
+      `Error trying to create an AID to communicate with IDW: ${createIdentifierResult.error} - trace: ${createIdentifierResult.error}`,
     );
     return;
   }
 
   const getOobiResult = await signifyApi.createOOBI(IDW_COMMUNICATION_AID_NAME);
-
   if (!getOobiResult.success) {
+    await logger.addLog(
+      `Error trying to create an OOBI URL for the IDW to connect: ${createIdentifierResult.data.serder.ked.i} - trace: ${getOobiResult.error}`,
+    );
     new Error(
-      `Error trying to create an OOBI url for the IDW AID: ${createIdentifierResult.data.serder.ked.i}`,
+      `Error trying to create an OOBI URL for the IDW to connect: ${createIdentifierResult.data.serder.ked.i} - trace: ${getOobiResult.error}`,
     );
     return;
   }
@@ -527,7 +525,7 @@ chrome.runtime.onInstalled.addListener(async () => {
     tunnelOobiUrl: getOobiResult.data.oobis[0],
   };
 
-  await chrome.storage.local.set({ [IDW_COMMUNICATION_AID_NAME]: commAid });
+  await chrome.storage.local.set({ [LocalStorageKeys.WALLET_CONNECTION_TUNNEL_AID]: commAid });
 
   await logger.addLog(
     `✅ AID and OOBI created for IDW communication: ${getOobiResult.data.oobis[0]}`,
@@ -580,7 +578,7 @@ async function processMessage(
 
       const urlF = new URL(origin);
       const { sessions } = await chrome.storage.local.get([
-        LOCAL_STORAGE_SESSIONS,
+        LocalStorageKeys.SESSIONS,
       ]);
       if (
         sessions &&
@@ -615,7 +613,7 @@ async function processMessage(
 
       const urlF = new URL(url);
       const { sessions } = await chrome.storage.local.get([
-        LOCAL_STORAGE_SESSIONS,
+        LocalStorageKeys.SESSIONS,
       ]);
       if (!sessions) {
         return failureExt(
@@ -681,7 +679,7 @@ async function processMessage(
       // We don't trust requests for other domains until they show ACDC etc.
       const urlF = new URL(url);
       const { sessions } = await chrome.storage.local.get([
-        LOCAL_STORAGE_SESSIONS,
+        LocalStorageKeys.SESSIONS,
       ]);
       if (!sessions) {
         return failureExt(
@@ -736,7 +734,27 @@ async function processMessage(
           resolveOobiResult.error,
         );
       }
-      
+
+      const sendPingResult = await signifyApi.sendPing(IDW_COMMUNICATION_AID_NAME, resolveOobiResult.data.response.i, async () => {
+        await chrome.storage.local.set({
+          [LocalStorageKeys.WALLET_PONG_RECEIVED]: true,
+        });
+
+        // @TODO - foconnor: Instant feedback.
+        // await chrome.runtime.sendMessage({
+        //   type: ExtensionMessageType.WALLET_PONG_RECEIVED,
+        //   data: {}
+        // });
+      });
+
+      if (!sendPingResult.success) {
+        return failureExt(
+          message.id,
+          getReturnMessageType(message.type),
+          sendPingResult.error,
+        );
+      }
+
       return successExt(
         message.id,
         getReturnMessageType(message.type),
@@ -756,7 +774,7 @@ async function processMessage(
         );
       }
 
-      const walletConnectionAid = await chrome.storage.local.get(LOCAL_STORAGE_WALLET_CONNECTION);
+      const walletConnectionAid = await chrome.storage.local.get(LocalStorageKeys.WALLET_CONNECTION_IDW_AID);
       if (!walletConnectionAid) {
         return failureExt(
             message.id,
@@ -766,8 +784,8 @@ async function processMessage(
       }
 
       const webDomain = new URL(origin).hostname;
-      const { sessions } = await chrome.storage.local.get([LOCAL_STORAGE_SESSIONS]);
-      const session = sessions.find((session: Session) => session.name === webDomain);
+      const { sessions } = await chrome.storage.local.get([LocalStorageKeys.SESSIONS]);
+      const session: Session = sessions.find((session: Session) => session.name === webDomain);
 
       if (!session) {
         await logger.addLog(`❌ Error getting the session by name: ${webDomain}`);
@@ -780,14 +798,14 @@ async function processMessage(
 
       const payload = {
         serverEndpoint,
-        serverOobiUrl: session.serverOobiUrl,
+        serverOobiUrl: session.serverOobi.metadata.oobi,
         logo: session.logo,
         tunnelAid: session.tunnelAid,
         filter
-      }
-      const recipient = walletConnectionAid[LOCAL_STORAGE_WALLET_CONNECTION];
+      };
+      const recipient = walletConnectionAid[LocalStorageKeys.WALLET_CONNECTION_IDW_AID];
 
-      const sendMsgResult = await signifyApi.sendMessage(IDW_COMMUNICATION_AID_NAME, recipient, payload);
+      const sendMsgResult = await signifyApi.sendTunnelRequest(IDW_COMMUNICATION_AID_NAME, recipient, payload);
       if (!sendMsgResult.success) {
         await logger.addLog(`❌ Message sent to IDW failed: ${sendMsgResult.error}`);
         return failureExt(

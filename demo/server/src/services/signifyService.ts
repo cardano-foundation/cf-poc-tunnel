@@ -264,7 +264,7 @@ export const getUnhandledTunnelRequestNotifications = async () => {
 export const getUnhandledGrantNotifications = async (sender: string) => {
   const client = await getSignifyClient();
   const notificationsList = await client.notifications().list(0, 100); //TODO: Add pagination later. Use fixed range at the moment
-  const unreadNotificationsList = notificationsList.notes
+  const unreadNotificationsList: any[] = notificationsList.notes
     .filter(note => !note.r && note.a.r === "/exn/ipex/grant");
   const notificationsData = await Promise.all(unreadNotificationsList.map(async note => {
     const exchange = await client.exchanges().get(note.a.d);
@@ -308,7 +308,7 @@ export const handleTunnelRequestNotifications = async () => {
     const tunnelAid = tunnelAidNotification.exchange.exn.a.sid;
     const idWalletAid = tunnelAidNotification.exchange.exn.i;
     const acdcNotifications = await getUnhandledGrantNotifications(idWalletAid);
-    if (!acdcNotifications.length) {
+    if (acdcNotifications.length === 0) {
       console.log(`AID ${idWalletAid} has not completed the ACDC disclosure yet.`);
       continue;
     }
