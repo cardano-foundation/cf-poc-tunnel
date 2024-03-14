@@ -3,10 +3,7 @@ import "./connect.scss";
 import { BackButton } from "@components/backButton";
 import { QRCode } from "react-qrcode-logo";
 import { shortenText } from "@src/utils";
-import {
-  IDW_COMMUNICATION_AID_NAME,
-  logger,
-} from "@src/core/background";
+import { IDW_COMMUNICATION_AID_NAME, logger } from "@src/core/background";
 import idwLogo from "@assets/idw.png";
 import { ExtensionMessageType } from "@src/core/background/types";
 
@@ -33,17 +30,19 @@ function Connect() {
   }, []);
 
   const openQRScanner = async () => {
-    chrome.tabs.create({url: chrome.runtime.getURL("/src/ui/pages/qrscanner/index.html")})
-  }
+    chrome.tabs.create({
+      url: chrome.runtime.getURL("/src/ui/pages/qrscanner/index.html"),
+    });
+  };
 
   const handleResolveOObi = async () => {
     setIsResolving(true);
-    
+
     const resolveOobiResult = await chrome.runtime.sendMessage({
       type: ExtensionMessageType.RESOLVE_WALLET_OOBI,
       data: {
         url: oobiUrl,
-      }
+      },
     });
 
     if (!resolveOobiResult.success) {
@@ -132,10 +131,7 @@ function Connect() {
           placeholder="Insert OOBI URL"
           onChange={(e) => setOobiUrl(e.target.value)}
         />
-        <button
-            className="resolve-button"
-            onClick={() => openQRScanner()}
-        >
+        <button className="resolve-button" onClick={() => openQRScanner()}>
           QR Code
         </button>
         <button

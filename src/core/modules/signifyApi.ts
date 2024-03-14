@@ -191,9 +191,7 @@ class SignifyApi {
   ): Promise<ResponseData<any>> {
     const aidResult = await this.getIdentifierByName(name);
     if (!aidResult.success) {
-      return failure(
-        new Error(`Error trying to get the AID by name: ${name}`),
-      );
+      return failure(new Error(`Error trying to get the AID by name: ${name}`));
     }
 
     try {
@@ -201,9 +199,7 @@ class SignifyApi {
 
       const messageSent = await this.signifyClient
         .exchanges()
-        .send(name, "tunnel", aidResult.data, route, payload, {}, [
-          recipient,
-        ]);
+        .send(name, "tunnel", aidResult.data, route, payload, {}, [recipient]);
       return success(messageSent);
     } catch (e) {
       return failure(e);
@@ -242,5 +238,5 @@ class SignifyApi {
   }
 }
 
-const signifyApiInstance  = new SignifyApi();
+const signifyApiInstance = new SignifyApi();
 export { signifyApiInstance };

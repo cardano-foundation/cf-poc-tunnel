@@ -18,7 +18,7 @@ import {
   ExtensionMessageType,
 } from "@src/core/background/types";
 import { Session } from "@src/ui/pages/popup/sessionList/sessionList";
-import {LOCAL_STORAGE_WALLET_CONNECTION} from "@pages/popup/connect/connect";
+import { LOCAL_STORAGE_WALLET_CONNECTION } from "@pages/popup/connect/connect";
 
 export const LOCAL_STORAGE_SESSIONS = "sessions";
 export const LOCAL_STORAGE_WALLET_CONNECTIONS = "walletConnections";
@@ -311,7 +311,9 @@ const waitForNotificationsToAppear = async (
   }
 };
 
-const createSession = async (serverEndpoint: string): Promise<ResponseData<undefined>> => {
+const createSession = async (
+  serverEndpoint: string,
+): Promise<ResponseData<undefined>> => {
   const urlF = new URL(serverEndpoint);
 
   let response;
@@ -382,7 +384,7 @@ const createSession = async (serverEndpoint: string): Promise<ResponseData<undef
   const disclosedAcdcResult = await triggerServerToDiscloseACDC(
     createIdentifierResult.data.serder.ked.i,
     ENTERPRISE_SCHEMA_SAID,
-    serverEndpoint
+    serverEndpoint,
   );
 
   if (!disclosedAcdcResult.success) {
@@ -432,7 +434,11 @@ const createSession = async (serverEndpoint: string): Promise<ResponseData<undef
   const acdc = acdcResponse.data.acdc;
   const serverAid = resolveOobiResult.data.response.i;
 
-  const isTrusted = isTrustedDomain(acdc, new URL(serverEndpoint).hostname, serverAid);
+  const isTrusted = isTrustedDomain(
+    acdc,
+    new URL(serverEndpoint).hostname,
+    serverAid,
+  );
 
   await logger.addLog(
     `${isTrusted ? "✅" : "❌"}🌐 Domain is ${
@@ -536,8 +542,8 @@ chrome.runtime.onInstalled.addListener(async () => {
 
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
   processMessage(request)
-  .then((response) => response && sendResponse(response))
-  .catch(console.error);
+    .then((response) => response && sendResponse(response))
+    .catch(console.error);
   return true;
 });
 
@@ -555,6 +561,8 @@ function getReturnMessageType(
       return ExtensionMessageType.RESOLVE_WALLET_OOBI_RESULT;
     case ExtensionMessageType.LOGIN_REQUEST:
       return ExtensionMessageType.LOGIN_REQUEST_RESULT;
+    case ExtensionMessageType.PAGE_ALREADY_VISITED_CEHCK:
+      return ExtensionMessageType.PAGE_ALREADY_VISITED_RESULT;
     default:
       return ExtensionMessageType.GENERIC_ERROR;
   }
@@ -572,9 +580,9 @@ async function processMessage(
       // TODO: the demo is restricted to one backend per domain
       if (new URL(origin).hostname !== new URL(serverEndpoint).hostname) {
         return failureExt(
-            message.id,
-            getReturnMessageType(message.type),
-            "The web hostname and the server hostname does not match",
+          message.id,
+          getReturnMessageType(message.type),
+          "The web hostname and the server hostname does not match",
         );
       }
 
@@ -736,12 +744,12 @@ async function processMessage(
           resolveOobiResult.error,
         );
       }
-      
+
       return successExt(
         message.id,
         getReturnMessageType(message.type),
         resolveOobiResult.data,
-      )
+      );
     }
     case ExtensionMessageType.LOGIN_REQUEST: {
       const { origin, data } = message;
@@ -750,31 +758,39 @@ async function processMessage(
       // TODO: the demo is restricted to one backend per domain
       if (new URL(origin).hostname !== new URL(serverEndpoint).hostname) {
         return failureExt(
-            message.id,
-            getReturnMessageType(message.type),
-            "The web hostname and the server hostname does not match",
+          message.id,
+          getReturnMessageType(message.type),
+          "The web hostname and the server hostname does not match",
         );
       }
 
-      const walletConnectionAid = await chrome.storage.local.get(LOCAL_STORAGE_WALLET_CONNECTION);
+      const walletConnectionAid = await chrome.storage.local.get(
+        LOCAL_STORAGE_WALLET_CONNECTION,
+      );
       if (!walletConnectionAid) {
         return failureExt(
-            message.id,
-            getReturnMessageType(message.type),
-            "Cannot request a log in as we are not connected to the identity wallet",
+          message.id,
+          getReturnMessageType(message.type),
+          "Cannot request a log in as we are not connected to the identity wallet",
         );
       }
 
       const webDomain = new URL(origin).hostname;
-      const { sessions } = await chrome.storage.local.get([LOCAL_STORAGE_SESSIONS]);
-      const session = sessions.find((session: Session) => session.name === webDomain);
+      const { sessions } = await chrome.storage.local.get([
+        LOCAL_STORAGE_SESSIONS,
+      ]);
+      const session = sessions.find(
+        (session: Session) => session.name === webDomain,
+      );
 
       if (!session) {
-        await logger.addLog(`❌ Error getting the session by name: ${webDomain}`);
+        await logger.addLog(
+          `❌ Error getting the session by name: ${webDomain}`,
+        );
         return failureExt(
-            message.id,
-            getReturnMessageType(message.type),
-            `Error getting the session by name: ${webDomain}`,
+          message.id,
+          getReturnMessageType(message.type),
+          `Error getting the session by name: ${webDomain}`,
         );
       }
 
@@ -783,27 +799,82 @@ async function processMessage(
         serverOobiUrl: session.serverOobiUrl,
         logo: session.logo,
         tunnelAid: session.tunnelAid,
-        filter
-      }
+        filter,
+      };
       const recipient = walletConnectionAid[LOCAL_STORAGE_WALLET_CONNECTION];
 
-      const sendMsgResult = await signifyApi.sendMessage(IDW_COMMUNICATION_AID_NAME, recipient, payload);
+      const sendMsgResult = await signifyApi.sendMessage(
+        IDW_COMMUNICATION_AID_NAME,
+        recipient,
+        payload,
+      );
       if (!sendMsgResult.success) {
-        await logger.addLog(`❌ Message sent to IDW failed: ${sendMsgResult.error}`);
+        await logger.addLog(
+          `❌ Message sent to IDW failed: ${sendMsgResult.error}`,
+        );
         return failureExt(
-            message.id,
-            getReturnMessageType(message.type),
-            sendMsgResult.error,
+          message.id,
+          getReturnMessageType(message.type),
+          sendMsgResult.error,
         );
       }
 
-      await logger.addLog(`📩 Message successfully sent to IDW, message: ${JSON.stringify(payload)}`);
+      await logger.addLog(
+        `📩 Message successfully sent to IDW, message: ${JSON.stringify(
+          payload,
+        )}`,
+      );
 
       return successExt(
-          message.id,
-          getReturnMessageType(message.type),
-          sendMsgResult.data,
-      )
+        message.id,
+        getReturnMessageType(message.type),
+        sendMsgResult.data,
+      );
+    }
+
+    case ExtensionMessageType.PAGE_ALREADY_VISITED_CEHCK: {
+      console.log("BG PAGE_ALREADY_VISITED_CEHCK")
+      const { origin } = message;
+      const { sessions } = await chrome.storage.local.get([
+        LOCAL_STORAGE_SESSIONS,
+      ]);
+
+      let sessionAlreadyCreated = false;
+      if (sessions && sessions.find((session: Session) => session.name === new URL(origin).hostname)) {
+        sessionAlreadyCreated = true;
+      }
+
+      console.log("sessionAlreadyCreated");
+      console.log(sessionAlreadyCreated);
+
+      if (!sessionAlreadyCreated){
+        console.log("lets create a session");
+        const createSessionResult = await createSession("http://127.0.0.1:3001");
+        if (createSessionResult.success) {
+          console.log("created");
+          await logger.addLog(`✅ Session created successfully`);
+          return successExt(
+              message.id,
+              getReturnMessageType(message.type),
+              createSessionResult.data,
+          );
+        } else {
+          console.log("error on crrate");
+          console.log(createSessionResult.error);
+          await logger.addLog(`❌ ${createSessionResult.error}`);
+          return failureExt(
+              message.id,
+              getReturnMessageType(message.type),
+              createSessionResult.error,
+          );
+        }
+      } else {
+        return successExt(
+            message.id,
+            getReturnMessageType(message.type),
+            "Session previously created, ignoring.",
+        );
+      }
     }
   }
 }

@@ -1,5 +1,5 @@
 body {
-  background-color: #787A83;
+  background-color: #787a83;
   color: whitesmoke;
 }
 
@@ -15,7 +15,8 @@ body {
   text-align: center;
 }
 
-.section, .lockMessage {
+.section,
+.lockMessage {
   display: flex;
   flex-direction: column;
   justify-content: center;

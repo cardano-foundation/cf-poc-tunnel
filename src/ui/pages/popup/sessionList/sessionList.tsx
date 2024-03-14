@@ -5,9 +5,7 @@ import "./sessionList.scss";
 import MobileConnectIcon from "../../../assets/mobile-connect-icon.svg";
 import webLogo from "../../../assets/web.png";
 import { isExpired } from "@src/utils";
-import {
-  LOCAL_STORAGE_SESSIONS,
-} from "@src/core/background";
+import { LOCAL_STORAGE_SESSIONS } from "@src/core/background";
 import { LOCAL_STORAGE_WALLET_CONNECTION } from "@pages/popup/connect/connect";
 
 interface Session {
@@ -28,7 +26,9 @@ function SessionList() {
   const navigate = useNavigate();
 
   const [sessions, setSessions] = useState<Session[]>([]);
-  const [walletConnectionAid, setWalletConnectionAid] = useState<string | undefined>(undefined);
+  const [walletConnectionAid, setWalletConnectionAid] = useState<
+    string | undefined
+  >(undefined);
 
   const handleNavigation = (
     option: string,

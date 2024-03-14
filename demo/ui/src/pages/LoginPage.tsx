@@ -7,9 +7,11 @@ import {
   sendMessageToExtension,
 } from "../extension/communication";
 import { ExtensionMessageType } from "../extension/types";
-import {SERVER_ENDPOINT, useAuth} from "../components/AuthProvider";
+import { SERVER_ENDPOINT, useAuth } from "../components/AuthProvider";
+import { useNavigate } from "react-router-dom";
 
 const LoginPage: React.FC = () => {
+  const navigate = useNavigate();
   const { setIsLoggedIn } = useAuth();
   const [selectedRole, setSelectedRole] = useState("");
 
@@ -59,6 +61,7 @@ const LoginPage: React.FC = () => {
         duration: 3000,
       });
       setIsLoggedIn(true);
+      navigate("/demo");
     } catch (e) {
       eventBus.publish("toast", {
         message: `Error: ${JSON.stringify(e)}`,
