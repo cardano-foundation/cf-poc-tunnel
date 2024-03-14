@@ -1,12 +1,12 @@
-import React from 'react';
-import {HeroSection} from "../components/HeroSection";
+import React from "react";
+import { HeroSection } from "../components/HeroSection";
 
 const HomePage: React.FC = () => {
-    return (
-        <main>
-            <HeroSection />
-        </main>
-    );
+  return (
+    <main>
+      <HeroSection />
+    </main>
+  );
 };
 
-export {HomePage};
+export { HomePage };
