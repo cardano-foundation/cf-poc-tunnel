@@ -18,7 +18,6 @@ import {
   ExtensionMessageType,
 } from "@src/core/background/types";
 import { Session } from "@src/ui/pages/popup/sessionList/sessionList";
-import { LOCAL_STORAGE_WALLET_CONNECTION } from "@pages/popup/connect/connect";
 
 export enum LocalStorageKeys {
   SESSIONS = "sessions",
@@ -830,17 +829,13 @@ async function processMessage(
           message.id,
           getReturnMessageType(message.type),
           sendMsgResult.data,
-      )
-        message.id,
-        getReturnMessageType(message.type),
-        sendMsgResult.data,
       );
     }
 
     case ExtensionMessageType.PAGE_ALREADY_VISITED_CHECK: {
       const { origin } = message;
       const { sessions } = await chrome.storage.local.get([
-        LOCAL_STORAGE_SESSIONS,
+        LocalStorageKeys.SESSIONS
       ]);
 
       let sessionAlreadyCreated = false;
