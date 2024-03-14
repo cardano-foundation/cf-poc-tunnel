@@ -35,7 +35,10 @@ const LoginPage: React.FC = () => {
                     <button
                         type="button"
                         disabled={!selectedRole.length}
-                        className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md focus:ring-4 focus:ring-indigo-500 focus:outline-none transition duration-150 ease-in-out flex justify-center items-center"
+                        style={{
+                            backgroundImage: 'linear-gradient(94.29deg, #92ffc0 20.19%, #00a5e6 119.98%)',
+                        }}
+                        className="w-full py-3 px-4 text-black rounded-md focus:ring-4 focus:ring-blue-300 focus:outline-none transition duration-150 ease-in-out flex justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         Login with ID Wallet
                         <img src={idwLogo} alt="Wallet Logo" className="ml-2 w-6 h-6" />
