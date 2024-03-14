@@ -740,7 +740,7 @@ async function processMessage(
           [LocalStorageKeys.WALLET_PONG_RECEIVED]: true,
         });
 
-        // @TODO - focoonnor: Instant feedback.
+        // @TODO - foconnor: Instant feedback.
         // await chrome.runtime.sendMessage({
         //   type: ExtensionMessageType.WALLET_PONG_RECEIVED,
         //   data: {}
