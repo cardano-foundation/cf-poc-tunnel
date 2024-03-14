@@ -1,14 +1,11 @@
-import React, { useEffect, useState } from "react";
-import govLogo from "./assets/gov.png";
+import React, { useEffect } from "react";
 import "./App.scss";
-import { createAxiosClient } from "./extension/axiosClient";
 import {
   generateMessageId,
   listenForExtensionMessage,
   sendMessageToExtension,
 } from "./extension/communication";
 import { ExtensionMessageType } from "./extension/types";
-import { AxiosError } from "axios";
 import { Header } from "./components/Header";
 import { Route, Routes } from "react-router-dom";
 import { HomePage } from "./pages/HomePage";
@@ -19,11 +16,6 @@ import { eventBus } from "./utils/EventBus";
 const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
 
 const App: React.FC = () => {
-  const [sessionCreated, setSessionCreated] = useState(false);
-  const [signedHeaders, setSignedHeaders] = useState<Record<string, string>>(
-    {},
-  );
-  const [responseBody, setResponseBody] = useState<any>();
 
   useEffect(() => {
     const handleMessage = (event:any) => {
@@ -62,7 +54,6 @@ const App: React.FC = () => {
       });
 
       await extMessage;
-      setSessionCreated(true);
 
       eventBus.publish("toast", {
         message: "Session created successfully",
@@ -78,28 +69,10 @@ const App: React.FC = () => {
     }
   };
 
-  const handleFetch = async () => {
-    const axiosClient = createAxiosClient();
-    try {
-      const response = await axiosClient.post(`${SERVER_ENDPOINT}/ping`, {
-        dummy: "data",
-      });
-      setSignedHeaders(JSON.parse(JSON.stringify(response.headers)));
-      setResponseBody(response.data);
-    } catch (err) {
-      if (err instanceof AxiosError) {
-        if (err.response?.status === 401) {
-          alert(err.response.data ?? "Not logged in!");
-          return;
-        }
-      }
-      throw err;
-    }
-  };
 
   return (
     <>
-      <div>
+      <div className="w-screen">
         <Header />
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -107,51 +80,6 @@ const App: React.FC = () => {
           <Route path="/demo" element={<Demo />} />
         </Routes>
       </div>
-
-      <Header />
-
-      <div>
-        <img src={govLogo} className="logo" alt="Vite logo" />
-      </div>
-      <h1>Web app</h1>
-      <div className="buttonsContainer">
-        <button className="button" onClick={() => handleCreateSession()}>
-          1. Init session {sessionCreated ? "✅" : null}
-        </button>
-        {sessionCreated ? (
-          <>
-            <button className="button" onClick={() => handleFetch()}>
-              3. View LEI details{" "}
-              {Object.keys(signedHeaders).length ? "✅" : null}
-            </button>
-          </>
-        ) : null}
-      </div>
-      {sessionCreated ? (
-        <>
-          {" "}
-          <div>
-            {Object.keys(signedHeaders).length ? (
-              <>
-                <h3>Signed Headers</h3>
-                <div className="jsonDisplay">
-                  <pre>{JSON.stringify(signedHeaders, null, 2)}</pre>
-                </div>
-              </>
-            ) : null}
-          </div>{" "}
-          <div>
-            {responseBody && (
-              <>
-                <h3>Decrypted response body</h3>
-                <div className="jsonDisplay">
-                  <pre>{JSON.stringify(responseBody, null, 2)}</pre>
-                </div>
-              </>
-            )}
-          </div>
-        </>
-      ) : null}
     </>
   );
 };

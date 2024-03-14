@@ -28,7 +28,6 @@ const HeroSection: React.FC = () => {
           </p>
           <a
             onClick={() => handleDemo()}
-            href="#"
             className="bg-white text-gray-800 py-2 px-4 rounded-lg font-bold hover:bg-gray-100 transition duration-300 ease-in-out"
           >
             Start Demo
