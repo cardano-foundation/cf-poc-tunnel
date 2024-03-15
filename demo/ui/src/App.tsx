@@ -18,23 +18,7 @@ const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
 const App: React.FC = () => {
 
   useEffect(() => {
-    const handleMessage = (event:any) => {
-      if (event.data && event.data.type === ExtensionMessageType.PAGE_ALREADY_VISITED_RESULT) {
-        if (!event.data.data.sessionAlreadyCreated){
-          handleCreateSession();
-        } else {
-          eventBus.publish("toast", {
-            message: "Session already created, ignore",
-            type: "success",
-            duration: 3000,
-          });
-        }
-      }
-    };
-    window.addEventListener("message", handleMessage);
-    return () => {
-      window.removeEventListener("message", handleMessage);
-    };
+    handleCreateSession();
   }, []);
 
   const handleCreateSession = async () => {

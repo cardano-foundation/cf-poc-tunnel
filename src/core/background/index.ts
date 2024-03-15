@@ -560,8 +560,6 @@ function getReturnMessageType(
       return ExtensionMessageType.RESOLVE_WALLET_OOBI_RESULT;
     case ExtensionMessageType.LOGIN_REQUEST:
       return ExtensionMessageType.LOGIN_REQUEST_RESULT;
-    case ExtensionMessageType.PAGE_ALREADY_VISITED_CHECK:
-      return ExtensionMessageType.PAGE_ALREADY_VISITED_RESULT;
     default:
       return ExtensionMessageType.GENERIC_ERROR;
   }
@@ -833,26 +831,6 @@ async function processMessage(
           message.id,
           getReturnMessageType(message.type),
           sendMsgResult.data,
-      );
-    }
-
-    case ExtensionMessageType.PAGE_ALREADY_VISITED_CHECK: {
-      const { origin } = message;
-      const { sessions } = await chrome.storage.local.get([
-        LocalStorageKeys.SESSIONS
-      ]);
-
-      let sessionAlreadyCreated = false;
-      if (sessions && sessions.find((session: Session) => session.name === new URL(origin).hostname)) {
-        sessionAlreadyCreated = true;
-      }
-
-      return successExt(
-          message.id,
-          getReturnMessageType(message.type),
-          {
-            sessionAlreadyCreated
-          },
       );
     }
   }

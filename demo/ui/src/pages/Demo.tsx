@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
 import {createAxiosClient} from "../extension/axiosClient";
 import {AxiosError} from "axios";
-import {SERVER_ENDPOINT} from "../components/AuthProvider";
+import {SERVER_ENDPOINT, useAuth} from "../components/AuthProvider";
 
 interface ContentItem {
   name: string;
@@ -21,16 +21,16 @@ const contents: ContentItem[] = [
 ];
 
 const Demo: React.FC = () => {
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   const [selectedContent, setSelectedContent] = useState<ContentItem | undefined>(undefined);
-  //const { isLoggedIn } = useAuth();
+  const { isLoggedIn } = useAuth();
 
-  /*
+
   useEffect(() => {
     if (!isLoggedIn) {
       navigate("/login");
     }
-  }, [isLoggedIn, navigate]);*/
+  }, [isLoggedIn, navigate]);
 
   const handleFetch = async () => {
     const axiosClient = createAxiosClient();
