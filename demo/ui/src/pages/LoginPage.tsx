@@ -102,7 +102,7 @@ const LoginPage: React.FC = () => {
           </div>
           <button
             type="button"
-            onClick={handleLogin}
+            onClick={() => handleLogin()}
             disabled={!selectedRole.length}
             style={{
               backgroundImage:

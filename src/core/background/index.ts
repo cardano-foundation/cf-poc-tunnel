@@ -21,6 +21,7 @@ import { Session } from "@src/ui/pages/popup/sessionList/sessionList";
 
 export enum LocalStorageKeys {
   SESSIONS = "sessions",
+  BRAN = "bran",
   WALLET_CONNECTION_IDW_AID = "walletConnectionIdwAid",
   WALLET_CONNECTION_TUNNEL_AID = "walletConnectionTunnelAid",
   WALLET_PONG_RECEIVED = "walletPongReceived",
@@ -359,7 +360,7 @@ const createSession = async (
   }
 
   await logger.addLog(
-    `✅ AID created successfully with domain ${urlF.hostname}`,
+    `✅ AID ${createIdentifierResult.data.serder.ked.i} created successfully for domain ${urlF.hostname}`,
   );
 
   try {
@@ -756,12 +757,15 @@ async function processMessage(
       });
 
       if (!sendPingResult.success) {
+        await logger.addLog(`❌ Ping message failed to ${resolveOobiResult.data.response.i}`);
         return failureExt(
           message.id,
           getReturnMessageType(message.type),
           sendPingResult.error,
         );
       }
+
+      await logger.addLog(`✅ Ping message sent to ${resolveOobiResult.data.response.i}`);
 
       return successExt(
         message.id,
@@ -823,7 +827,7 @@ async function processMessage(
         );
       }
 
-      await logger.addLog(`📩 Message successfully sent to IDW, message: ${JSON.stringify(payload)}`);
+      await logger.addLog(`📩 Message successfully sent from to IDW, message: ${JSON.stringify(sendMsgResult.data)}`);
 
       return successExt(
           message.id,
