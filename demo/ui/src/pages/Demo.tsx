@@ -28,7 +28,7 @@ const Demo: React.FC = () => {
 
   useEffect(() => {
     if (!isLoggedIn) {
-      navigate("/login");
+      // navigate("/login");
     }
   }, [isLoggedIn, navigate]);
 

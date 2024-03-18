@@ -568,6 +568,7 @@ function getReturnMessageType(
 async function processMessage(
   message: any,
 ): Promise<ExtensionMessage<any> | undefined> {
+
   // @TODO - foconnor: Need better handling of message.data to avoid crashing.
   switch (message.type) {
     case ExtensionMessageType.CREATE_SESSION: {
@@ -785,7 +786,7 @@ async function processMessage(
       }
 
       const walletConnectionAid = await chrome.storage.local.get(LocalStorageKeys.WALLET_CONNECTION_IDW_AID);
-      if (!walletConnectionAid) {
+      if (!walletConnectionAid || !Object.keys(walletConnectionAid).length) {
         return failureExt(
             message.id,
             getReturnMessageType(message.type),
