@@ -5,13 +5,17 @@ import profileImage from "../assets/profile.png";
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isLoggedIn } = useAuth();
+  const { user, isLoggedIn, logout } = useAuth();
 
   useEffect(() => {
     if (!isLoggedIn) {
       navigate("/login");
     }
   }, [isLoggedIn, navigate]);
+
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
     <div className="relative h-screen flex items-center justify-center text-center bg-locker bg-cover bg-no-repeat">
@@ -51,6 +55,12 @@ const Profile: React.FC = () => {
                 </p>
               </div>
             </div>
+            <button
+                className="mt-6 px-6 py-2 text-white font-bold bg-red-600 hover:bg-red-700 rounded"
+                onClick={handleLogout}
+            >
+              Logout
+            </button>
           </div>
         </div>
       </div>
