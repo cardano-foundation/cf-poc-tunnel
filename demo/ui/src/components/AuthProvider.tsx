@@ -8,12 +8,15 @@ import React, {
 import { useNavigate } from "react-router-dom";
 import { createAxiosClient } from "../extension/axiosClient";
 import { AxiosError } from "axios";
+import { eventBus } from "../utils/EventBus";
 
 export const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
 
 interface AuthContextType {
   isLoggedIn: boolean;
   setIsLoggedIn: (loggedIn: boolean) => void;
+  user: UserProps | undefined;
+  verifyLogin: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,35 +33,65 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+interface UserProps {
+  username: string;
+  aid: string;
+  validUntil: string;
+}
+
+const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState<UserProps | undefined>(undefined);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const verifyLogin = async () => {
-      const axiosClient = createAxiosClient();
-      try {
-        await axiosClient.post(`${SERVER_ENDPOINT}/ping`, {
-          dummy: "data",
-        });
-        setIsLoggedIn(true);
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          if (err.response?.status === 401) {
-            setIsLoggedIn(false);
-          }
+  const verifyLogin = async () => {
+    console.info("Check login..");
+    const axiosClient = createAxiosClient();
+    try {
+      const result = await axiosClient.post(`${SERVER_ENDPOINT}/ping`, {
+        dummy: "data",
+      });
+      setUser({
+        username: result.data.username,
+        aid: result.data.aid,
+        validUntil: result.data.validUntil,
+      });
+      setIsLoggedIn(true);
+      eventBus.publish("toast", {
+        message: `Login successfully`,
+        type: "success",
+        duration: 3000,
+      });
+
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        if (err.response?.status === 401) {
+          setIsLoggedIn(false);
+          navigate("/login");
         }
       }
-    };
+    }
+  };
 
-    verifyLogin();
+  useEffect(() => {
+    const init = async () => {
+      await verifyLogin();
+    };
+    init();
   }, [navigate]);
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn }}>
+    <AuthContext.Provider
+      value={{
+        isLoggedIn,
+        user,
+        setIsLoggedIn,
+        verifyLogin,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
 
-export { useAuth };
+export { useAuth, AuthProvider };

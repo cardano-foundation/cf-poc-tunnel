@@ -7,6 +7,7 @@ export default {
         hero: "url('./src/assets/museum.png')",
         lobby: "url('./src/assets/IIW-lobby-2.png')",
         demo: "url('./src/assets/IIW-photo.png')",
+        locker: "url('./src/assets/locker.png')",
       },
     },
   },

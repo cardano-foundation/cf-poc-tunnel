@@ -1,59 +1,13 @@
-import React, { useEffect } from "react";
+import React from "react";
 import "./App.scss";
-import {
-  generateMessageId,
-  listenForExtensionMessage,
-  sendMessageToExtension,
-} from "./extension/communication";
-import { ExtensionMessageType } from "./extension/types";
 import { Header } from "./components/Header";
 import { Route, Routes } from "react-router-dom";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { Demo } from "./pages/Demo";
-import { eventBus } from "./utils/EventBus";
-
-const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
+import {Profile} from "./pages/Profile";
 
 const App: React.FC = () => {
-
-  useEffect(() => {
-    handleCreateSession();
-  }, []);
-
-  const handleCreateSession = async () => {
-    try {
-      const messageId = generateMessageId(ExtensionMessageType.CREATE_SESSION);
-      const extMessage = listenForExtensionMessage<Record<string, string>>(
-        ExtensionMessageType.CREATE_SESSION_RESULT,
-        messageId,
-      );
-
-      sendMessageToExtension({
-        id: messageId,
-        type: ExtensionMessageType.CREATE_SESSION,
-        data: {
-          serverEndpoint: SERVER_ENDPOINT,
-        },
-      });
-
-      await extMessage;
-
-      eventBus.publish("toast", {
-        message: "Session created successfully",
-        type: "success",
-        duration: 3000,
-      });
-    } catch (e) {
-      eventBus.publish("toast", {
-        message: `Error creating a new session. ${JSON.stringify(e)}`,
-        type: "danger",
-        duration: 5000,
-      });
-    }
-  };
-
-
   return (
     <>
       <div className="w-screen">
@@ -62,6 +16,7 @@ const App: React.FC = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/demo" element={<Demo />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </div>
     </>

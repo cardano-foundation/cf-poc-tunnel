@@ -7,13 +7,11 @@ import { ToastProvider } from "./components/Toast/ToastProvider";
 import { AuthProvider } from "./components/AuthProvider";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <Router>
-      <AuthProvider>
-        <ToastProvider>
-          <App />
-        </ToastProvider>
-      </AuthProvider>
-    </Router>
-  </React.StrictMode>,
+  <Router>
+    <AuthProvider>
+      <ToastProvider>
+        <App />
+      </ToastProvider>
+    </AuthProvider>
+  </Router>,
 );

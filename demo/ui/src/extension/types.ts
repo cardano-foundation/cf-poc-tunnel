@@ -6,7 +6,9 @@ enum ExtensionMessageType {
   CREATE_SESSION = "CREATE_SESSION",
   CREATE_SESSION_RESULT = "CREATE_SESSION_RESULT",
   LOGIN_REQUEST = "LOGIN_REQUEST",
-  LOGIN_REQUEST_RESULT = "LOGIN_REQUEST_RESULT"
+  LOGIN_REQUEST_RESULT = "LOGIN_REQUEST_RESULT",
+  PAGE_ALREADY_VISITED_CHECK = "PAGE_ALREADY_VISITED_CHECK",
+  PAGE_ALREADY_VISITED_RESULT = "PAGE_ALREADY_VISITED_RESULT",
 }
 
 interface ExtensionMessageOutbound<T> {
@@ -28,6 +30,6 @@ interface SignEncryptResponse {
 export type {
   ExtensionMessageInbound,
   ExtensionMessageOutbound,
-  SignEncryptResponse
+  SignEncryptResponse,
 };
 export { ExtensionMessageType };
