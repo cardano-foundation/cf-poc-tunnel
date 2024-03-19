@@ -75,8 +75,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (err) {
       if (err instanceof AxiosError) {
         if (err.response?.status === 401) {
-          setIsLoggedIn(false);
-          navigate("/login");
+          logout();
         }
       }
     }
