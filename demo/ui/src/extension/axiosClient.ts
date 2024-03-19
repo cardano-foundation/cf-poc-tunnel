@@ -10,10 +10,7 @@ import {
   sendMessageToExtension,
 } from "./communication";
 import { ExtensionMessageType, SignEncryptResponse } from "./types";
-import { SERVER_ENDPOINT } from "../components/AuthProvider";
-import { eventBus } from "../utils/EventBus";
 
-let sessionAlreadyCreated = false;
 /**
  * Creates an Axios client configured with request and response interceptors.
  * @returns client A configured Axios instance.
@@ -21,36 +18,7 @@ let sessionAlreadyCreated = false;
  * The client includes a request interceptor to verify response signatures and decrypt any cipher material.
  * It also includes a response interceptor to sign and/or encrypt the response.
  */
-const createSession = async (): Promise<void> => {
-  try {
-    const messageId = generateMessageId(ExtensionMessageType.CREATE_SESSION);
-    const extMessage = listenForExtensionMessage<Record<string, string>>(
-      ExtensionMessageType.CREATE_SESSION_RESULT,
-      messageId,
-    );
-
-    sendMessageToExtension({
-      id: messageId,
-      type: ExtensionMessageType.CREATE_SESSION,
-      data: {
-        serverEndpoint: SERVER_ENDPOINT,
-      },
-    });
-
-    await extMessage;
-
-    eventBus.publish("toast", {
-      message: "Session created successfully",
-      type: "success",
-      duration: 3000,
-    });
-      sessionAlreadyCreated = true;
-  } catch (e) {
-    console.warn(e);
-  }
-};
 const createAxiosClient = (): AxiosInstance => {
-  if (!sessionAlreadyCreated) createSession();
   const client = axios.create();
 
   client.interceptors.request.use(

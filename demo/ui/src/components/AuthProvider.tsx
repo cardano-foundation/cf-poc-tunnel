@@ -14,7 +14,9 @@ export const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
 
 interface AuthContextType {
   isLoggedIn: boolean;
+  isSessionCreated: boolean;
   setIsLoggedIn: (loggedIn: boolean) => void;
+  setIsSessionCreated: (loggedIn: boolean) => void;
   user: UserProps | undefined;
   verifyLogin: () => void;
 }
@@ -41,6 +43,7 @@ interface UserProps {
 
 const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isSessionCreated, setIsSessionCreated] = useState(false);
   const [user, setUser] = useState<UserProps | undefined>(undefined);
   const navigate = useNavigate();
 
@@ -84,8 +87,10 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     <AuthContext.Provider
       value={{
         isLoggedIn,
+        isSessionCreated,
         user,
         setIsLoggedIn,
+        setIsSessionCreated,
         verifyLogin,
       }}
     >

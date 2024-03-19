@@ -1,18 +1,59 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "./AuthProvider";
+import {SERVER_ENDPOINT, useAuth} from "./AuthProvider";
+import {generateMessageId, listenForExtensionMessage, sendMessageToExtension} from "../extension/communication";
+import {ExtensionMessageType} from "../extension/types";
+import {eventBus} from "../utils/EventBus";
 
 const HeroSection: React.FC = () => {
   const navigate = useNavigate();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, setIsSessionCreated, isSessionCreated } = useAuth();
 
   const handleDemo = async () => {
+    if (!isSessionCreated) {
+     await handleCreateSession();
+    }
     if (!isLoggedIn) {
       navigate("/login");
     } else {
       navigate("/demo");
     }
   };
+
+  const handleCreateSession = async () => {
+    try {
+      const messageId = generateMessageId(ExtensionMessageType.CREATE_SESSION);
+      const extMessage = listenForExtensionMessage<Record<string, string>>(
+          ExtensionMessageType.CREATE_SESSION_RESULT,
+          messageId,
+      );
+
+      sendMessageToExtension({
+        id: messageId,
+        type: ExtensionMessageType.CREATE_SESSION,
+        data: {
+          serverEndpoint: SERVER_ENDPOINT,
+        },
+      });
+
+      await extMessage;
+      eventBus.publish("toast", {
+        message: "Session created successfully",
+        type: "success",
+        duration: 3000,
+      });
+      setIsSessionCreated(true);
+    } catch (e) {
+      if (e) {
+        eventBus.publish("toast", {
+          message: `Error creating a new session. ${JSON.stringify(e)}`,
+          type: "danger",
+          duration: 5000,
+        });
+      }
+    }
+  };
+
   return (
     <>
       <div className="relative h-screen flex items-center justify-center text-center bg-hero bg-cover bg-no-repeat">
