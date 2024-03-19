@@ -75,6 +75,11 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (err) {
       if (err instanceof AxiosError) {
         if (err.response?.status === 401) {
+          eventBus.publish("toast", {
+            message: `Session expired, please, login again`,
+            type: "danger",
+            duration: 5000,
+          });
           logout();
         }
       }

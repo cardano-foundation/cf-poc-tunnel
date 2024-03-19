@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { createAxiosClient } from "../extension/axiosClient";
 import { AxiosError } from "axios";
 import { SERVER_ENDPOINT, useAuth } from "../components/AuthProvider";
+import {eventBus} from "../utils/EventBus";
 
 interface ContentItem {
   name: string;
@@ -74,6 +75,11 @@ const Demo: React.FC = () => {
     } catch (err) {
       if (err instanceof AxiosError) {
         if (err.response?.status === 401) {
+          eventBus.publish("toast", {
+            message: `Session expired, please, login again`,
+            type: "danger",
+            duration: 5000,
+          });
           logout();
           return;
         }
