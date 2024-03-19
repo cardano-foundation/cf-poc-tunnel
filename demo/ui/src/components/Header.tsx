@@ -42,12 +42,12 @@ const Header: React.FC = () => {
           {isLoggedIn ? (
             <>
               <a
-                  onClick={() => navigate("/profile")}
-                  className="mr-5 text-white hover:text-gray-300 cursor-pointer"
+                onClick={() => navigate("/profile")}
+                className="mr-5 text-white hover:text-gray-300 cursor-pointer"
               >
                 {user?.username}
               </a>
-           </>
+            </>
           ) : (
             <a
               onClick={() => navigate("/login")}

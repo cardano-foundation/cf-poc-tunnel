@@ -37,8 +37,6 @@ function SessionList() {
     });
     
     chrome.storage.local.get([LocalStorageKeys.WALLET_PONG_RECEIVED]).then((result) => {
-      console.log("WALLET_PONG_RECEIVED");
-      console.log(result[LocalStorageKeys.WALLET_PONG_RECEIVED]);
       if (result[LocalStorageKeys.WALLET_PONG_RECEIVED] === true) {
         setWalletPongReceived(true);
       }

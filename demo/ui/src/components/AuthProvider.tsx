@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { createAxiosClient } from "../extension/axiosClient";
 import { AxiosError } from "axios";
 import { eventBus } from "../utils/EventBus";
@@ -19,6 +19,7 @@ interface AuthContextType {
   setIsSessionCreated: (loggedIn: boolean) => void;
   user: UserProps | undefined;
   verifyLogin: () => void;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -46,9 +47,9 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isSessionCreated, setIsSessionCreated] = useState(false);
   const [user, setUser] = useState<UserProps | undefined>(undefined);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const verifyLogin = async () => {
-    console.info("Check login..");
     const axiosClient = createAxiosClient();
     try {
       const result = await axiosClient.post(`${SERVER_ENDPOINT}/ping`, {
@@ -60,12 +61,17 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         validUntil: result.data.validUntil,
       });
       setIsLoggedIn(true);
+      sessionStorage.setItem("isLoggedIn", "true");
+      sessionStorage.setItem("userData", JSON.stringify(result.data));
       eventBus.publish("toast", {
         message: `Login successfully`,
         type: "success",
         duration: 3000,
       });
 
+      if (location.pathname === "/login") {
+        navigate("/demo");
+      }
     } catch (err) {
       if (err instanceof AxiosError) {
         if (err.response?.status === 401) {
@@ -77,11 +83,24 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   useEffect(() => {
-    const init = async () => {
-      await verifyLogin();
-    };
-    init();
+    const storedIsLoggedIn = sessionStorage.getItem("isLoggedIn");
+    const storedUserData = sessionStorage.getItem("userData");
+
+    if (storedIsLoggedIn && storedUserData) {
+      setIsLoggedIn(true);
+      setUser(JSON.parse(storedUserData));
+    } else {
+      verifyLogin();
+    }
   }, [navigate]);
+
+  const logout = () => {
+    setIsLoggedIn(false);
+    setUser(undefined);
+    sessionStorage.removeItem("isLoggedIn");
+    sessionStorage.removeItem("userData");
+    navigate("/login");
+  };
 
   return (
     <AuthContext.Provider
@@ -92,6 +111,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsLoggedIn,
         setIsSessionCreated,
         verifyLogin,
+        logout,
       }}
     >
       {children}

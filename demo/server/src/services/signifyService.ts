@@ -342,9 +342,6 @@ export const handleTunnelRequestNotifications = async () => {
     const entityManager = dataSource.manager;
     await entityManager.save(session);
 
-    console.log("session");
-    console.log(session);
-
     /**admit and delete the notification */
     const exnData = latestGrant.exchange.exn;
     await admitIpex(latestGrant.notiSaid, config.signifyName, exnData.i);

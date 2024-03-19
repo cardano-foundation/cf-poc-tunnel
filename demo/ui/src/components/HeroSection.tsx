@@ -1,9 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import {SERVER_ENDPOINT, useAuth} from "./AuthProvider";
-import {generateMessageId, listenForExtensionMessage, sendMessageToExtension} from "../extension/communication";
-import {ExtensionMessageType} from "../extension/types";
-import {eventBus} from "../utils/EventBus";
+import { SERVER_ENDPOINT, useAuth } from "./AuthProvider";
+import {
+  generateMessageId,
+  listenForExtensionMessage,
+  sendMessageToExtension,
+} from "../extension/communication";
+import { ExtensionMessageType } from "../extension/types";
+import { eventBus } from "../utils/EventBus";
 
 const HeroSection: React.FC = () => {
   const navigate = useNavigate();
@@ -11,7 +15,7 @@ const HeroSection: React.FC = () => {
 
   const handleDemo = async () => {
     if (!isSessionCreated) {
-     await handleCreateSession();
+      await handleCreateSession();
     }
     if (!isLoggedIn) {
       navigate("/login");
@@ -24,8 +28,8 @@ const HeroSection: React.FC = () => {
     try {
       const messageId = generateMessageId(ExtensionMessageType.CREATE_SESSION);
       const extMessage = listenForExtensionMessage<Record<string, string>>(
-          ExtensionMessageType.CREATE_SESSION_RESULT,
-          messageId,
+        ExtensionMessageType.CREATE_SESSION_RESULT,
+        messageId,
       );
 
       sendMessageToExtension({

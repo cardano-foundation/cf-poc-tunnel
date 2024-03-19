@@ -22,15 +22,33 @@ const Profile: React.FC = () => {
         <div className="flex flex-col justify-center items-center text-white">
           <div className="p-6 max-w-2xl rounded-lg shadow-md">
             <div className="flex justify-center mb-6">
-              <img src={profileImage} alt="Profile" className="rounded-full w-64 h-64 border-4 border-gray-700" />
+              <img
+                src={profileImage}
+                alt="Profile"
+                className="rounded-full w-64 h-64 border-4 border-gray-700"
+              />
             </div>
             <div className="grid gap-4 grid-cols-2">
               <div className="text-left">
-                <p><span className="font-semibold">Username:</span> {user?.username}</p>
-                <p><span className="font-semibold">Valid Until:</span> {new Date(user?.validUntil || "").toLocaleDateString()}</p>
+                <p>
+                  <span className="font-semibold">Username:</span>{" "}
+                  {user?.username}
+                </p>
+                <p>
+                  <span className="font-semibold">Valid Until:</span>{" "}
+                  {new Date(user?.validUntil || "").toLocaleString([], {
+                    year: "numeric",
+                    month: "numeric",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>{" "}
               </div>
               <div className="text-left">
-                <p><span className="font-semibold">AID:</span> {user?.aid}</p>
+                <p>
+                  <span className="font-semibold">AID:</span> {user?.aid}
+                </p>
               </div>
             </div>
           </div>

@@ -5,7 +5,7 @@ import { Route, Routes } from "react-router-dom";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { Demo } from "./pages/Demo";
-import {Profile} from "./pages/Profile";
+import { Profile } from "./pages/Profile";
 
 const App: React.FC = () => {
   return (
