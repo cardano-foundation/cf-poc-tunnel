@@ -73,7 +73,7 @@ const HeroSection: React.FC = () => {
           </p>
           <a
             onClick={() => handleDemo()}
-            className="bg-white text-gray-800 py-2 px-4 rounded-lg font-bold hover:bg-gray-100 transition duration-300 ease-in-out"
+            className="bg-white text-gray-800 py-2 px-4 rounded-lg font-bold hover:bg-gray-100 transition duration-300 ease-in-out cursor-pointer"
           >
             Start Demo
           </a>

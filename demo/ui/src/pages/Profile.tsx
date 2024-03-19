@@ -19,7 +19,7 @@ const Profile: React.FC = () => {
 
   return (
     <div className="relative h-screen flex items-center justify-center text-center bg-locker bg-cover bg-no-repeat">
-      <div className="hero-content z-10 p-8 md:p-24 bg-black bg-opacity-80 rounded-lg">
+      <div className="hero-content z-10 p-8 md:p-12 bg-black bg-opacity-80 rounded-lg">
         <h2 className="font-bold break-normal text-white text-3xl md:text-4xl mb-4">
           Profile
         </h2>
@@ -56,8 +56,8 @@ const Profile: React.FC = () => {
               </div>
             </div>
             <button
-                className="mt-6 px-6 py-2 text-white font-bold bg-red-600 hover:bg-red-700 rounded"
-                onClick={handleLogout}
+              className="mt-6 px-6 py-2 text-white font-bold bg-red-600 hover:bg-red-700 rounded"
+              onClick={handleLogout}
             >
               Logout
             </button>

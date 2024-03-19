@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import iiwLogo from "../assets/iiw-dog-logo.png";
 import cardanoLogo from "../assets/cardano.png";
+import profileImage from "../assets/profile.png";
 import { useAuth } from "./AuthProvider";
 
 const Header: React.FC = () => {
@@ -40,14 +41,19 @@ const Header: React.FC = () => {
             Demo
           </a>
           {isLoggedIn ? (
-            <>
-              <a
-                onClick={() => navigate("/profile")}
-                className="mr-5 text-white hover:text-gray-300 cursor-pointer"
-              >
-                {user?.username}
-              </a>
-            </>
+              <>
+                <div className="flex items-center mr-5 cursor-pointer">
+                <span onClick={() => navigate("/profile")} className="text-white hover:text-gray-300">
+                  {user?.username}
+                </span>
+                  <img
+                      onClick={() => navigate("/profile")}
+                      src={profileImage}
+                      alt="Profile"
+                      className="w-8 h-8 rounded-full ml-2"
+                  />
+                </div>
+              </>
           ) : (
             <a
               onClick={() => navigate("/login")}
