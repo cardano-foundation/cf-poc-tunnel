@@ -200,7 +200,6 @@ class SignifyApi {
     recipient: string,
     payload: Dict<any>,
   ): Promise<ResponseData<any>> {
-    const aids = await this.getIdentifiers();
     const aidResult = await this.getIdentifierByName(name);
     if (!aidResult.success) {
       return failure(
