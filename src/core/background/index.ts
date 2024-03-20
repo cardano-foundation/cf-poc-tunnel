@@ -21,6 +21,7 @@ import { Session } from "@src/ui/pages/popup/sessionList/sessionList";
 
 export enum LocalStorageKeys {
   SESSIONS = "sessions",
+  BRAN = "bran",
   WALLET_CONNECTION_IDW_AID = "walletConnectionIdwAid",
   WALLET_CONNECTION_TUNNEL_AID = "walletConnectionTunnelAid",
   WALLET_PONG_RECEIVED = "walletPongReceived",
@@ -308,7 +309,9 @@ const waitForGrantToAppear = async (
   }
 };
 
-const createSession = async (serverEndpoint: string): Promise<ResponseData<undefined>> => {
+const createSession = async (
+  serverEndpoint: string,
+): Promise<ResponseData<undefined>> => {
   const urlF = new URL(serverEndpoint);
 
   let response;
@@ -357,7 +360,7 @@ const createSession = async (serverEndpoint: string): Promise<ResponseData<undef
   }
 
   await logger.addLog(
-    `✅ AID created successfully with domain ${urlF.hostname}`,
+    `✅ AID ${createIdentifierResult.data.serder.ked.i} created successfully for domain ${urlF.hostname}`,
   );
 
   try {
@@ -379,7 +382,7 @@ const createSession = async (serverEndpoint: string): Promise<ResponseData<undef
   const disclosedAcdcResult = await triggerServerToDiscloseACDC(
     createIdentifierResult.data.serder.ked.i,
     ENTERPRISE_SCHEMA_SAID,
-    serverEndpoint
+    serverEndpoint,
   );
 
   if (!disclosedAcdcResult.success) {
@@ -429,7 +432,11 @@ const createSession = async (serverEndpoint: string): Promise<ResponseData<undef
   const acdc = acdcResponse.data.acdc;
   const serverAid = resolveOobiResult.data.response.i;
 
-  const isTrusted = isTrustedDomain(acdc, new URL(serverEndpoint).hostname, serverAid);
+  const isTrusted = isTrustedDomain(
+    acdc,
+    new URL(serverEndpoint).hostname,
+    serverAid,
+  );
 
   await logger.addLog(
     `${isTrusted ? "✅" : "❌"}🌐 Domain is ${
@@ -534,8 +541,8 @@ chrome.runtime.onInstalled.addListener(async () => {
 
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
   processMessage(request)
-  .then((response) => response && sendResponse(response))
-  .catch(console.error);
+    .then((response) => response && sendResponse(response))
+    .catch(console.error);
   return true;
 });
 
@@ -561,6 +568,7 @@ function getReturnMessageType(
 async function processMessage(
   message: any,
 ): Promise<ExtensionMessage<any> | undefined> {
+
   // @TODO - foconnor: Need better handling of message.data to avoid crashing.
   switch (message.type) {
     case ExtensionMessageType.CREATE_SESSION: {
@@ -570,9 +578,9 @@ async function processMessage(
       // TODO: the demo is restricted to one backend per domain
       if (new URL(origin).hostname !== new URL(serverEndpoint).hostname) {
         return failureExt(
-            message.id,
-            getReturnMessageType(message.type),
-            "The web hostname and the server hostname does not match",
+          message.id,
+          getReturnMessageType(message.type),
+          "The web hostname and the server hostname does not match",
         );
       }
 
@@ -740,6 +748,7 @@ async function processMessage(
           [LocalStorageKeys.WALLET_PONG_RECEIVED]: true,
         });
 
+
         // @TODO - foconnor: Instant feedback.
         // await chrome.runtime.sendMessage({
         //   type: ExtensionMessageType.WALLET_PONG_RECEIVED,
@@ -748,6 +757,7 @@ async function processMessage(
       });
 
       if (!sendPingResult.success) {
+        await logger.addLog(`❌ Ping message failed to ${resolveOobiResult.data.response.i}`);
         return failureExt(
           message.id,
           getReturnMessageType(message.type),
@@ -755,11 +765,13 @@ async function processMessage(
         );
       }
 
+      await logger.addLog(`✅ Ping message sent to ${resolveOobiResult.data.response.i}`);
+
       return successExt(
         message.id,
         getReturnMessageType(message.type),
         resolveOobiResult.data,
-      )
+      );
     }
     case ExtensionMessageType.LOGIN_REQUEST: {
       const { origin, data } = message;
@@ -775,7 +787,7 @@ async function processMessage(
       }
 
       const walletConnectionAid = await chrome.storage.local.get(LocalStorageKeys.WALLET_CONNECTION_IDW_AID);
-      if (!walletConnectionAid) {
+      if (!walletConnectionAid || !Object.keys(walletConnectionAid).length) {
         return failureExt(
             message.id,
             getReturnMessageType(message.type),
@@ -815,13 +827,13 @@ async function processMessage(
         );
       }
 
-      await logger.addLog(`📩 Message successfully sent to IDW, message: ${JSON.stringify(payload)}`);
+      await logger.addLog(`📩 Message successfully sent from to IDW, message: ${JSON.stringify(sendMsgResult.data)}`);
 
       return successExt(
           message.id,
           getReturnMessageType(message.type),
           sendMsgResult.data,
-      )
+      );
     }
   }
 }

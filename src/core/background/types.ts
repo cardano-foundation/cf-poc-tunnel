@@ -28,7 +28,7 @@ export enum ExtensionMessageType {
   LOGIN_REQUEST = "LOGIN_REQUEST",
   LOGIN_REQUEST_RESULT = "LOGIN_REQUEST_RESULT",
   WALLET_PONG_RECEIVED = "WALLET_PONG_RECEIVED",
-  GENERIC_ERROR = "ERROR_STREAM",
+  GENERIC_ERROR = "ERROR_STREAM"
 }
 
 export type ExtensionMessage<T> = ResponseData<T> & {

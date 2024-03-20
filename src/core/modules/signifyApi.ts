@@ -12,6 +12,7 @@ import {
 import { Aid } from "@src/core/modules/signifyApi.types";
 import { ResponseData } from "@src/core/background/types";
 import { failure, success } from "@src/utils";
+import {LocalStorageKeys} from "@src/core/background";
 
 class SignifyApi {
   private signifyClient!: SignifyClient;
@@ -29,11 +30,23 @@ class SignifyApi {
     }
 
     await ready();
+    console.info(`Initialising Signify client...`);
+    let bran;
+    try {
 
-    console.info(`Initialising new Signify client...`);
+     bran = (await chrome.storage.local.get([LocalStorageKeys.BRAN]))?.bran;
+      console.info(`Using existing bran...`);
+    } catch (e) { /* pass*/ }
+    if (!bran){
+      bran = randomPasscode();
+      // TODO: Storing bran in local just for demo purpose
+      await chrome.storage.local.set({ [LocalStorageKeys.BRAN]: bran });
+      console.info(`Using new bran...`);
+    }
+
     this.signifyClient = new SignifyClient(
       SignifyApi.KERIA_URL as string,
-      randomPasscode(),
+      bran,
       Tier.low,
       SignifyApi.KERIA_BOOT_URL,
     );
