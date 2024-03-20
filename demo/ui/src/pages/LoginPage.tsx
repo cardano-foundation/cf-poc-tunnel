@@ -96,7 +96,6 @@ const LoginPage: React.FC = () => {
 
   const checkLogin = async () => {
     setCheckingLogin(true);
-    setCounter(12);
     const axiosClient = createAxiosClient();
     const maxAttempts = 12;
     const interval = 1000;
