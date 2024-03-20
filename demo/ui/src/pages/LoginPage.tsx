@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import idwLogo from "../assets/idw.png";
 import { eventBus } from "../utils/EventBus";
 import {
@@ -8,10 +8,17 @@ import {
 } from "../extension/communication";
 import { ExtensionMessageType } from "../extension/types";
 import { SERVER_ENDPOINT, useAuth } from "../components/AuthProvider";
+import {createAxiosClient} from "../extension/axiosClient";
+import {AxiosError} from "axios";
+import {useNavigate} from "react-router-dom";
 
 const LoginPage: React.FC = () => {
-  const { setIsLoggedIn, verifyLogin } = useAuth();
-  const [selectedRole, setSelectedRole] = useState("");
+  const { setIsLoggedIn } = useAuth();
+  const [selectedRole, setSelectedRole] = useState<string>("");
+  const [checkingLogin, setCheckingLogin] = useState<boolean>(false);
+  const [counter, setCounter] = useState<number>(15);
+
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
     if (!selectedRole.length)
@@ -53,7 +60,7 @@ const LoginPage: React.FC = () => {
 
       await extMessage;
 
-      verifyLogin();
+      await checkLogin();
     } catch (e) {
       eventBus.publish("toast", {
         message: `Error: ${JSON.stringify(e)}`,
@@ -61,6 +68,74 @@ const LoginPage: React.FC = () => {
         duration: 5000,
       });
       setIsLoggedIn(false);
+    }
+  };
+
+  useEffect(() => {
+    let intervalId: ReturnType<typeof setInterval> | undefined;
+
+    if (checkingLogin) {
+      setCounter(15);
+      intervalId = setInterval(() => {
+        setCounter((prevCounter) => {
+          if (prevCounter > 1) {
+            return prevCounter - 1;
+          } else {
+            clearInterval(intervalId);
+            setCheckingLogin(false);
+            return 0;
+          }
+        });
+      }, 1000) as ReturnType<typeof setInterval>;
+    } else {
+      clearInterval(intervalId);
+    }
+
+    return () => clearInterval(intervalId);
+  }, [checkingLogin]);
+
+  const checkLogin = async () => {
+    setCheckingLogin(true);
+    setCounter(12);
+    const axiosClient = createAxiosClient();
+    const maxAttempts = 12;
+    const interval = 1000;
+    let attempts = 0;
+
+    const wait = (ms:number) => new Promise(resolve => setTimeout(resolve, ms));
+
+    while (attempts < maxAttempts) {
+      try {
+        await axiosClient.post(`${SERVER_ENDPOINT}/ping`, {
+          dummy: "data",
+        });
+        setIsLoggedIn(true);
+        setCheckingLogin(false);
+        eventBus.publish("toast", {
+          message: `Login successfully`,
+          type: "success",
+          duration: 3000,
+        });
+        navigate("/demo");
+        break;
+      } catch (err) {
+        if (err instanceof AxiosError && err.response?.status === 401) {
+          await wait(interval);
+        } else {
+          console.error("Error trying to verify login response:", err);
+          break;
+        }
+        attempts++;
+      }
+    }
+
+    if (attempts >= maxAttempts) {
+      eventBus.publish("toast", {
+        message: `Login timeout, please try again`,
+        type: "danger",
+        duration: 5000,
+      });
+      setCheckingLogin(false);
     }
   };
 
@@ -95,15 +170,27 @@ const LoginPage: React.FC = () => {
           <button
             type="button"
             onClick={() => handleLogin()}
-            disabled={!selectedRole.length}
+            disabled={!selectedRole.length || checkingLogin}
             style={{
               backgroundImage:
                 "linear-gradient(94.29deg, #92ffc0 20.19%, #00a5e6 119.98%)",
             }}
             className="w-full py-3 px-4 text-black rounded-md focus:ring-4 focus:ring-blue-300 focus:outline-none transition duration-150 ease-in-out flex justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Login with ID Wallet
-            <img src={idwLogo} alt="Wallet Logo" className="ml-2 w-6 h-6" />
+
+            {checkingLogin ? <>Waiting for IDW to accept login</> : <>Login with ID Wallet</>}
+            {checkingLogin ? (
+               <>
+                 <div className="ml-2 flex items-center justify-center relative">
+                   <div className="w-8 h-8 flex items-center justify-center">
+                     <div className="absolute border-4 border-t-transparent border-white rounded-full animate-spin h-full w-full"></div>
+                     <span className="z-10 text-white text-xs relative">{counter}</span>
+                   </div>
+                 </div>
+               </>
+            ) : (
+                <img src={idwLogo} alt="Wallet Logo" className="ml-2 w-6 h-6" />
+            )}
           </button>
         </div>
       </div>
