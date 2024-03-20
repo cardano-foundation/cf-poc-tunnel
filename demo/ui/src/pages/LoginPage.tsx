@@ -16,7 +16,7 @@ const LoginPage: React.FC = () => {
   const { setIsLoggedIn, setUser } = useAuth();
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [checkingLogin, setCheckingLogin] = useState<boolean>(false);
-  const [counter, setCounter] = useState<number>(15);
+  const [counter, setCounter] = useState<number>(60);
 
   const navigate = useNavigate();
 
@@ -75,7 +75,7 @@ const LoginPage: React.FC = () => {
     let intervalId: ReturnType<typeof setInterval> | undefined;
 
     if (checkingLogin) {
-      setCounter(15);
+      setCounter(60);
       intervalId = setInterval(() => {
         setCounter((prevCounter) => {
           if (prevCounter > 1) {
@@ -97,7 +97,7 @@ const LoginPage: React.FC = () => {
   const checkLogin = async () => {
     setCheckingLogin(true);
     const axiosClient = createAxiosClient();
-    const maxAttempts = 12;
+    const maxAttempts = 57;
     const interval = 1000;
     let attempts = 0;
 
