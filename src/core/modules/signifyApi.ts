@@ -72,15 +72,6 @@ class SignifyApi {
     }
   }
 
-  async getIdentifiers(): Promise<ResponseData<any>> {
-    try {
-      await this.start();
-      return success(await this.signifyClient.identifiers());
-    } catch (e) {
-      return failure(e);
-    }
-  }
-
   async getIdentifierByName(name: string): Promise<ResponseData<Aid>> {
     try {
       await this.start();
