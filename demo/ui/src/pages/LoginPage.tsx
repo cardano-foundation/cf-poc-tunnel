@@ -13,7 +13,7 @@ import {AxiosError} from "axios";
 import {useNavigate} from "react-router-dom";
 
 const LoginPage: React.FC = () => {
-  const { setIsLoggedIn } = useAuth();
+  const { setIsLoggedIn, setUser } = useAuth();
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [checkingLogin, setCheckingLogin] = useState<boolean>(false);
   const [counter, setCounter] = useState<number>(15);
@@ -106,9 +106,16 @@ const LoginPage: React.FC = () => {
 
     while (attempts < maxAttempts) {
       try {
-        await axiosClient.post(`${SERVER_ENDPOINT}/ping`, {
+        const result = await axiosClient.post(`${SERVER_ENDPOINT}/ping`, {
           dummy: "data",
         });
+
+        setUser({
+          username: result.data.username,
+          aid: result.data.aid,
+          validUntil: result.data.validUntil,
+        });
+
         setIsLoggedIn(true);
         setCheckingLogin(false);
         eventBus.publish("toast", {

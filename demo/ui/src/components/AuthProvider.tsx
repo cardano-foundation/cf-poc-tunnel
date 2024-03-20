@@ -18,6 +18,7 @@ interface AuthContextType {
   setIsLoggedIn: (loggedIn: boolean) => void;
   setIsSessionCreated: (loggedIn: boolean) => void;
   user: UserProps | undefined;
+  setUser: (user: UserProps) => void;
   verifyLogin: () => void;
   logout: () => void;
 }
@@ -117,6 +118,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsLoggedIn,
         setIsSessionCreated,
         verifyLogin,
+        setUser,
         logout,
       }}
     >
