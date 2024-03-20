@@ -103,7 +103,9 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(undefined);
     sessionStorage.removeItem("isLoggedIn");
     sessionStorage.removeItem("userData");
-    navigate("/login");
+    if (location.pathname !== "/") {
+      navigate("/login");
+    }
   };
 
   return (

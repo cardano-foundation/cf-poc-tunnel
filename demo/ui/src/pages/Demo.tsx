@@ -9,16 +9,23 @@ interface ContentItem {
   name: string;
   date: string;
   size: string;
-  type: "txt";
+  type: "json";
   icon: string;
+}
+
+interface HttpHeaders {
+  [key: string]: string;
+}
+interface HttpResponse {
+  [key: string]: string;
 }
 
 const contents: ContentItem[] = [
   {
-    name: "Plain Text",
-    date: "2022-03-01",
-    size: "2MB",
-    type: "txt",
+    name: "Ping",
+    date: "2024-20-03",
+    size: "2kb",
+    type: "json",
     icon: "📄",
   },
 ];
@@ -30,22 +37,8 @@ const Demo: React.FC = () => {
   const { logout } = useAuth();
 
 
-  const [response, setResponse] = useState({
-    message: "Welcome, your Legal Entity Identifier is 5493001KJTIIGC8Y1R17",
-    username: "5493001KJTIIGC8Y1R17",
-    validUntil: "2024-03-19T09:42:04.552Z",
-    aid: "ECygYLCqfZutgV_WpKo1FVEixiF44q5EUT2FR7NwHztc",
-  });
-  const [headers, setHeaders] = useState({
-    "content-length": "654",
-    "content-type": "application/json; charset=utf-8",
-    signature:
-      'indexed="?0";signify="0BBc1TlM3O4CmL9isIiPDq4shzG66FWCgmhSAvpA7O2Ve5nXeGVmdp1R9vcASMeLq9aauF5Kz_UJMTOvgngI5rYO"',
-    "signature-input":
-      'signify=("@method" "@path" "signify-resource" "signify-timestamp");created=1710841051;keyid="BDlOCcJ5rgoUfctlg1gnqkzHmCYtgFa6P3cQOfpqjVKJ";alg="ed25519"',
-    "signify-resource": "EG8ebM1_ANYRSw-KXxz7iGWqvamGkEM3TrWuZopIXeIL",
-    "signify-timestamp": "2024-03-19T09:37:31.636000+00:00",
-  });
+  const [response, setResponse] = useState<HttpResponse | undefined>(undefined);
+  const [headers, setHeaders] = useState<HttpHeaders | undefined>(undefined);
   const { isLoggedIn } = useAuth();
 
   const toggleExpansion = () => {
@@ -70,8 +63,8 @@ const Demo: React.FC = () => {
       const response = await axiosClient.post(`${SERVER_ENDPOINT}/ping`, {
         dummy: "data",
       });
-      console.log(JSON.parse(JSON.stringify(response.headers)));
-      console.log(response.data);
+      setHeaders(JSON.parse(JSON.stringify(response.headers)));
+      setResponse(response.data)
     } catch (err) {
       if (err instanceof AxiosError) {
         if (err.response?.status === 401) {
@@ -147,7 +140,7 @@ const Demo: React.FC = () => {
             className="transition-max-height duration-500 ease-in-out overflow-hidden"
           >
             <div className="text-left bg-white p-4 divide-y divide-gray-200">
-              {Object.entries(headers).map(([key, value], index) => (
+              {headers && Object.entries(headers).map(([key, value], index) => (
                 <div key={index} className="py-2 flex flex-wrap">
                   <span className="font-bold text-gray-700 w-full md:w-1/3 pr-4 break-words">
                     {key}:
@@ -162,17 +155,17 @@ const Demo: React.FC = () => {
 
           <div className={`${responseColor} w-full p-4 text-left`}>
             <div>
-              <span className="font-bold">Message:</span> {response.message}
+              <span className="font-bold">Message:</span> {response?.message}
             </div>
             <div>
-              <span className="font-bold">Username:</span> {response.username}
+              <span className="font-bold">Username:</span> {response?.username}
             </div>
             <div>
               <span className="font-bold">Valid Until:</span>{" "}
-              {new Date(response.validUntil).toLocaleString()}
+              {new Date(response?.validUntil || "").toLocaleString()}
             </div>
             <div>
-              <span className="font-bold">AID:</span> {response.aid}
+              <span className="font-bold">AID:</span> {response?.aid}
             </div>
           </div>
         </div>
