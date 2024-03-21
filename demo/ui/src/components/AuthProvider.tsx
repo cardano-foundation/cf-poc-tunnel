@@ -50,7 +50,6 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const location = useLocation();
 
   const verifyLogin = async () => {
-    console.log("verifyLogin");
     const axiosClient = createAxiosClient();
     try {
       const result = await axiosClient.post(`${SERVER_ENDPOINT}/ping`, {
