@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import idwLogo from "../assets/idw.png";
 import { eventBus } from "../utils/EventBus";
 import {
@@ -8,9 +8,9 @@ import {
 } from "../extension/communication";
 import { ExtensionMessageType } from "../extension/types";
 import { SERVER_ENDPOINT, useAuth } from "../components/AuthProvider";
-import {createAxiosClient} from "../extension/axiosClient";
-import {AxiosError} from "axios";
-import {useNavigate} from "react-router-dom";
+import { createAxiosClient } from "../extension/axiosClient";
+import { AxiosError } from "axios";
+import { useNavigate } from "react-router-dom";
 
 const LoginPage: React.FC = () => {
   const { setIsLoggedIn, setUser } = useAuth();
@@ -101,7 +101,8 @@ const LoginPage: React.FC = () => {
     const interval = 1000;
     let attempts = 0;
 
-    const wait = (ms:number) => new Promise(resolve => setTimeout(resolve, ms));
+    const wait = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
 
     while (attempts < maxAttempts) {
       try {
@@ -128,7 +129,11 @@ const LoginPage: React.FC = () => {
         if (err instanceof AxiosError && err.response?.status === 401) {
           await wait(interval);
         } else {
-          console.error("Error trying to verify login response:", err);
+          eventBus.publish("toast", {
+            message: `Error trying to verify login response ${err}`,
+            type: "danger",
+            duration: 5000,
+          });
           break;
         }
         attempts++;
@@ -183,19 +188,24 @@ const LoginPage: React.FC = () => {
             }}
             className="w-full py-3 px-4 text-black rounded-md focus:ring-4 focus:ring-blue-300 focus:outline-none transition duration-150 ease-in-out flex justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
-
-            {checkingLogin ? <>Waiting for IDW to accept login</> : <>Login with ID Wallet</>}
             {checkingLogin ? (
-               <>
-                 <div className="ml-2 flex items-center justify-center relative">
-                   <div className="w-8 h-8 flex items-center justify-center">
-                     <div className="absolute border-4 border-t-transparent border-white rounded-full animate-spin h-full w-full"></div>
-                     <span className="z-10 text-white text-xs relative">{counter}</span>
-                   </div>
-                 </div>
-               </>
+              <>Waiting for IDW to accept login</>
             ) : (
-                <img src={idwLogo} alt="Wallet Logo" className="ml-2 w-6 h-6" />
+              <>Login with ID Wallet</>
+            )}
+            {checkingLogin ? (
+              <>
+                <div className="ml-2 flex items-center justify-center relative">
+                  <div className="w-8 h-8 flex items-center justify-center">
+                    <div className="absolute border-4 border-t-transparent border-white rounded-full animate-spin h-full w-full"></div>
+                    <span className="z-10 text-white text-xs relative">
+                      {counter}
+                    </span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <img src={idwLogo} alt="Wallet Logo" className="ml-2 w-6 h-6" />
             )}
           </button>
         </div>

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { createAxiosClient } from "../extension/axiosClient";
 import { AxiosError } from "axios";
 import { SERVER_ENDPOINT, useAuth } from "../components/AuthProvider";
-import {eventBus} from "../utils/EventBus";
+import { eventBus } from "../utils/EventBus";
 
 interface ContentItem {
   name: string;
@@ -36,7 +36,6 @@ const Demo: React.FC = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const { logout } = useAuth();
 
-
   const [response, setResponse] = useState<HttpResponse | undefined>(undefined);
   const [headers, setHeaders] = useState<HttpHeaders | undefined>(undefined);
   const { isLoggedIn } = useAuth();
@@ -47,7 +46,9 @@ const Demo: React.FC = () => {
 
   useEffect(() => {
     if (contentRef.current) {
-      contentRef.current.style.maxHeight = isExpanded ? `${contentRef.current.scrollHeight}px` : "0px";
+      contentRef.current.style.maxHeight = isExpanded
+        ? `${contentRef.current.scrollHeight}px`
+        : "0px";
     }
   }, [isExpanded]);
 
@@ -64,7 +65,7 @@ const Demo: React.FC = () => {
         dummy: "data",
       });
       setHeaders(JSON.parse(JSON.stringify(response.headers)));
-      setResponse(response.data)
+      setResponse(response.data);
     } catch (err) {
       if (err instanceof AxiosError) {
         if (err.response?.status === 401) {
@@ -140,16 +141,17 @@ const Demo: React.FC = () => {
             className="transition-max-height duration-500 ease-in-out overflow-hidden"
           >
             <div className="text-left bg-white p-4 divide-y divide-gray-200">
-              {headers && Object.entries(headers).map(([key, value], index) => (
-                <div key={index} className="py-2 flex flex-wrap">
-                  <span className="font-bold text-gray-700 w-full md:w-1/3 pr-4 break-words">
-                    {key}:
-                  </span>
-                  <span className="text-gray-600 w-full md:w-2/3 break-words">
-                    {value}
-                  </span>
-                </div>
-              ))}
+              {headers &&
+                Object.entries(headers).map(([key, value], index) => (
+                  <div key={index} className="py-2 flex flex-wrap">
+                    <span className="font-bold text-gray-700 w-full md:w-1/3 pr-4 break-words">
+                      {key}:
+                    </span>
+                    <span className="text-gray-600 w-full md:w-2/3 break-words">
+                      {value}
+                    </span>
+                  </div>
+                ))}
             </div>
           </div>
 

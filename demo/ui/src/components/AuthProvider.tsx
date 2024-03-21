@@ -8,7 +8,6 @@ import React, {
 import { useLocation, useNavigate } from "react-router-dom";
 import { createAxiosClient } from "../extension/axiosClient";
 import { AxiosError } from "axios";
-import { eventBus } from "../utils/EventBus";
 
 export const SERVER_ENDPOINT = import.meta.env.VITE_SERVER_ENDPOINT;
 
@@ -64,23 +63,12 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoggedIn(true);
       sessionStorage.setItem("isLoggedIn", "true");
       sessionStorage.setItem("userData", JSON.stringify(result.data));
-      eventBus.publish("toast", {
-        message: `Login successfully`,
-        type: "success",
-        duration: 3000,
-      });
-
       if (location.pathname === "/login") {
         navigate("/demo");
       }
     } catch (err) {
       if (err instanceof AxiosError) {
         if (err.response?.status === 401) {
-          eventBus.publish("toast", {
-            message: `Session expired, please, login again`,
-            type: "danger",
-            duration: 5000,
-          });
           logout();
         }
       }
@@ -92,12 +80,12 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const storedUserData = sessionStorage.getItem("userData");
 
     if (storedIsLoggedIn && storedUserData) {
+      const userData = JSON.parse(storedUserData);
       setIsLoggedIn(true);
-      setUser(JSON.parse(storedUserData));
-    } else {
-      verifyLogin();
+      setUser(userData);
     }
-  }, [navigate]);
+    verifyLogin();
+  }, [location.pathname]);
 
   const logout = () => {
     setIsLoggedIn(false);

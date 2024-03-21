@@ -63,7 +63,8 @@ const HeroSection: React.FC = () => {
       <div className="relative h-screen flex items-center justify-center text-center bg-hero bg-cover bg-no-repeat">
         <div className="hero-content z-10 p-24 bg-black bg-opacity-80 rounded-lg">
           <p className="text-sm md:text-base text-white font-bold mb-2">
-            WELCOME <span className="text-gray-200">/ Demo Day</span>
+            WELCOME{" "}
+            <span className="text-gray-200">/ Internet Identity Workshop</span>
           </p>
           <h1 className="font-bold break-normal text-white text-3xl md:text-5xl mb-4">
             Explore Digital Identity with Us
