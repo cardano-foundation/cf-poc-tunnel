@@ -128,7 +128,11 @@ const LoginPage: React.FC = () => {
         if (err instanceof AxiosError && err.response?.status === 401) {
           await wait(interval);
         } else {
-          console.error("Error trying to verify login response:", err);
+          eventBus.publish("toast", {
+            message: `Error trying to verify login response ${err}`,
+            type: "danger",
+            duration: 5000,
+          });
           break;
         }
         attempts++;

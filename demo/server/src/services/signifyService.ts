@@ -337,7 +337,7 @@ export const handleTunnelRequestNotifications = async () => {
     }
     session.aid = tunnelAid;
     const currentTime = new Date().getTime();
-    const sessionDuration = 5 * 60000; //5 mins
+    const sessionDuration = 30 * 60000; // 30 mins
     session.validUntil = new Date(currentTime + sessionDuration);
     const entityManager = dataSource.manager;
     await entityManager.save(session);
