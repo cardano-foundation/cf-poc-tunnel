@@ -20,9 +20,7 @@ const Profile: React.FC = () => {
 
     const axiosClient = createAxiosClient();
     try {
-      await axiosClient.post(`${SERVER_ENDPOINT}/logout`, {
-        dummy: "data",
-      });
+      await axiosClient.post(`${SERVER_ENDPOINT}/logout`);
       logout();
       eventBus.publish("toast", {
         message: `Logout successfully`,
