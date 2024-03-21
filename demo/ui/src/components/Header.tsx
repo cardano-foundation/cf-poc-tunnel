@@ -41,19 +41,22 @@ const Header: React.FC = () => {
             Demo
           </a>
           {isLoggedIn ? (
-              <>
-                <div className="flex items-center mr-5 cursor-pointer">
-                <span onClick={() => navigate("/profile")} className="text-white hover:text-gray-300">
+            <>
+              <div className="flex items-center mr-5 cursor-pointer">
+                <span
+                  onClick={() => navigate("/profile")}
+                  className="text-white hover:text-gray-300"
+                >
                   {user?.username}
                 </span>
-                  <img
-                      onClick={() => navigate("/profile")}
-                      src={profileImage}
-                      alt="Profile"
-                      className="w-8 h-8 rounded-full ml-2"
-                  />
-                </div>
-              </>
+                <img
+                  onClick={() => navigate("/profile")}
+                  src={profileImage}
+                  alt="Profile"
+                  className="w-8 h-8 rounded-full ml-2"
+                />
+              </div>
+            </>
           ) : (
             <a
               onClick={() => navigate("/login")}

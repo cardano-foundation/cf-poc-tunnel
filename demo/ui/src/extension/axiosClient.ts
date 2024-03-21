@@ -57,6 +57,8 @@ const createAxiosClient = (): AxiosInstance => {
 
   client.interceptors.response.use(
     async (response: AxiosResponse) => {
+      // TODO: check if 401 to force logout
+
       const messageId = generateMessageId(
         ExtensionMessageType.VERIFY_DECRYPT_RESP,
       );

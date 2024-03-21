@@ -1,10 +1,10 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {SERVER_ENDPOINT, useAuth} from "../components/AuthProvider";
+import { SERVER_ENDPOINT, useAuth } from "../components/AuthProvider";
 import profileImage from "../assets/profile.png";
-import {createAxiosClient} from "../extension/axiosClient";
+import { createAxiosClient } from "../extension/axiosClient";
 import { AxiosError } from "axios";
-import {eventBus} from "../utils/EventBus";
+import { eventBus } from "../utils/EventBus";
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
@@ -17,10 +17,11 @@ const Profile: React.FC = () => {
   }, [isLoggedIn, navigate]);
 
   const handleLogout = async () => {
-
     const axiosClient = createAxiosClient();
     try {
-      await axiosClient.post(`${SERVER_ENDPOINT}/logout`);
+      await axiosClient.post(`${SERVER_ENDPOINT}/logout`, {
+        dummy: "data",
+      });
       logout();
       eventBus.publish("toast", {
         message: `Logout successfully`,

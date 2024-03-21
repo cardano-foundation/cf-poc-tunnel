@@ -81,14 +81,8 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     if (storedIsLoggedIn && storedUserData) {
       const userData = JSON.parse(storedUserData);
-      const currentTime = new Date();
-      const validUntilTime = new Date(userData.validUntil);
-      if (currentTime <= validUntilTime) {
-        setIsLoggedIn(true);
-        setUser(userData);
-      } else {
-        logout();
-      }
+      setIsLoggedIn(true);
+      setUser(userData);
     } else {
       verifyLogin();
     }
