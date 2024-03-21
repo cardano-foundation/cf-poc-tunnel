@@ -73,7 +73,7 @@ const Profile: React.FC = () => {
                 </p>{" "}
               </div>
               <div className="text-left">
-                <p>
+                <p className="break-words">
                   <span className="font-semibold">AID:</span> {user?.aid}
                 </p>
               </div>

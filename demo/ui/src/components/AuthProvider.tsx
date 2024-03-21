@@ -83,9 +83,8 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const userData = JSON.parse(storedUserData);
       setIsLoggedIn(true);
       setUser(userData);
-    } else {
-      verifyLogin();
     }
+    verifyLogin();
   }, [location.pathname]);
 
   const logout = () => {
