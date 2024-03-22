@@ -15,5 +15,5 @@ export class Session {
   validUntil: Date;
 
   @Column()
-  lei: string;  // @TODO - foconnor: This shouldn't be in the session table but OK for PoC.
+  attendeeName: string;  // @TODO - foconnor: This shouldn't be in the session table but OK for PoC.
 }
