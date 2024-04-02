@@ -329,9 +329,9 @@ export const handleTunnelRequestNotifications = async () => {
   
     const acdcSchema = latestGrant.exchange.exn.e.acdc.s;
     const session = new Session();
-    if (acdcSchema === config.qviSchemaSaid) {
+    if (acdcSchema === config.iiwSchemaSaid) {
       session.role = "user";
-      session.lei = latestGrant.exchange.exn.e.acdc.a.LEI;
+      session.attendeeName = latestGrant.exchange.exn.e.acdc.a.attendeeName;
     } else {
       continue;
     }
