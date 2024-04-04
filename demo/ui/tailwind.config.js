@@ -4,10 +4,10 @@ export default {
   theme: {
     extend: {
       backgroundImage: {
-        hero: "url('./src/assets/museum.png')",
-        lobby: "url('./src/assets/IIW-lobby-2.png')",
-        demo: "url('./src/assets/IIW-photo.png')",
-        locker: "url('./src/assets/locker.png')",
+        hero: "url('$bgImgs/museum.png')",
+        lobby: "url('$bgImgs/IIW-lobby-2.png')",
+        demo: "url('$bgImgs/IIW-photo.png')",
+        locker: "url('$bgImgs/locker.png')",
       },
     },
   },
