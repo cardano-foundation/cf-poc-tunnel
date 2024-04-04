@@ -182,7 +182,7 @@ export const initKeri = async () => {
   }
   const oobi = await getOOBIs(mainAidName, "agent");
   // For the development purpose, the endpoint needs to be accessible from keria
-  const schemaUrl = config.endpoint + "/oobi/" + schemaSaid;
+  const schemaUrl = config.credServerEndpoint + "/oobi/" + schemaSaid;
   if (!(await resolveOOBI(schemaUrl)).done) {
     throw new Error(
       "Failed to resolve schema OOBI, endpoint most likely incorrect.",
