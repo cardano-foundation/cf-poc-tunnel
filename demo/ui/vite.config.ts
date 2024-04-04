@@ -1,5 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { nodePolyfills } from "vite-plugin-node-polyfills";
+import { resolve } from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -7,6 +9,7 @@ export default defineConfig({
     react({
       include: "**/*.tsx",
     }),
+    nodePolyfills(),
   ],
   server: {
     host: true,
@@ -15,4 +18,9 @@ export default defineConfig({
       usePolling: true,
     },
   },
+  resolve: {
+    alias: {
+      $bgImgs: resolve("./src/assets")
+    }
+  }
 });
