@@ -29,6 +29,6 @@ export const config = {
     logout: "/logout",
   },
   domainSchemaSaid: "EGjD1gCLi9ecZSZp9zevkgZGyEX_MbOdmhBFt4o0wvdb",
-  iiwSchemaSaid: "EKYv475K1k6uMt9IJw99NM8iLQuQf1bKfSHqA1XIKoQy",
+  iiwSchemaSaid: "EBIFDhtSE0cM4nbTnaMqiV1vUIlcnbsqBMeVMmeGmXOu",
   issuerAidPrefix,
 };
