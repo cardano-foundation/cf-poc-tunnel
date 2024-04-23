@@ -464,7 +464,12 @@ const createSession = async (
     }
   }
 
-  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+  const tabs = await chrome.tabs.query({});
+  const tab = tabs.find(t => t.url && new URL(t.url).hostname === urlF.hostname);
+
+  if (!tab) {
+    return failure(new Error(`Error trying to process demo tab: ${tab}`));
+  }
 
   const newSession: Session = {
     id: uid(24),
@@ -472,8 +477,8 @@ const createSession = async (
     serverAid,
     loggedIn: false,
     name: urlF.hostname,
-    logo: tabs[0]?.favIconUrl
-      ? await convertURLImageToBase64(tabs[0]?.favIconUrl)
+    logo: tab?.favIconUrl
+      ? await convertURLImageToBase64(tab?.favIconUrl)
       : "",
     serverOobi: resolveOobiResult.data,
     tunnelOobiUrl: getOobiResult.data.oobis[0],

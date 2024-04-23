@@ -31,7 +31,7 @@ class SignifyApi {
 
     await ready();
     console.info(`Initialising Signify client...`);
-    let bran;
+    let bran = undefined;
     try {
 
      bran = (await chrome.storage.local.get([LocalStorageKeys.BRAN]))?.bran;
