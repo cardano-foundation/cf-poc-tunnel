@@ -2,7 +2,7 @@
 
 ## Description
 
-**Project Tunnel** is an innovative browser extension that serves two groundbreaking purposes: enabling passwordless authentication and replacing the traditional HTTPS protocol with **[KERI](https://trustoverip.github.io/tswg-keri-specification/) (Key Event Receipt Infrastructure) Protocol** for securing web communications. This extension acts as a secure tunnel between websites and the Cardano Foundation's [identity wallet]([cf-identity-wallet](https://github.com/cardano-foundation/cf-identity-wallet)), leveraging decentralized identity verification to ensure safe and private interactions on the web.
+**Project Tunnel** is an innovative browser extension that serves two groundbreaking purposes: enabling passwordless authentication and replacing the traditional HTTPS protocol with **[KERI](https://trustoverip.github.io/tswg-keri-specification/) (Key Event Receipt Infrastructure) Protocol** for securing web communications. This extension acts as a secure tunnel between websites and the Cardano Foundation's [cf-identity-wallet](https://github.com/cardano-foundation/cf-identity-wallet), leveraging decentralized identity verification to ensure safe and private interactions on the web.
 
 ### Key Features
 
