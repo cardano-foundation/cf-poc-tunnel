@@ -32,6 +32,30 @@ This video offers a detailed walkthrough of the extension's key features and fun
 
 ## Getting Started
 
+### Project Structure
+
+**Project Tunnel** is organized into several key components to facilitate development and deployment. Below is a breakdown of the major elements:
+
+#### Demo Environment
+The `demo` directory encapsulates the demonstration environment, which includes both a server-side application and a user interface to showcase the extension's capabilities.
+
+- **Server (`demo/server`):** This contains all the server-side logic required to support the extension, including API endpoints, middleware for encryption and verification, and the configuration files needed for deployment. The server is containerized using Docker, facilitating easy setup and scalability.
+
+- **User Interface (`demo/ui`):** The UI provides a frontend display to interact with the extension, demonstrating its features in a real-world scenario. This part of the demo includes all frontend assets, configuration for nginx, and is also prepared for Docker deployment.
+
+#### Extension Implementation
+The core implementation of the extension is housed in the `src` directory, organized into several subdirectories for modular development:
+
+- **Core (`src/core`):** Includes the main background scripts that handle the non-UI logic of the extension, such as API communications and background processing.
+
+- **UI (`src/ui`):** Contains all the user interface components for the extension, including HTML, CSS, and TypeScript files that define the look and feel as well as the interactivity of the extension.
+
+#### Docker Integration
+The project is Docker-ready, with Dockerfiles located in both the `demo/server` and `demo/ui` directories to containerize the server and UI respectively. A `docker-compose.yml` file is also provided to orchestrate the containers, ensuring that the entire demo environment can be deployed seamlessly.
+
+This structured approach not only supports efficient development workflows but also ensures that contributors and new developers can easily understand and become involved in the project.
+
+
 ### Prerequisites
 
 Make sure you have the following installed:
@@ -101,3 +125,13 @@ Deploy the extension in Google Chrome or Brave by following these steps:
 1. Open Chrome and go to the Extensions page (`chrome://extensions`).
 2. Toggle **Developer mode** on in the top-right corner.
 3. Select **Load unpacked** and choose the `dist` folder from this project.
+
+# Contributing
+
+All contributions are welcome! Please feel free to open a new thread on the issue tracker or submit a new pull request.
+
+Please read [Contributing](CONTRIBUTING.md) in advance.  Thank you for contributing!
+
+## Additional Documents
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Security](SECURITY.md)
