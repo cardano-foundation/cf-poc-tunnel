@@ -2,7 +2,7 @@
 
 First off, thanks for taking the time to contribute! 🎉
 
-When contributing to this repository, please first describe the change you wish to make [via an issue](https://github.com/cardano-foundation/cf-identity-wallet/issues/new) before making a change.
+When contributing to this repository, please first describe the change you wish to make [via an issue](https://github.com/cardano-foundation/cf-poc-tunnel/issues/new) before making a change.
 Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in all your interactions with the project.
 
 ## Issues and pull requests
