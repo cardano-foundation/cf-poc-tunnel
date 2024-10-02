@@ -1,4 +1,6 @@
-# Project Tunnel
+
+<h1 align="center" style="border-bottom: none">Cardano Foundation | Project Tunnel 🚇</h1>
+  <hr/>
 
 ### Overview
 
