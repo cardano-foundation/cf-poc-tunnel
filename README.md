@@ -14,20 +14,17 @@
 
 ### Key Features
 
-1. **Interactive Passwordless Authentication:**
-   Project Tunnel reinvents user authentication on websites by implementing a system that eliminates the need for passwords. Instead, upon visiting a website and choosing to create an account, the site requests users to link the extension with their mobile identity wallet using KERI protocols. Users must actively approve this link, which initiates and authorizes secure web communications, leveraging encrypted data exchange.
-2. **Revolutionary Security Protocol Replacement:**  
-   The extension replaces traditional HTTPS with KERI-based encryption, encrypting each request from the user's browser using a unique ephemeral identifier (eAID) for each website. This process ensures all communications are securely transmitted and managed.
+1. **Interactive Passwordless Authentication:**  
+   Project Tunnel revolutionizes user authentication on websites by eliminating the need for passwords. Instead, users directly link the browser extension with their mobile identity wallet using KERI protocols to authorize secure web interactions.
 
-3. **Server-Side Decryption and Identity Verification:**  
-   Equipped with the public identifier of the ephemeral eAID and linked to a credential in the user's mobile wallet, servers can decrypt requests and verify identities using KERI's secure protocols, eliminating the need for HTTPS.
-
-4. **Secure Response Handling:**  
-   When the server sends responses, the extension decrypts them using the private key of the ephemeral identifier tailored to the specific website, ensuring secure end-to-end encryption for all communications.
+2. **Secure KERI-Enabled Communication Replacement for HTTPS:**  
+   The extension uses Hybrid Public Key Encryption (HPKE) with crypto box seal from libsodium, focusing on the public key of the server which enables the server to decrypt messages. This hybrid approach enhances performance while maintaining high security standards. By integrating the browser extension with KERI protocols, all web communications are encrypted using ephemeral keys, ensuring that each session is securely encrypted and authenticated.
 
 ### Why KERI Over HTTPS?
 
-Project Tunnel leverages KERI-based ephemeral identifiers to enhance security beyond traditional HTTPS, providing unique, one-time encryption keys for each session. This method boosts privacy and allows secure, reliable identity verification without the need for passwords, revolutionizing web request and response encryption and decryption.
+HTTPS, while widely adopted, is prone to a variety of security vulnerabilities primarily due to its reliance on shared secrets and bearer tokens. In contrast, **Project Tunnel** leverages the KERI protocol to significantly enhance web security. Each request through KERI can be asymmetrically signed and encrypted, providing robust security against many common attacks. Additionally, KERI utilizes verifiable credentials which improve upon traditional password-based systems by ensuring that each transaction is both secure and traceable to a verified identity.
+
+Moreover, KERI effectively replaces traditional Root Certificate Authorities (CAs) by enabling servers to present their own verifiable credentials to prove their legitimacy. This shift not only enhances security but also decentralizes trust, allowing organizations to demonstrate their identity directly to users without the need for intermediary CAs.
 
 ### End-to-End Demo
 
