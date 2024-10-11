@@ -1,6 +1,13 @@
 
 <h1 align="center" style="border-bottom: none">Cardano Foundation | Project Tunnel 🚇</h1>
 
+> **Disclaimer:**
+>
+> - **Support for Project Tunnel in the ID Wallet is currently not available**. This project was initially developed as a Proof of Concept (PoC), and the integration will be resumed when we have the capacity to do so.
+> - The **ESSR payloads are not currently using native CESR** due to its unavailability at the time of development. Future updates may incorporate this feature as it becomes supported.
+> - For enhanced confidentiality and security, it is recommended to **use a single REST endpoint with routed messages**, rather than exposing multiple endpoints.
+
+
 ### Overview
 
 **Project Tunnel** is a cutting-edge browser extension that introduces passwordless authentication and replaces traditional HTTPS with the **[KERI (Key Event Receipt Infrastructure) Protocol](https://trustoverip.github.io/tswg-keri-specification/)**. This extension acts as a secure bridge between websites and the Cardano Foundation's [cf-identity-wallet](https://github.com/cardano-foundation/cf-identity-wallet), leveraging decentralized identity technology to ensure safe and private web interactions.
