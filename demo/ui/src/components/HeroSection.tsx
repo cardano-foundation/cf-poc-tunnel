@@ -72,14 +72,28 @@ const HeroSection: React.FC = () => {
           <p className="text-base md:text-xl text-gray-300 font-bold mb-8">
             Discover innovative solutions by Cardano Foundation
           </p>
-          <a
-            onClick={() => handleDemo()}
-            className="bg-white text-gray-800 py-2 px-4 rounded-lg font-bold hover:bg-gray-100 transition duration-300 ease-in-out cursor-pointer"
-          >
-            Start Demo
-          </a>
+          <div className="flex flex-col items-center">
+            <a
+              onClick={() => handleDemo()}
+              className="bg-white text-gray-800 py-2 px-4 rounded-lg font-bold hover:bg-gray-100 transition duration-300 ease-in-out cursor-pointer"
+            >
+              Start tunnel demo
+            </a>
+            <div className="flex flex-col items-center mt-8">
+              <a
+                href="/docusign"
+                className="bg-white text-gray-800 py-2 px-4 rounded-lg font-bold hover:bg-gray-100 transition duration-300 ease-in-out cursor-pointer"
+              >
+                Try out Docusign!
+              </a>
+              <p className="text-xs text-gray-400 mt-1">
+                Digitally sign documents securely with Keri.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
+      
     </>
   );
 };

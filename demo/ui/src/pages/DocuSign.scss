@@ -1,0 +1,19 @@
+.PDFViewer {
+  display: flex;
+}
+
+.PDFPageContainer {
+  border: 2px solid transparent;
+  cursor: pointer;
+  display: block;
+}
+
+.PDFPageContainer.selected {
+  border-color: blue;
+}
+
+.PDFDocument {
+  width: 100%;
+  display: flex;
+  overflow-x: auto;
+}

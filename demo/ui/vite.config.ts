@@ -20,7 +20,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      $bgImgs: resolve("./src/assets")
-    }
-  }
+      $bgImgs: resolve("./src/assets"),
+    },
+  },
 });
