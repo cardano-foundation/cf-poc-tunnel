@@ -21,7 +21,7 @@ import {
   degrees,
 } from "pdf-lib";
 import bwipjs from "bwip-js";
-import { base64ToUint8Array, calculatePdfHash } from "../utils/utils";
+import { addressSlice, base64ToUint8Array, calculatePdfHash } from "../utils/utils";
 import PDFViewer from "../components/PDFViewer";
 import saveAs from "file-saver";
 import SignatureModal from "../components/SignatureModal";
@@ -326,41 +326,113 @@ const DocuSignInterface: React.FC = () => {
         });
         return;
       }
-
+  
       const pdfDoc = await PDFDocument.load(selectedDocument.bytes, {
         ignoreEncryption: true,
       });
-      const pages = pdfDoc.getPages();
-      const lastPage = pages[pages.length - 1];
-      const { width, height } = lastPage.getSize();
-
+      
+      const newPage = pdfDoc.addPage();
+      const { width, height } = newPage.getSize();
+  
       const signatureImageBytes = base64ToUint8Array(signatureBase64);
       const signatureImage = await pdfDoc.embedPng(signatureImageBytes);
       const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
       const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
-
+  
       const primaryColor = rgb(0.1, 0.45, 0.75);
       const secondaryColor = rgb(0.05, 0.25, 0.5);
       const lightColor = rgb(0.95, 0.97, 1.0);
       const textColor = rgb(0.15, 0.2, 0.3);
-
+  
       const signerInfo = {
         name: name,
         title: title || "",
         date: new Date().toLocaleDateString(),
-        id: "ED63B5A810D3427JA762HAS5230W2J2",
+        id: addressSlice(selectedWalletConnected.aid),
       };
-
+  
       const margin = 40;
       const blockWidth = width - margin * 2;
       const blockHeight = 180;
       const padding = 20;
       const cornerRadius = 6;
-
+  
       const startX = margin;
-      const startY = margin;
-
-      lastPage.drawRectangle({
+  
+      // Add header text at the top
+      newPage.drawText("Verifiable Signature Page", {
+        x: startX,
+        y: height - margin - 20,
+        size: 18,
+        font: helveticaBold,
+        color: primaryColor,
+      });
+  
+      newPage.drawText(
+        "Bringing cryptographic proof and SSI-based identity to PDF document signing",
+        {
+          x: startX,
+          y: height - margin - 40,
+          size: 12,
+          font: helvetica,
+          color: secondaryColor,
+        }
+      );
+  
+      const descriptionText = `
+  This signature page has been added to provide verifiable proof of authorship and document integrity using the KERI (Key Event Receipt Infrastructure) protocol. The signature is created with Veridian Wallet, an open-source mobile application developed by the Cardano Foundation. Veridian Wallet enables secure self-sovereign identity management through decentralized identifiers and cryptographic event logs anchored to the Cardano blockchain.
+  
+  The included QR code contains an Out-of-Band Introduction (OOBI), allowing others to retrieve the necessary information to independently verify the signature and associated identifier (AID). Each signature is tamper-evident and cryptographically verifiable.
+  
+  Veridian Wallet implements KERI in accordance with best practices and has undergone security audits and penetration testing to ensure secure mobile-based signing for digital documents.`;
+  
+      // Manual text wrapping function
+      const wrapText = (text: string, font: any, size: number, maxWidth: number) => {
+        const words = text.split(' ');
+        const lines = [];
+        let currentLine = words[0];
+  
+        for (let i = 1; i < words.length; i++) {
+          const word = words[i];
+          const width = font.widthOfTextAtSize(currentLine + " " + word, size);
+          if (width < maxWidth) {
+            currentLine += " " + word;
+          } else {
+            lines.push(currentLine);
+            currentLine = word;
+          }
+        }
+        lines.push(currentLine);
+        return lines;
+      };
+  
+      // Render description text and calculate its height
+      const lines = descriptionText.trim().split('\n').filter(line => line.trim());
+      let currentY = height - margin - 60;
+      const lineHeight = 12;
+      const paragraphSpacing = 12;
+  
+      lines.forEach((paragraph, index) => {
+        const wrappedLines = wrapText(paragraph.trim(), helvetica, 10, blockWidth);
+        wrappedLines.forEach((line) => {
+          newPage.drawText(line, {
+            x: startX,
+            y: currentY,
+            size: 10,
+            font: helvetica,
+            color: textColor,
+          });
+          currentY -= lineHeight;
+        });
+        if (index < lines.length - 1) {
+          currentY -= paragraphSpacing; // Extra space between paragraphs
+        }
+      });
+  
+      // Signature block pinned to the bottom
+      const startY = margin; // Fixed at bottom of page
+  
+      newPage.drawRectangle({
         x: startX,
         y: startY,
         width: blockWidth,
@@ -370,8 +442,8 @@ const DocuSignInterface: React.FC = () => {
         borderWidth: 1.5,
         borderRadius: cornerRadius,
       });
-
-      lastPage.drawRectangle({
+  
+      newPage.drawRectangle({
         x: startX,
         y: startY + blockHeight - 8,
         width: blockWidth,
@@ -379,34 +451,34 @@ const DocuSignInterface: React.FC = () => {
         color: primaryColor,
         borderRadius: { topLeft: cornerRadius, topRight: cornerRadius },
       });
-
+  
       const signatureAspectRatio = signatureImage.width / signatureImage.height;
       const signatureHeight = 60;
       const signatureWidth = signatureHeight * signatureAspectRatio;
       const signatureX = startX + (blockWidth - signatureWidth) / 2;
       const signatureY = startY + blockHeight - padding - signatureHeight - 20;
-
-      lastPage.drawImage(signatureImage, {
+  
+      newPage.drawImage(signatureImage, {
         x: signatureX,
         y: signatureY,
         width: signatureWidth,
         height: signatureHeight,
       });
-
-      let currentY = signatureY - 20;
+  
+      currentY = signatureY - 20;
       const nameWidth = helveticaBold.widthOfTextAtSize(signerInfo.name, 13);
-      lastPage.drawText(signerInfo.name, {
+      newPage.drawText(signerInfo.name, {
         x: startX + (blockWidth - nameWidth) / 2,
         y: currentY,
         size: 13,
         font: helveticaBold,
         color: secondaryColor,
       });
-
+  
       currentY -= 18;
       if (title && title.length > 0) {
         const titleWidth = helvetica.widthOfTextAtSize(signerInfo.title, 10);
-        lastPage.drawText(signerInfo.title, {
+        newPage.drawText(signerInfo.title, {
           x: startX + (blockWidth - titleWidth) / 2,
           y: currentY,
           size: 10,
@@ -416,42 +488,42 @@ const DocuSignInterface: React.FC = () => {
         });
         currentY -= 20;
       }
-
-      const qrCodeBytes = await generateBarcode2D(signerInfo.id);
+  
+      const qrCodeBytes = await generateBarcode2D();
       const qrCode = await pdfDoc.embedPng(qrCodeBytes);
       const qrCodeHeight = 120;
       const qrCodeWidth = qrCodeHeight;
-
-      lastPage.drawImage(qrCode, {
+  
+      newPage.drawImage(qrCode, {
         x: startX + padding,
         y: startY + padding + 15,
         width: qrCodeWidth,
         height: qrCodeHeight,
         rotate: degrees(0),
       });
-
-      const idText = `ID: ${signerInfo.id.substring(0, 14)}`;
+  
+      const idText = `AID: ${addressSlice(selectedWalletConnected.aid, 6)}`;
       const idWidth = helvetica.widthOfTextAtSize(idText, 10);
-      lastPage.drawText(idText, {
-        x: startX + padding,
+      newPage.drawText(idText, {
+        x: startX + padding + 2,
         y: startY + padding,
         size: 10,
         font: helvetica,
         color: textColor,
       });
-
+  
       const dateText = `Date: ${signerInfo.date}`;
       const dateWidth = helvetica.widthOfTextAtSize(dateText, 10);
-      lastPage.drawText(dateText, {
+      newPage.drawText(dateText, {
         x: startX + blockWidth - padding - dateWidth,
         y: startY + padding,
         size: 10,
         font: helvetica,
         color: textColor,
       });
-
+  
       const brandingYCenter = startY + blockHeight / 2;
-      lastPage.drawText("Signed by", {
+      newPage.drawText("Signed by", {
         x: startX + blockWidth - padding - 110,
         y: brandingYCenter + 5,
         size: 9,
@@ -459,15 +531,15 @@ const DocuSignInterface: React.FC = () => {
         color: textColor,
         opacity: 0.7,
       });
-
-      lastPage.drawText("Veridian Wallet", {
+  
+      newPage.drawText("Veridian Wallet", {
         x: startX + blockWidth - padding - 140,
         y: brandingYCenter - 10,
         size: 14,
         font: helveticaBold,
         color: primaryColor,
       });
-
+  
       const updatedBytes = await pdfDoc.save();
       const updatedFileUrl = URL.createObjectURL(
         new Blob([updatedBytes], { type: "application/pdf" })
@@ -479,17 +551,18 @@ const DocuSignInterface: React.FC = () => {
         pdfDoc,
         fileUrl: updatedFileUrl,
         hash: updatedHash,
+        pageCount: pdfDoc.getPageCount(),
       };
-
+  
       setDocuments((prevDocs) =>
         prevDocs.map((doc) =>
           doc.id === selectedDocument.id ? updatedDocument : doc
         )
       );
       setSelectedDocument(updatedDocument);
-
+  
       eventBus.publish("toast", {
-        message: "Signature added successfully!",
+        message: "Signature added successfully on new page!",
         type: "success",
         duration: 3000,
       });
