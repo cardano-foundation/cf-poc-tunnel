@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, MouseEvent } from "react";
 import { Wallet, Copy, Power, FilePen, EyeOff } from "lucide-react";
 import { addressSlice } from "../utils/utils";
 import { eventBus } from "../utils/EventBus";
@@ -6,14 +6,59 @@ import { useCardano } from "@cardano-foundation/cardano-connect-with-wallet";
 import { NetworkType } from "@cardano-foundation/cardano-connect-with-wallet-core";
 import { QRCode } from "react-qrcode-logo";
 
+// Interface definitions
 interface IWalletInfoExtended {
   name: string;
   address: string;
   oobi: string;
 }
 
-const WalletConnection = ({ walletId, setWalletId, showWalletMenu, setShowWalletMenu }) => {
-  const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
+interface WalletConnectionProps {
+  walletId: string | null;
+  docHash: string | undefined;
+  setWalletId: (id: string | null) => void;
+  showWalletMenu: boolean;
+  setShowWalletMenu: (show: boolean) => void;
+  addSignatureMetadata: (signature: string) => void;
+}
+
+interface CardanoWindow extends Window {
+  cardano?: {
+    [walletName: string]: {
+      enable: () => Promise<CardanoApi>;
+      experimental?: {
+        getKeriIdentifier: () => Promise<KeriIdentifier>;
+        signKeri: (address: string, payload: string) => Promise<any>;
+        signInception: (address: string, payload: string) => Promise<any>;
+      };
+    };
+  };
+}
+
+interface CardanoApi {
+  enable: () => Promise<CardanoApi>;
+  experimental: {
+    getKeriIdentifier: () => Promise<KeriIdentifier>;
+    signKeri: (address: string, payload: string) => Promise<any>;
+    signInception: (address: string, payload: string) => Promise<any>;
+  };
+}
+
+interface KeriIdentifier {
+  id: string;
+  oobi: string;
+}
+
+declare let window: CardanoWindow;
+
+const WalletConnection: React.FC<WalletConnectionProps> = ({
+  walletId,
+  docHash,
+  setWalletId,
+  showWalletMenu,
+  setShowWalletMenu,
+  addSignatureMetadata
+}) => {
   const [screen, setScreen] = useState<"initial" | "prompt" | "connected">("initial");
   const [peerConnectWalletInfo, setPeerConnectWalletInfo] = useState<IWalletInfoExtended>({
     name: "",
@@ -22,9 +67,9 @@ const WalletConnection = ({ walletId, setWalletId, showWalletMenu, setShowWallet
   });
   const [error, setError] = useState<string>("");
   const [showAcceptButton, setShowAcceptButton] = useState<boolean>(false);
-  const [isQrBlurred, setIsQrBlurred] = useState(true);
+  const [isQrBlurred, setIsQrBlurred] = useState<boolean>(true);
 
-  const defaultWallet = { name: "", address: "", oobi: "" };
+  const defaultWallet: IWalletInfoExtended = { name: "", address: "", oobi: "" };
 
   const {
     dAppConnect,
@@ -92,7 +137,9 @@ const WalletConnection = ({ walletId, setWalletId, showWalletMenu, setShowWallet
         disconnect();
       };
 
-      const onP2PConnect = () => {console.log("onApiEject111");};
+      const onP2PConnect = () => {
+        console.log("onApiEject111");
+      };
 
       initDappConnect(
         "KERI Wallet Connection",
@@ -104,10 +151,10 @@ const WalletConnection = ({ walletId, setWalletId, showWalletMenu, setShowWallet
         onP2PConnect
       );
     }
-  }, [dAppConnect, meerkatAddress, screen, walletId]);
+  }, [dAppConnect, meerkatAddress, screen, walletId, setWalletId, setShowWalletMenu, disconnect, initDappConnect, peerConnectWalletInfo]);
 
-  const [onPeerConnectAccept, setOnPeerConnectAccept] = useState(() => () => {});
-  const [onPeerConnectReject, setOnPeerConnectReject] = useState(() => () => {});
+  const [onPeerConnectAccept, setOnPeerConnectAccept] = useState<() => void>(() => () => {});
+  const [onPeerConnectReject, setOnPeerConnectReject] = useState<() => void>(() => () => {});
 
   const handleAcceptConnection = () => {
     console.log("peerConnectWalletInfo:", peerConnectWalletInfo);
@@ -179,32 +226,35 @@ const WalletConnection = ({ walletId, setWalletId, showWalletMenu, setShowWallet
   };
 
   const signMessageWithWallet = async () => {
-
     console.log("peerConnectWalletInfo11:", peerConnectWalletInfo);
-    if (
-      window.cardano &&
-      window.cardano["idw_p2p"]
-    ) {
+
+    if (!docHash || !docHash.length){
+      eventBus.publish("toast", {
+        message: "Document hash missing",
+        type: "error",
+        duration: 3000,
+      });
+      return;
+    }
+    
+    if (window.cardano && window.cardano["idw_p2p"]) {
       setError("");
-      console.log("hey11")
+      console.log("hey11");
       const api = window.cardano["idw_p2p"];
       const enabledApi = await api.enable();
-      console.log("hey22")
+      console.log("hey22");
       try {
         const signedMessage = await enabledApi.experimental.signKeri(
-            peerConnectWalletInfo?.address,
-            "payload2222"
+          peerConnectWalletInfo?.address,
+          docHash
         );
-        
-        console.log("hey33")
-
+        console.log("hey33");
         console.log("signedMessage:", signedMessage);
+        addSignatureMetadata(signedMessage);
       } catch (e) {
         if (e instanceof Error && 'code' in e && 'info' in e) {
           eventBus.publish("toast", {
-            message: (e.code === 2
-              ? "User declined to sign"
-              : e.info),
+            message: (e.code === 2 ? "User declined to sign" : (e as any).info),
             type: "error",
             duration: 3000,
           });
@@ -227,14 +277,16 @@ const WalletConnection = ({ walletId, setWalletId, showWalletMenu, setShowWallet
   };
 
   const handleCopyConnectedId = () => {
-    navigator.clipboard.writeText(walletId!).then(() => {
-      setShowWalletMenu(false);
-      eventBus.publish("toast", {
-        message: "Wallet ID copied!",
-        type: "success",
-        duration: 3000,
+    if (walletId) {
+      navigator.clipboard.writeText(walletId).then(() => {
+        setShowWalletMenu(false);
+        eventBus.publish("toast", {
+          message: "Wallet ID copied!",
+          type: "success",
+          duration: 3000,
+        });
       });
-    });
+    }
   };
 
   const toggleWalletMenu = () => {
@@ -320,7 +372,7 @@ const WalletConnection = ({ walletId, setWalletId, showWalletMenu, setShowWallet
             >
               <div className="flex items-center space-x-2">
                 <Wallet size={14} className="text-blue-600" />
-                <span className="font-medium">{addressSlice(walletId, 8)}</span>
+                <span className="font-medium">{addressSlice(walletId || "", 8)}</span>
               </div>
             </button>
             {showWalletMenu && (

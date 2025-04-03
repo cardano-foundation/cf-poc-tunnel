@@ -20,7 +20,7 @@ import {
   degrees,
 } from "pdf-lib";
 import bwipjs from "bwip-js";
-import { base64ToUint8Array, blake3Hash, calculatePdfHash } from "../utils/utils";
+import { base64ToUint8Array, calculatePdfHash } from "../utils/utils";
 import PDFViewer from "../components/PDFViewer";
 import saveAs from "file-saver";
 import SignatureModal from "../components/SignatureModal";
@@ -83,21 +83,6 @@ const DocuSignInterface: React.FC = () => {
       action: () => handleRunAction("download"),
     },
   ];
-
-  const addSignaturesToMetadata = async () => {
-    const signatures = [
-      { publicKey: "Public Key 1", signature: "Signature 1" },
-      { publicKey: "Public Key 2", signature: "Signature 2" },
-      { publicKey: "Public Key 3", signature: "Signature 3" },
-      { publicKey: "Public Key 4", signature: "Signature 4" },
-      { publicKey: "Public Key 5", signature: "Signature 5" },
-    ];
-
-    const jsonString = JSON.stringify(signatures);
-    const buffer = Buffer.from(jsonString, "utf8");
-    const signaturesHex = buffer.toString("hex");
-    handleAddFieldMetadata("Signatures", signaturesHex);
-  };
 
   const handleRunAction = async (action: string) => {
     switch (action) {
@@ -236,10 +221,6 @@ const DocuSignInterface: React.FC = () => {
       });
       console.error("Error downloading document:", error);
     }
-  };
-
-  const handleDragStart = (e: React.DragEvent, field: FieldType) => {
-    e.dataTransfer.setData("field", JSON.stringify(field));
   };
 
   const handleDocumentClick = (doc: PDFDoc) => {
@@ -558,7 +539,8 @@ const DocuSignInterface: React.FC = () => {
         pdfDoc.context.trailerInfo.Info
       );
 
-      const Key = PDFName.of(key);
+      const upperCaseKey = key[0].toUpperCase() + key.substring(1).toLowerCase();
+      const Key = PDFName.of(upperCaseKey);
       existingInfo.set(Key, PDFHexString.fromText(value));
       const metadataStreamRef = pdfDoc.context.register(existingInfo);
       pdfDoc.catalog.set(PDFName.of("Metadata"), metadataStreamRef);
@@ -707,8 +689,6 @@ const DocuSignInterface: React.FC = () => {
                   <div
                     onClick={field.action}
                     key={field.id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, field)}
                     className="cursor-pointer flex items-center p-3 bg-white border border-gray-200 rounded-md cursor-move hover:bg-gray-50"
                   >
                     <div className="text-gray-600">{field.icon}</div>
@@ -724,9 +704,11 @@ const DocuSignInterface: React.FC = () => {
 
         <WalletConnection
           walletId={walletId}
+          docHash={selectedDocument?.hash}
           setWalletId={setWalletId}
           showWalletMenu={showWalletMenu}
           setShowWalletMenu={setShowWalletMenu}
+          addSignatureMetadata={(signature: string) => handleAddFieldMetadata("Signature", signature)}
         />
 
         <div className="p-4 border-t border-gray-200">
