@@ -86,15 +86,12 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
     limitNetwork: NetworkType.TESTNET,
   });
 
-  console.log("meerkatAddress:", meerkatAddress);
-
   useEffect(() => {
     if (dAppConnect.current === null) {
       const verifyConnection = (
         walletInfo: IWalletInfoExtended,
         callback: (granted: boolean, autoconnect: boolean) => void
       ) => {
-        console.log("verifyConnection111:", walletInfo);
         setPeerConnectWalletInfo(walletInfo);
         setShowAcceptButton(true);
         setScreen("prompt");
@@ -103,7 +100,6 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
       };
 
       const onApiInject = async (name: string) => {
-        console.log("onApiInject111", name);
         const api = window.cardano && window.cardano[name];
         if (api) {
           const enabledApi = await api.enable();
@@ -129,7 +125,6 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
       };
 
       const onApiEject = () => {
-        console.log("onApiEject111");
         setPeerConnectWalletInfo(defaultWallet);
         setWalletId(null);
         setScreen("initial");
@@ -144,7 +139,7 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
       };
 
       const onP2PConnect = () => {
-        console.log("onApiEject111");
+        // skip
       };
 
       initDappConnect(
@@ -163,7 +158,6 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
   const [onPeerConnectReject, setOnPeerConnectReject] = useState<() => void>(() => () => {});
 
   const handleAcceptConnection = () => {
-    console.log("peerConnectWalletInfo:", peerConnectWalletInfo);
     if (peerConnectWalletInfo) {
       onPeerConnectAccept();
       connect(peerConnectWalletInfo.name).then(async () => {
@@ -239,7 +233,6 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
   };
 
   const signMessageWithWallet = async () => {
-    console.log("peerConnectWalletInfo11:", peerConnectWalletInfo);
 
     if (!docHash || !docHash.length){
       eventBus.publish("toast", {
@@ -252,17 +245,13 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
     
     if (window.cardano && window.cardano["idw_p2p"]) {
       setError("");
-      console.log("hey11");
       const api = window.cardano["idw_p2p"];
       const enabledApi = await api.enable();
-      console.log("hey22");
       try {
         const signedMessage = await enabledApi.experimental.signKeri(
           peerConnectWalletInfo?.address,
           docHash
         );
-        console.log("hey33");
-        console.log("signedMessage:", signedMessage);
         addSignatureMetadata(signedMessage);
       } catch (e) {
         if (e instanceof Error && 'code' in e && 'info' in e) {
@@ -291,8 +280,6 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
 
 
   const signMessageWithWalletInception = async () => {
-    console.log("signMessageWithWalletInception44 peerConnectWalletInfo44:", peerConnectWalletInfo);
-
     if (!docHash || !docHash.length){
       eventBus.publish("toast", {
         message: "Document hash missing",
@@ -304,17 +291,13 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
     
     if (window.cardano && window.cardano["idw_p2p"]) {
       setError("");
-      console.log("hey11");
       const api = window.cardano["idw_p2p"];
       const enabledApi = await api.enable();
-      console.log("hey44");
       try {
         const signedMessage:InceptionResponse = await enabledApi.experimental.signKeriInception(
           peerConnectWalletInfo?.address,
           docHash
         );
-        console.log("hey444");
-        console.log("signedMessage444:", signedMessage);
         const oobi = peerConnectWalletInfo.oobi;
         const secuenceNumber = signedMessage._serder._ked.s;
 

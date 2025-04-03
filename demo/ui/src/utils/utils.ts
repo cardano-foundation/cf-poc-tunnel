@@ -41,7 +41,6 @@ async function calculatePdfHash(
   pdfBytes: Uint8Array
 ): Promise<string> {
   try {
-    console.log("pdfBytes", pdfBytes);
 
     const tempPdfDoc = await PDFDocument.load(pdfBytes, {
       ignoreEncryption: true,
@@ -49,13 +48,8 @@ async function calculatePdfHash(
 
     const tempInfo = tempPdfDoc.context.lookup(tempPdfDoc.context.trailerInfo.Info);
 
-    console.log("tempInfo", tempInfo);
-
     const sigsKey = tempInfo.get(PDFName.of("Signatures"));
-    console.log("sigsKey", sigsKey);
-
     let bytesToHash: Uint8Array;
-
     if (sigsKey !== undefined) {
       const clonedInfo = tempInfo.clone(tempPdfDoc.context);
 
@@ -66,15 +60,11 @@ async function calculatePdfHash(
       tempPdfDoc.catalog.set(PDFName.of("Metadata"), metadataStreamRef);
 
       bytesToHash = await tempPdfDoc.save();
-      console.log("Calculated hash without Signatures");
     } else {
-
       bytesToHash = pdfBytes;
-      console.log("No Signatures found, using original bytes");
     }
 
     const hash = await blake3Hash(bytesToHash);
-    console.log("Final hash", hash);
     return hash;
   } catch (error) {
     console.error("Error calculating PDF hash:", error);

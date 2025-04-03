@@ -13,14 +13,12 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
   addSignature,
   onClose,
 }) => {
-  console.log("SignatureModal open", open);
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
   const [visualSignatureBase64, setVisualSignatureBase64] = useState("");
   if (!open) return null;
 
   const handleUpdateVisualSignature = (signatureUrl: string) => {
-    console.log("handleUpdateVisualSignature222", signatureUrl);
     setVisualSignatureBase64(signatureUrl);
   }
   const handleAddSingature = () => {

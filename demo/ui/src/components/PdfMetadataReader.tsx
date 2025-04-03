@@ -34,7 +34,6 @@ function PdfMetadataReader() {
         updateMetadata: false,
       });
 
-      console.log(pdfDoc);
       const metadataInfo = {
         title: await pdfDoc.getTitle(),
         author: await pdfDoc.getAuthor(),
@@ -45,8 +44,6 @@ function PdfMetadataReader() {
         modificationDate: pdfDoc.getModificationDate()?.toISOString(),
       };
 
-      console.log("metadataInfo");
-      console.log(metadataInfo);
 
       setMetadata(metadataInfo);
     } catch (error) {
@@ -135,7 +132,6 @@ const modifyAndSaveMetadata = async (
     a.click();
     document.body.removeChild(a);
 
-    console.log("PDF guardado con nueva metadata");
   } catch (error) {
     console.error("Error al modificar y guardar metadata:", error);
   }
