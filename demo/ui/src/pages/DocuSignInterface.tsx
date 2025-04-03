@@ -20,13 +20,13 @@ import {
   StandardFonts,
   degrees,
 } from "pdf-lib";
-import bwipjs from "bwip-js";
 import { addressSlice, base64ToUint8Array, calculatePdfHash } from "../utils/utils";
 import PDFViewer from "../components/PDFViewer";
 import saveAs from "file-saver";
 import SignatureModal from "../components/SignatureModal";
 import { eventBus } from "../utils/EventBus";
 import WalletConnection from "../components/WalletConnection";
+import veridianIcon from "../assets/icon-only.png";
 interface FieldType {
   id: string;
   type: string;
@@ -336,6 +336,11 @@ const DocuSignInterface: React.FC = () => {
   
       const signatureImageBytes = base64ToUint8Array(signatureBase64);
       const signatureImage = await pdfDoc.embedPng(signatureImageBytes);
+      
+      // Embed the Veridian icon (assuming it's a PNG file imported as a string or URL)
+      const veridianIconBytes = await fetch(veridianIcon).then(res => res.arrayBuffer());
+      const veridianIconImage = await pdfDoc.embedPng(veridianIconBytes);
+  
       const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
       const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
   
@@ -425,12 +430,12 @@ const DocuSignInterface: React.FC = () => {
           currentY -= lineHeight;
         });
         if (index < lines.length - 1) {
-          currentY -= paragraphSpacing; // Extra space between paragraphs
+          currentY -= paragraphSpacing;
         }
       });
   
       // Signature block pinned to the bottom
-      const startY = margin; // Fixed at bottom of page
+      const startY = margin;
   
       newPage.drawRectangle({
         x: startX,
@@ -523,9 +528,20 @@ const DocuSignInterface: React.FC = () => {
       });
   
       const brandingYCenter = startY + blockHeight / 2;
+      const iconSize = 50; 
+      const iconX = startX + blockWidth - padding - 120;
+      const iconY = brandingYCenter + 5; 
+  
+      newPage.drawImage(veridianIconImage, {
+        x: iconX,
+        y: iconY,
+        width: iconSize,
+        height: iconSize,
+      });
+  
       newPage.drawText("Signed by", {
         x: startX + blockWidth - padding - 110,
-        y: brandingYCenter + 5,
+        y: brandingYCenter - 5, // Adjusted down to make room for icon
         size: 9,
         font: helvetica,
         color: textColor,
@@ -534,7 +550,7 @@ const DocuSignInterface: React.FC = () => {
   
       newPage.drawText("Veridian Wallet", {
         x: startX + blockWidth - padding - 140,
-        y: brandingYCenter - 10,
+        y: brandingYCenter - 20, // Adjusted down to make room for icon
         size: 14,
         font: helveticaBold,
         color: primaryColor,

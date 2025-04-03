@@ -213,7 +213,7 @@ const SignaturePad: React.FC<SignaturePadProps> = ({ updateVisualSignature }) =>
           onClick={clearCanvas}
           className="px-4 py-2 text-gray-500 bg-gray-200 rounded hover:bg-gray-300"
         >
-          Limpiar
+          Clean
         </button>
       </div>
     </div>
