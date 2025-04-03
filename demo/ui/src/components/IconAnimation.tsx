@@ -73,7 +73,7 @@ const IconAnimation: React.FC<AnimationProps> = () => {
     const targetX = (rightRect.left - leftRect.left) + (rightRect.width / 2);
     const targetY = (rightRect.top - leftRect.top) + (rightRect.height / 2);
 
-    setIconType('shield'); // Valor por defecto al hacer clic
+    setIconType('shield');
     setIconColor('purple');
     setIconPosition({ x: startX, y: startY });
     startAnimation(startX, startY, targetX, targetY);
@@ -138,7 +138,7 @@ const IconAnimation: React.FC<AnimationProps> = () => {
   };
 
   const renderIcon = () => {
-    console.log('Rendering icon type:', iconType); // Debug para verificar el tipo actual
+    console.log('Rendering icon type:', iconType);
     switch (iconType) {
       case 'signature':
         return <Signature color={iconColor} size={32} />;
