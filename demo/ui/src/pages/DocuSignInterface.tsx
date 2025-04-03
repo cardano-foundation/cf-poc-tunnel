@@ -644,9 +644,8 @@ const DocuSignInterface: React.FC = () => {
         pdfDoc.context.trailerInfo.Info
       );
 
-      const upperCaseKey = key[0].toUpperCase() + key.substring(1).toLowerCase();
-      const Key = PDFName.of(upperCaseKey);
-      existingInfo.set(Key, PDFHexString.fromText(value));
+      const metadataKey = PDFName.of(key);
+      existingInfo.set(metadataKey, PDFHexString.fromText(value));
       const metadataStreamRef = pdfDoc.context.register(existingInfo);
       pdfDoc.catalog.set(PDFName.of("Metadata"), metadataStreamRef);
 
@@ -817,7 +816,7 @@ const DocuSignInterface: React.FC = () => {
             aid,
             oobi
           })}
-          addSignatureMetadata={(signature: string) => handleAddFieldMetadata("Signature", signature)}
+          addSignatureMetadata={(signature: string, key = "Signature") => handleAddFieldMetadata(key, signature)}
         />
 
         <div className="p-4 border-t border-gray-200">

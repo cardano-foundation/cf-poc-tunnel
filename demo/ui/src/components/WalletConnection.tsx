@@ -21,7 +21,7 @@ interface WalletConnectionProps {
   showWalletMenu: boolean;
   setShowWalletMenu: (show: boolean) => void;
   setConnectedWallet: (keriAID: string, oobi: string) => void;
-  addSignatureMetadata: (signature: string) => void;
+  addSignatureMetadata: (signature: string, key?: string) => void;
 }
 
 interface CardanoWindow extends Window {
@@ -317,8 +317,14 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
         console.log("signedMessage444:", signedMessage);
         const oobi = peerConnectWalletInfo.oobi;
         const secuenceNumber = signedMessage._serder._ked.s;
-        addSignatureMetadata(signedMessage);
-        // addSignatureMetadata(signedMessage);
+
+        const data = {
+          oobi,
+          s: secuenceNumber
+        }
+
+        addSignatureMetadata(Buffer.from(JSON.stringify(data)).toString("hex"), "KEL");
+
       } catch (e) {
         if (e instanceof Error && 'code' in e && 'info' in e) {
           eventBus.publish("toast", {
