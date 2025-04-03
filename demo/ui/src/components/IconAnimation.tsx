@@ -5,16 +5,12 @@ import PDFIcon from '../assets/pdfIcon.png';
 import { eventBus } from '../utils/EventBus';
 
 interface AnimationProps {
-  imageWidth?: number;
-  imageHeight?: number;
+ 
 }
 
 type IconType = 'signature' | 'check' | 'shield';
 
-const IconAnimation: React.FC<AnimationProps> = ({
-  imageWidth = 300,
-  imageHeight = 200
-}) => {
+const IconAnimation: React.FC<AnimationProps> = () => {
   const [showIcon, setShowIcon] = useState(false);
   const [iconPosition, setIconPosition] = useState({ x: 0, y: 0 });
   const [iconType, setIconType] = useState<IconType>('shield');
@@ -162,8 +158,7 @@ const IconAnimation: React.FC<AnimationProps> = ({
           ref={leftImageRef}
           src={VerifiedIcon}
           alt="Imagen izquierda"
-          width={imageWidth}
-          height={imageHeight}
+          width="80"
           className="cursor-pointer rounded-lg shadow-md"
           onClick={handleLeftImageClick}
         />
@@ -206,8 +201,7 @@ const IconAnimation: React.FC<AnimationProps> = ({
           ref={rightImageRef}
           src={PDFIcon}
           alt="Imagen derecha"
-          width={imageWidth}
-          height={imageHeight}
+          width={80}
           className="rounded-lg shadow-md"
         />
       </div>

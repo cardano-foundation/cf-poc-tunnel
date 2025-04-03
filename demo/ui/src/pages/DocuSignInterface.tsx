@@ -772,10 +772,7 @@ const DocuSignInterface: React.FC = () => {
     <div className="flex h-screen bg-gray-100 pt-20">
       <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
       <div className="p-4 border-b border-gray-200 flex flex-col items-center">
-      <IconAnimation
-      imageWidth={300}
-      imageHeight={200} 
-      />
+      <IconAnimation />
         <div className="text-center mt-2">
           <h2 className="text-lg font-semibold text-gray-800">Veridian Docusign</h2>
         </div>
