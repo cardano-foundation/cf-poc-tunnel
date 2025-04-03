@@ -249,10 +249,18 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
       const enabledApi = await api.enable();
       try {
         const signedMessage = await enabledApi.experimental.signKeri(
-          peerConnectWalletInfo?.address,
+          peerConnectWalletInfo.address,
           docHash
         );
-        addSignatureMetadata(signedMessage);
+
+        const data = {
+          aid: peerConnectWalletInfo.address,
+          oobi: peerConnectWalletInfo.oobi,
+          hash: docHash,
+          signature: signedMessage
+        }
+
+        addSignatureMetadata(Buffer.from(JSON.stringify(data)).toString("hex"), "Signature");
         eventBus.publish("startIconAnimation", {
           iconType: "signature"
         });
@@ -301,12 +309,15 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
           peerConnectWalletInfo?.address,
           docHash
         );
-        const oobi = peerConnectWalletInfo.oobi;
-        const secuenceNumber = signedMessage._serder._ked.s;
 
+        console.log("signedMessage._serder._ked1111");
+        console.log(signedMessage._serder._ked);
+        console.log(signedMessage);
         const data = {
-          oobi,
-          s: secuenceNumber
+          aid: peerConnectWalletInfo.address,
+          oobi: peerConnectWalletInfo.oobi,
+          hash: docHash,
+          sequence: signedMessage._serder._ked.s
         }
 
         addSignatureMetadata(Buffer.from(JSON.stringify(data)).toString("hex"), "KEL");

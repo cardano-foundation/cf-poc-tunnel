@@ -138,7 +138,6 @@ const IconAnimation: React.FC<AnimationProps> = () => {
   };
 
   const renderIcon = () => {
-    console.log('Rendering icon type:', iconType);
     switch (iconType) {
       case 'signature':
         return <Signature color={iconColor} size={32} />;

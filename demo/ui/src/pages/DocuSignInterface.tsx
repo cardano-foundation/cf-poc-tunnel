@@ -29,6 +29,7 @@ import WalletConnection from "../components/WalletConnection";
 import veridianIcon from "../assets/icon-only.png";
 import HeartAnimation from "../components/IconAnimation";
 import IconAnimation from "../components/IconAnimation";
+import VerificationModal from "../components/VerificationModal";
 interface FieldType {
   id: string;
   type: string;
@@ -59,6 +60,7 @@ const DocuSignInterface: React.FC = () => {
   const [selectedDocument, setSelectedDocument] = useState<PDFDoc | null>(null);
   const [showMetadataModal, setShowMetadataModal] = useState<boolean>(false);
   const [showSignatureModal, setShowSignatureModal] = useState<boolean>(false);
+  const [showVerificationModal, setShowVerificationModal] = useState<boolean>(false);
   const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
   const [triggerAnimation, setTriggerAnimation] = useState(false);
   const [selectedWalletConnected, setSelectedWalletConnected] = useState({
@@ -115,11 +117,8 @@ const DocuSignInterface: React.FC = () => {
         break;
       }
       case "verification": {
-        eventBus.publish("toast", {
-          message: "WIP!",
-          type: "warning",
-          duration: 3000,
-        });
+        console.log("heeey3")
+        setShowVerificationModal(true);
         break;
       }
       case "download": {
@@ -768,6 +767,15 @@ const DocuSignInterface: React.FC = () => {
     </div>
   );
 
+  const verifyPDF = () => {
+    if (!selectedWalletConnected.aid.length){
+      eventBus.publish("toast", {
+        message: "Wallet not connected",
+        type: "warning",
+        duration: 3000,
+      });
+    }
+  }
   return (
     <div className="flex h-screen bg-gray-100 pt-20">
       <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
@@ -780,18 +788,6 @@ const DocuSignInterface: React.FC = () => {
 
         <div className="flex-1 overflow-y-auto">
           <div className="p-4">
-            <button
-              onClick={() => setShowStandardFields(!showStandardFields)}
-              className="flex items-center justify-between w-full p-2 bg-gray-50 rounded-md"
-            >
-              <span className="font-medium text-gray-800">Menu</span>
-              <ChevronDown
-                className={`w-5 h-5 text-gray-800 transform transition-transform ${
-                  showStandardFields ? "rotate-180" : ""
-                }`}
-              />
-            </button>
-
             {showStandardFields && (
               <div className="mt-3 space-y-2">
                 {standardFields.map((field) => (
@@ -894,6 +890,12 @@ const DocuSignInterface: React.FC = () => {
         addSignature={(signature, name, title) =>
           addVisualSignature(signature, name, title)
         }
+      />
+      <VerificationModal 
+      open={showVerificationModal} 
+      metadata={selectedDocument?.metadata} 
+      onClose={() => setShowVerificationModal(false)}
+      verify={(data) => verifyPDF()}  
       />
     </div>
   );
