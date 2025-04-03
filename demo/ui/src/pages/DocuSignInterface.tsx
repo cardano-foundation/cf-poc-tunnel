@@ -1,5 +1,6 @@
 // DocuSignInterface.tsx
 import React, { useState } from "react";
+import QRCode from 'qrcode';
 import {
   Signature,
   Check,
@@ -57,6 +58,10 @@ const DocuSignInterface: React.FC = () => {
   const [showMetadataModal, setShowMetadataModal] = useState<boolean>(false);
   const [showSignatureModal, setShowSignatureModal] = useState<boolean>(false);
   const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
+  const [selectedWalletConnected, setSelectedWalletConnected] = useState({
+    aid: "",
+    oobi: ""
+  });
   const [walletId, setWalletId] = useState<string | null>(null);
   const [showWalletMenu, setShowWalletMenu] = useState(false);
 
@@ -90,6 +95,14 @@ const DocuSignInterface: React.FC = () => {
         if (!selectedDocument) {
           eventBus.publish("toast", {
             message: "No document selected!",
+            type: "warning",
+            duration: 3000,
+          });
+          return;
+        }
+        if (!selectedWalletConnected.oobi.length) {
+          eventBus.publish("toast", {
+            message: "No wallet connected!",
             type: "warning",
             duration: 3000,
           });
@@ -490,33 +503,36 @@ const DocuSignInterface: React.FC = () => {
     }
   };
 
-  const generateBarcode2D = async (
-    data: string,
-    type: "datamatrix" | "pdf417" = "datamatrix"
-  ): Promise<Uint8Array> => {
+  const generateBarcode2D = async (): Promise<Uint8Array> => {
     try {
-      const canvas = document.createElement("canvas");
-      await bwipjs.toCanvas(canvas, {
-        bcid: type,
-        text: data,
-        scale: 10,
-        height: 20,
-        includetext: false,
-        textxalign: "center",
-      });
 
-      const imageDataUrl = canvas.toDataURL("image/png");
-      const base64Data = imageDataUrl.split(",")[1];
+      const qrCodeDataUrl = await QRCode.toDataURL(
+        selectedWalletConnected.oobi,
+        {
+          errorCorrectionLevel: 'H',
+          type: 'image/png',
+          quality: 1,
+          margin: 1,
+          scale: 10,
+          width: 120, 
+          color: {
+            dark: '#0A2D4A',
+            light: '#FFFFFF'
+          }
+        }
+      );
+  
+      const base64Data = qrCodeDataUrl.split(',')[1];
       const binaryData = atob(base64Data);
       const bytes = new Uint8Array(binaryData.length);
-
+  
       for (let i = 0; i < binaryData.length; i++) {
         bytes[i] = binaryData.charCodeAt(i);
       }
-
+  
       return bytes;
     } catch (error) {
-      console.error("Error generating 2D barcode:", error);
+      console.error("Error generating QR code:", error);
       throw error;
     }
   };
@@ -708,6 +724,10 @@ const DocuSignInterface: React.FC = () => {
           setWalletId={setWalletId}
           showWalletMenu={showWalletMenu}
           setShowWalletMenu={setShowWalletMenu}
+          setConnectedWallet={(aid, oobi) => setSelectedWalletConnected({
+            aid,
+            oobi
+          })}
           addSignatureMetadata={(signature: string) => handleAddFieldMetadata("Signature", signature)}
         />
 

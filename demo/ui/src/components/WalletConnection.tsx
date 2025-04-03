@@ -5,6 +5,7 @@ import { eventBus } from "../utils/EventBus";
 import { useCardano } from "@cardano-foundation/cardano-connect-with-wallet";
 import { NetworkType } from "@cardano-foundation/cardano-connect-with-wallet-core";
 import { QRCode } from "react-qrcode-logo";
+import { InceptionResponse } from "./Keri.types";
 
 // Interface definitions
 interface IWalletInfoExtended {
@@ -19,6 +20,7 @@ interface WalletConnectionProps {
   setWalletId: (id: string | null) => void;
   showWalletMenu: boolean;
   setShowWalletMenu: (show: boolean) => void;
+  setConnectedWallet: (keriAID: string, oobi: string) => void;
   addSignatureMetadata: (signature: string) => void;
 }
 
@@ -29,7 +31,7 @@ interface CardanoWindow extends Window {
       experimental?: {
         getKeriIdentifier: () => Promise<KeriIdentifier>;
         signKeri: (address: string, payload: string) => Promise<any>;
-        signInception: (address: string, payload: string) => Promise<any>;
+        signKeriInception: (address: string, payload: string) => Promise<any>;
         disable: () => void
       };
     };
@@ -41,7 +43,7 @@ interface CardanoApi {
   experimental: {
     getKeriIdentifier: () => Promise<KeriIdentifier>;
     signKeri: (address: string, payload: string) => Promise<any>;
-    signInception: (address: string, payload: string) => Promise<any>;
+    signKeriInception: (address: string, payload: string) => Promise<any>;
     disable: () => void
   };
 }
@@ -59,6 +61,7 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
   setWalletId,
   showWalletMenu,
   setShowWalletMenu,
+  setConnectedWallet,
   addSignatureMetadata
 }) => {
   const [screen, setScreen] = useState<"initial" | "prompt" | "connected">("initial");
@@ -111,6 +114,7 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
             address: keriIdentifier.id,
             oobi: keriIdentifier.oobi,
           });
+          setConnectedWallet(keriIdentifier.id, keriIdentifier.oobi);
           setWalletId(keriIdentifier.id);
           setScreen("connected");
           setError("");
@@ -180,6 +184,7 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
                   address: keriIdentifier.id,
                   oobi: keriIdentifier.oobi,
                 });
+                setConnectedWallet(keriIdentifier.id, keriIdentifier.oobi);
                 setWalletId(keriIdentifier.id);
                 setScreen("connected");
                 setShowAcceptButton(false);
@@ -202,9 +207,8 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
     }
   };
 
-  const handleCopyId = () => {
-    navigator.clipboard.writeText(meerkatAddress || "KERI-W123456789").then(() => {
-      setScreen("prompt");
+  const handleCopyConnectionId = () => {
+    navigator.clipboard.writeText(meerkatAddress).then(() => {
       eventBus.publish("toast", {
         message: "ID copied to clipboard!",
         type: "success",
@@ -285,7 +289,62 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
     }
   };
 
-  const handleCopyConnectedId = () => {
+
+  const signMessageWithWalletInception = async () => {
+    console.log("signMessageWithWalletInception44 peerConnectWalletInfo44:", peerConnectWalletInfo);
+
+    if (!docHash || !docHash.length){
+      eventBus.publish("toast", {
+        message: "Document hash missing",
+        type: "error",
+        duration: 3000,
+      });
+      return;
+    }
+    
+    if (window.cardano && window.cardano["idw_p2p"]) {
+      setError("");
+      console.log("hey11");
+      const api = window.cardano["idw_p2p"];
+      const enabledApi = await api.enable();
+      console.log("hey44");
+      try {
+        const signedMessage:InceptionResponse = await enabledApi.experimental.signKeriInception(
+          peerConnectWalletInfo?.address,
+          docHash
+        );
+        console.log("hey444");
+        console.log("signedMessage444:", signedMessage);
+        const oobi = peerConnectWalletInfo.oobi;
+        const secuenceNumber = signedMessage._serder._ked.s;
+        addSignatureMetadata(signedMessage);
+        // addSignatureMetadata(signedMessage);
+      } catch (e) {
+        if (e instanceof Error && 'code' in e && 'info' in e) {
+          eventBus.publish("toast", {
+            message: (e.code === 2 ? "User declined to sign" : (e as any).info),
+            type: "error",
+            duration: 3000,
+          });
+        } else {
+          eventBus.publish("toast", {
+            message: "An unknown error occurred",
+            type: "error",
+            duration: 3000,
+          });
+          setError("An unknown error occurred");
+        }
+      }
+    } else {
+      eventBus.publish("toast", {
+        message: "Wallet not connected",
+        type: "warning",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleCopyKeriId = () => {
     if (walletId) {
       navigator.clipboard.writeText(walletId).then(() => {
         setShowWalletMenu(false);
@@ -342,7 +401,7 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
               </span>
             </div>
             <button
-              onClick={handleCopyId}
+              onClick={handleCopyConnectionId}
               className="flex items-center justify-center space-x-2 w-full bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm"
             >
               <Copy size={14} />
@@ -393,15 +452,22 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
                   onClick={() => signMessageWithWallet()}
                   className="flex items-center space-x-2 w-full text-left my-1 px-3 py-1.5 text-gray-700 bg-gray-200 transition-colors duration-200"
                 >
-                  <FilePen size={14} className="text-blue-600" />
-                  <span>Sign Document</span>
+                  <FilePen size={14} className="text-blue-400" />
+                  <span>Sign Ephimeral</span>
                 </button>
                 <button
-                  onClick={handleCopyConnectedId}
+                  onClick={() => signMessageWithWalletInception()}
+                  className="flex items-center space-x-2 w-full text-left my-1 px-3 py-1.5 text-gray-700 bg-gray-200 transition-colors duration-200"
+                >
+                  <FilePen size={14} className="text-blue-600" />
+                  <span>Sign Inception</span>
+                </button>
+                <button
+                  onClick={handleCopyKeriId}
                   className="flex items-center space-x-2 w-full text-left my-1 px-3 py-1.5 text-gray-700 bg-gray-200 transition-colors duration-200"
                 >
                   <Copy size={14} className="text-gray-600" />
-                  <span>Copy Connection ID</span>
+                  <span>Copy Keri ID</span>
                 </button>
                 <button
                   onClick={handleDisconnect}
