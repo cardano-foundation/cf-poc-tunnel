@@ -27,6 +27,8 @@ import SignatureModal from "../components/SignatureModal";
 import { eventBus } from "../utils/EventBus";
 import WalletConnection from "../components/WalletConnection";
 import veridianIcon from "../assets/icon-only.png";
+import HeartAnimation from "../components/IconAnimation";
+import IconAnimation from "../components/IconAnimation";
 interface FieldType {
   id: string;
   type: string;
@@ -58,6 +60,7 @@ const DocuSignInterface: React.FC = () => {
   const [showMetadataModal, setShowMetadataModal] = useState<boolean>(false);
   const [showSignatureModal, setShowSignatureModal] = useState<boolean>(false);
   const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
+  const [triggerAnimation, setTriggerAnimation] = useState(false);
   const [selectedWalletConnected, setSelectedWalletConnected] = useState({
     aid: "",
     oobi: ""
@@ -183,6 +186,8 @@ const DocuSignInterface: React.FC = () => {
         setDocuments((prevDocs) => [...prevDocs, newDocument]);
         setSelectedDocument(newDocument);
         setSelectedPdfUrl(fileUrl);
+
+        setTriggerAnimation(true);
 
         eventBus.publish("toast", {
           message: "PDF loaded successfully!",
@@ -766,12 +771,15 @@ const DocuSignInterface: React.FC = () => {
   return (
     <div className="flex h-screen bg-gray-100 pt-20">
       <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-800 text-center">Veridian Docusign</h2>
-          <p className="text-sm text-gray-500 mt-1 text-center">
-            PDF signing tool using Keri Protocol
-          </p>
+      <div className="p-4 border-b border-gray-200 flex flex-col items-center">
+      <IconAnimation
+      imageWidth={300}
+      imageHeight={200} 
+      />
+        <div className="text-center mt-2">
+          <h2 className="text-lg font-semibold text-gray-800">Veridian Docusign</h2>
         </div>
+      </div>
 
         <div className="flex-1 overflow-y-auto">
           <div className="p-4">
@@ -865,7 +873,12 @@ const DocuSignInterface: React.FC = () => {
               </label>
             </div>
           ) : (
-            <PDFViewer selectedPdfUrl={selectedDocument.fileUrl} />
+            <PDFViewer 
+            selectedPdfUrl={selectedDocument.fileUrl} 
+            addVisualSignature={() => handleRunAction("signature")}
+            verify={() => handleRunAction("verification")} 
+            download={() => handleRunAction("download")} 
+            />
           )}
         </div>
       </div>

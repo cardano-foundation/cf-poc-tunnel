@@ -253,6 +253,9 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
           docHash
         );
         addSignatureMetadata(signedMessage);
+        eventBus.publish("startIconAnimation", {
+          iconType: "signature"
+        });
       } catch (e) {
         if (e instanceof Error && 'code' in e && 'info' in e) {
           eventBus.publish("toast", {
@@ -307,7 +310,9 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
         }
 
         addSignatureMetadata(Buffer.from(JSON.stringify(data)).toString("hex"), "KEL");
-
+        eventBus.publish("startIconAnimation", {
+          iconType: "signature"
+        });
       } catch (e) {
         if (e instanceof Error && 'code' in e && 'info' in e) {
           eventBus.publish("toast", {

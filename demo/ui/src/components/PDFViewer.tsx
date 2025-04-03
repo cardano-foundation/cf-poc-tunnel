@@ -1,26 +1,30 @@
-import { Check, Download, Signature } from "lucide-react";
+import { Check, Download, Signature, Plus, Minus } from "lucide-react";
 import React, { useState, useRef, useEffect } from "react";
 import { Document, Page } from "react-pdf";
 
 export default function PDFViewer({
   selectedPdfUrl,
+  addVisualSignature,
+  verify,
+  download,
 }: {
   selectedPdfUrl: string;
+  addVisualSignature: () => void;
+  verify: () => void;
+  download: () => void;
 }) {
   const [numPages, setNumPages] = useState<number | null>(null);
-  const [scale, setScale] = useState(1.0);
   const [currentVisiblePage, setCurrentVisiblePage] = useState(1);
+  const [scaleFactor, setScaleFactor] = useState(1.2); // Factor de escala inicial
   const mainViewRef = useRef<HTMLDivElement>(null);
 
-  // Ancho base para simular un A4
-  const baseWidth = 595;
-  const scaledWidth = baseWidth * scale;
+  const baseWidth = 600;
+  const scaledWidth = baseWidth * scaleFactor;
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
   }
 
-  // Función para manejar el scroll a una página específica
   const scrollToPage = (pageNumber: number) => {
     const pageElement = document.querySelector(`[data-page="${pageNumber}"]`);
     if (pageElement) {
@@ -28,7 +32,6 @@ export default function PDFViewer({
     }
   };
 
-  // Observer para detectar la página visible actual
   useEffect(() => {
     if (!mainViewRef.current) return;
 
@@ -44,10 +47,9 @@ export default function PDFViewer({
       {
         root: mainViewRef.current,
         threshold: 0.5,
-      },
+      }
     );
 
-    // Observar todas las páginas
     document.querySelectorAll("[data-page]").forEach((page) => {
       observer.observe(page);
     });
@@ -55,9 +57,23 @@ export default function PDFViewer({
     return () => observer.disconnect();
   }, [numPages]);
 
+  const handleSignatureClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Signature button clicked");
+    addVisualSignature();
+  };
+
+  const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+  };
+
+  // Funciones para aumentar/disminuir el tamaño
+  const increaseScale = () => setScaleFactor((prev) => Math.min(prev + 0.1, 2.0)); // Máximo 2x
+  const decreaseScale = () => setScaleFactor((prev) => Math.max(prev - 0.1, 0.5)); // Mínimo 0.5x
+
   return (
     <div className="flex h-screen">
-      {/* Vista principal del PDF */}
       <div
         ref={mainViewRef}
         className="flex-grow flex justify-center items-start overflow-auto"
@@ -81,7 +97,7 @@ export default function PDFViewer({
         </Document>
       </div>
       <div className="w-32 border-l p-2 bg-gray-100 flex flex-col">
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto mb-16"> {/* Margen inferior para evitar solapamiento */}
           <Document file={selectedPdfUrl}>
             {Array.from(new Array(numPages), (_, index) => (
               <div
@@ -92,7 +108,7 @@ export default function PDFViewer({
                   backgroundColor: "white",
                   padding: "2px",
                   borderRadius: "2px",
-                  width: 0.8,
+                  width: "110px",
                 }}
               >
                 <Page pageNumber={index + 1} width={110} />
@@ -105,25 +121,39 @@ export default function PDFViewer({
         </div>
       </div>
 
-      {/* Controles de zoom */}
-      <div className="fixed bottom-4 right-4 bg-white p-2 rounded-lg shadow-lg">
+      <div
+        className="fixed bottom-4 right-4 bg-white p-2 rounded-lg shadow-lg z-50 flex gap-1"
+        onClick={handleContainerClick}
+      >
         <button
-          onClick={() => setScale((prev) => Math.max(0.5, prev - 0.1))}
-          className="px-2 py-1 text-black bg-gray-200 rounded-l hover:bg-gray-300"
+          onClick={(e) => handleSignatureClick(e)}
+          className="px-2 py-1 text-black bg-gray-200 rounded hover:bg-gray-300"
         >
           <Signature className="w-5 h-5" />
         </button>
         <button
-          onClick={() => setScale((prev) => Math.max(0.5, prev - 0.1))}
-          className="px-2 mx-1 py-1 text-black bg-gray-200 rounded-l hover:bg-gray-300"
+          onClick={() => verify()}
+          className="px-2 py-1 text-black bg-gray-200 rounded hover:bg-gray-300"
         >
           <Check className="w-5 h-5" />
         </button>
         <button
-          onClick={() => setScale((prev) => Math.max(0.5, prev - 0.1))}
-          className="px-2 py-1 text-black bg-gray-200 rounded-l hover:bg-gray-300"
+          onClick={() => download()}
+          className="px-2 py-1 text-black bg-gray-200 rounded hover:bg-gray-300"
         >
           <Download className="w-5 h-5" />
+        </button>
+        <button
+          onClick={increaseScale}
+          className="ml-4 px-2 py-1 text-black bg-gray-200 rounded hover:bg-gray-300"
+        >
+          <Plus className="w-5 h-5" />
+        </button>
+        <button
+          onClick={decreaseScale}
+          className="px-2 py-1 text-black bg-gray-200 rounded hover:bg-gray-300"
+        >
+          <Minus className="w-5 h-5" />
         </button>
       </div>
     </div>
