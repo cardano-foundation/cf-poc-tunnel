@@ -43,44 +43,36 @@ async function calculatePdfHash(
   try {
     console.log("pdfBytes", pdfBytes);
 
-    // Cargar el documento PDF
     const tempPdfDoc = await PDFDocument.load(pdfBytes, {
       ignoreEncryption: true,
     });
 
-    // Obtener el objeto Info del trailer
     const tempInfo = tempPdfDoc.context.lookup(tempPdfDoc.context.trailerInfo.Info);
 
     console.log("tempInfo", tempInfo);
 
-    // Verificar si existe el campo Signatures
     const sigsKey = tempInfo.get(PDFName.of("Signatures"));
     console.log("sigsKey", sigsKey);
 
     let bytesToHash: Uint8Array;
 
     if (sigsKey !== undefined) {
-      // Clonar el objeto Info para no modificar el original
       const clonedInfo = tempInfo.clone(tempPdfDoc.context);
 
-      // Eliminar el campo Signatures del clon
       const key = PDFName.of("Signatures");
       clonedInfo.delete(key);
 
-      // Actualizar el catálogo con el clon sin Signatures
       const metadataStreamRef = tempPdfDoc.context.register(clonedInfo);
       tempPdfDoc.catalog.set(PDFName.of("Metadata"), metadataStreamRef);
 
-      // Guardar el documento sin el campo Signatures
       bytesToHash = await tempPdfDoc.save();
       console.log("Calculated hash without Signatures");
     } else {
-      // Si no hay Signatures, usar los bytes originales
+
       bytesToHash = pdfBytes;
       console.log("No Signatures found, using original bytes");
     }
 
-    // Calcular el hash con los bytes seleccionados
     const hash = await blake3Hash(bytesToHash);
     console.log("Final hash", hash);
     return hash;
