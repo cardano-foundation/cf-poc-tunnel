@@ -774,6 +774,7 @@ const DocuSignInterface: React.FC = () => {
         type: "warning",
         duration: 3000,
       });
+      return;
     }
   }
   return (
