@@ -30,6 +30,7 @@ interface CardanoWindow extends Window {
         getKeriIdentifier: () => Promise<KeriIdentifier>;
         signKeri: (address: string, payload: string) => Promise<any>;
         signInception: (address: string, payload: string) => Promise<any>;
+        disable: () => void
       };
     };
   };
@@ -41,6 +42,7 @@ interface CardanoApi {
     getKeriIdentifier: () => Promise<KeriIdentifier>;
     signKeri: (address: string, payload: string) => Promise<any>;
     signInception: (address: string, payload: string) => Promise<any>;
+    disable: () => void
   };
 }
 
@@ -211,13 +213,20 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
     });
   };
 
-  const handleDisconnect = () => {
-    disconnect();
+  const handleDisconnect = async () => {
+    
     setPeerConnectWalletInfo(defaultWallet);
     setWalletId(null);
     setShowWalletMenu(false);
     setScreen("initial");
     setError("");
+    
+    const api =
+        window.cardano && window.cardano[peerConnectWalletInfo.name];
+    if (!api) return;
+    const enabledApi = await api.enable();
+    await enabledApi.experimental.disable();
+
     eventBus.publish("toast", {
       message: "Wallet disconnected!",
       type: "info",
@@ -337,7 +346,7 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
               className="flex items-center justify-center space-x-2 w-full bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm"
             >
               <Copy size={14} />
-              <span>Copy ID</span>
+              <span>Copy Connection ID</span>
             </button>
           </div>
         );
@@ -392,7 +401,7 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
                   className="flex items-center space-x-2 w-full text-left my-1 px-3 py-1.5 text-gray-700 bg-gray-200 transition-colors duration-200"
                 >
                   <Copy size={14} className="text-gray-600" />
-                  <span>Copy ID</span>
+                  <span>Copy Connection ID</span>
                 </button>
                 <button
                   onClick={handleDisconnect}
