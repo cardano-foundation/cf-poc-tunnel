@@ -5,7 +5,7 @@ import { eventBus } from "../utils/EventBus";
 import { useCardano } from "@cardano-foundation/cardano-connect-with-wallet";
 import { NetworkType } from "@cardano-foundation/cardano-connect-with-wallet-core";
 import { QRCode } from "react-qrcode-logo";
-import { InceptionResponse } from "./Keri.types";
+import { InteractionResponse } from "./Keri.types";
 
 // Interface definitions
 interface IWalletInfoExtended {
@@ -31,7 +31,7 @@ interface CardanoWindow extends Window {
       experimental?: {
         getKeriIdentifier: () => Promise<KeriIdentifier>;
         signKeri: (address: string, payload: string) => Promise<any>;
-        signKeriInception: (address: string, payload: string) => Promise<any>;
+        InteractionResponse: (address: string, payload: string) => Promise<any>;
         disable: () => void
       };
     };
@@ -43,7 +43,7 @@ interface CardanoApi {
   experimental: {
     getKeriIdentifier: () => Promise<KeriIdentifier>;
     signKeri: (address: string, payload: string) => Promise<any>;
-    signKeriInception: (address: string, payload: string) => Promise<any>;
+    InteractionResponse: (address: string, payload: string) => Promise<any>;
     disable: () => void
   };
 }
@@ -290,7 +290,7 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
   };
 
 
-  const signMessageWithWalletInception = async () => {
+  const signMessageWithWalletInteraction = async () => {
     if (!docHash || !docHash.length){
       eventBus.publish("toast", {
         message: "Document hash missing",
@@ -305,7 +305,7 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
       const api = window.cardano["idw_p2p"];
       const enabledApi = await api.enable();
       try {
-        const signedMessage:InceptionResponse = await enabledApi.experimental.signKeriInception(
+        const signedMessage:InteractionResponse = await enabledApi.experimental.InteractionResponse(
           peerConnectWalletInfo?.address,
           docHash
         );
@@ -461,11 +461,11 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
                   <span>Sign Ephimeral</span>
                 </button>
                 <button
-                  onClick={() => signMessageWithWalletInception()}
+                  onClick={() => signMessageWithWalletInteraction()}
                   className="flex items-center space-x-2 w-full text-left my-1 px-3 py-1.5 text-gray-700 bg-gray-200 transition-colors duration-200"
                 >
                   <FilePen size={14} className="text-blue-600" />
-                  <span>Sign Inception</span>
+                  <span>Sign InteractionResponse</span>
                 </button>
                 <button
                   onClick={handleCopyKeriId}

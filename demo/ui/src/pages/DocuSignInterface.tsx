@@ -462,7 +462,7 @@ const DocuSignInterface: React.FC = () => {
       });
   
       const signatureAspectRatio = signatureImage.width / signatureImage.height;
-      const signatureHeight = 60;
+      const signatureHeight = 85;
       const signatureWidth = signatureHeight * signatureAspectRatio;
       const signatureX = startX + (blockWidth - signatureWidth) / 2;
       const signatureY = startY + blockHeight - padding - signatureHeight - 20;

@@ -217,7 +217,7 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
             }`}
             onClick={() => setActiveTab("B")}
           >
-            Inception Event - KEL 
+            Interaction Event - KEL 
           </div>
         </div>
 

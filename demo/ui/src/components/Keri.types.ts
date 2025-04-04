@@ -1,4 +1,4 @@
-interface InceptionResponse {
+interface InteractionResponse {
     _serder: {
         _kind: string; // Serialization type (e.g., "JSON")
         _raw: string;  // Raw serialized message string
@@ -27,5 +27,5 @@ interface InceptionResponse {
 }
 
 export type {
-    InceptionResponse
+    InteractionResponse as InteractionResponse
 }
