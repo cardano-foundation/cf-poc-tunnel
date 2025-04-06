@@ -97,7 +97,7 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
                 if (verified.verified){
                     setVerificationResult((prev) => ({
                         ...prev,
-                        [tab]: "Signature verification successful1!!",
+                        [tab]: "Signature verification successful!",
                       }));
                     eventBus.publish("toast", {
                         message: "Signature verified successfully!",
