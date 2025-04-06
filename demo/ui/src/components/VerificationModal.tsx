@@ -100,7 +100,7 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
                         [tab]: "Signature verification successful1!!",
                       }));
                     eventBus.publish("toast", {
-                        message: "Document verified successfully!",
+                        message: "Signature verified successfully!",
                         type: "success",
                         duration: 3000,
                     }); 
@@ -110,8 +110,8 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
                         [tab]: "Signature verification failed!!",
                       }));
                     eventBus.publish("toast", {
-                        message: "Document not verified!",
-                        type: "warning",
+                        message: "Signature not verified!",
+                        type: "error",
                         duration: 3000,
                     });    
                 }
@@ -126,7 +126,7 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
                 if (verified.verified){
                     setVerificationResult((prev) => ({
                         ...prev,
-                        [tab]: "Signature verification successful1!!",
+                        [tab]: "Document verification successfully!",
                       }));
                     eventBus.publish("toast", {
                         message: "Document verified successfully!",
@@ -136,11 +136,11 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
                 } else {
                     setVerificationResult((prev) => ({
                         ...prev,
-                        [tab]: "Signature verification failed!!",
+                        [tab]: "Document verification failed!",
                       }));
                     eventBus.publish("toast", {
-                        message: "Document not verified!",
-                        type: "warning",
+                        message: "Document verification failed!",
+                        type: "error",
                         duration: 3000,
                     });  
                 }
