@@ -31,7 +31,9 @@ interface CardanoWindow extends Window {
       experimental?: {
         getKeriIdentifier: () => Promise<KeriIdentifier>;
         signKeri: (address: string, payload: string) => Promise<any>;
-        InteractionResponse: (address: string, payload: string) => Promise<any>;
+        signInteraction: (address: string, payload: string) => Promise<any>;
+        verifySignature: (aid: string, oob: string, payload: string, signature: string, interaction: boolean) => Promise<any>;
+        verifyKeriInteraction: (aid: string, oob: string, payload: string, sequence: string, interaction: boolean) => Promise<any>;
         disable: () => void
       };
     };
@@ -43,7 +45,9 @@ interface CardanoApi {
   experimental: {
     getKeriIdentifier: () => Promise<KeriIdentifier>;
     signKeri: (address: string, payload: string) => Promise<any>;
-    InteractionResponse: (address: string, payload: string) => Promise<any>;
+    signInteraction: (address: string, payload: string) => Promise<any>;
+    verifySignature: (aid: string, oob: string, payload: string, signature: string, interaction: boolean) => Promise<any>;
+    verifyKeriInteraction: (aid: string, oob: string, payload: string, sequence: string, interaction: boolean) => Promise<any>;
     disable: () => void
   };
 }
@@ -103,6 +107,8 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
         const api = window.cardano && window.cardano[name];
         if (api) {
           const enabledApi = await api.enable();
+          console.log("enabledApi");
+          console.log(enabledApi);
           const keriIdentifier = await enabledApi.experimental.getKeriIdentifier();
           setPeerConnectWalletInfo({
             ...peerConnectWalletInfo,
@@ -247,6 +253,8 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
       setError("");
       const api = window.cardano["idw_p2p"];
       const enabledApi = await api.enable();
+      console.log("enabledApi");
+      console.log(enabledApi);
       try {
         const signedMessage = await enabledApi.experimental.signKeri(
           peerConnectWalletInfo.address,
@@ -304,8 +312,10 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
       setError("");
       const api = window.cardano["idw_p2p"];
       const enabledApi = await api.enable();
+      console.log("enabledApi");
+      console.log(enabledApi);
       try {
-        const signedMessage:InteractionResponse = await enabledApi.experimental.InteractionResponse(
+        const signedMessage:InteractionResponse = await enabledApi.experimental.signInteraction(
           peerConnectWalletInfo?.address,
           docHash
         );
@@ -465,7 +475,7 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
                   className="flex items-center space-x-2 w-full text-left my-1 px-3 py-1.5 text-gray-700 bg-gray-200 transition-colors duration-200"
                 >
                   <FilePen size={14} className="text-blue-600" />
-                  <span>Sign InteractionResponse</span>
+                  <span>Sign Interaction</span>
                 </button>
                 <button
                   onClick={handleCopyKeriId}

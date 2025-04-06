@@ -75,19 +75,11 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
 
   const handleVerify = async (tab: "A" | "B") => {
     try {
-      const { aid, oobi, hash, sequence } = formData[tab];
-      if (!aid || !oobi || !hash || (tab === "B" && !sequence)) {
-        throw new Error("All fields are required");
+      const { aid, oobi, hash } = formData[tab];
+      if (!aid || !oobi || !hash) {
+        throw new Error("Fields are required");
       }
-      
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      setVerificationResult((prev) => ({
-        ...prev,
-        [tab]: "Verification successful!",
-      }));
-
-      verify(formData[activeTab]);
+     
 
     if (window.cardano && window.cardano["idw_p2p"]) {
         const api = window.cardano["idw_p2p"];
@@ -96,11 +88,46 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
             // TODO: verify
             console.log("enabledApi");
             console.log(enabledApi);
-            /*
-            const signedMessage = await enabledApi.experimental.signKeri(
-            peerConnectWalletInfo.address,
-            docHash
-            );*/
+
+            console.log("activeTab");
+            console.log(activeTab);
+            if (activeTab === "A"){
+
+                console.log("hey2");
+                const verified = await enabledApi.experimental.verifySignature(
+                    formData[tab].aid, 
+                    formData[tab].oobi, 
+                    formData[tab].hash, 
+                    formData[tab].signature,
+                    false,
+                );
+
+                console.log("verified00");
+                console.log(verified);
+                if (verified.verified){
+                    setVerificationResult((prev) => ({
+                        ...prev,
+                        [tab]: "Signature verification successful1!!",
+                      }));
+                } else {
+                    setVerificationResult((prev) => ({
+                        ...prev,
+                        [tab]: "Signature verification failed!!",
+                      }));
+                }
+            } else {
+                console.log("hey3");
+                enabledApi.experimental.verifyKeriInteraction(
+                    formData[tab].aid, 
+                    formData[tab].oobi, 
+                    formData[tab].hash, 
+                    formData[tab].sequence,
+                    true
+                );
+            }                
+
+            
+    
             } catch (e) {
             // TODO
             console.log(e);
