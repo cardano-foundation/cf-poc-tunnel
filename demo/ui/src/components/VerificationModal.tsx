@@ -85,15 +85,7 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
         const api = window.cardano["idw_p2p"];
         const enabledApi = await api.enable();
         try {
-            // TODO: verify
-            console.log("enabledApi");
-            console.log(enabledApi);
-
-            console.log("activeTab");
-            console.log(activeTab);
             if (activeTab === "A"){
-
-                console.log("hey2");
                 const verified = await enabledApi.experimental.verifySignature(
                     formData[tab].aid, 
                     formData[tab].oobi, 
@@ -102,8 +94,6 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
                     false,
                 );
 
-                console.log("verified00");
-                console.log(verified);
                 if (verified.verified){
                     setVerificationResult((prev) => ({
                         ...prev,
@@ -116,7 +106,6 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
                       }));
                 }
             } else {
-                console.log("hey3");
                 const verified = await enabledApi.experimental.verifyKeriInteraction(
                     formData[tab].aid, 
                     formData[tab].oobi, 
@@ -129,19 +118,25 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
                         ...prev,
                         [tab]: "Signature verification successful1!!",
                       }));
+                    eventBus.publish("toast", {
+                        message: "Document verified successfully!",
+                        type: "success",
+                        duration: 3000,
+                    });  
                 } else {
                     setVerificationResult((prev) => ({
                         ...prev,
                         [tab]: "Signature verification failed!!",
                       }));
+                      eventBus.publish("toast", {
+                        message: "Document not verified!",
+                        type: "warning",
+                        duration: 3000,
+                    });  
                 }
-            }                
-
-            
-    
-            } catch (e) {
-            // TODO
-            console.log(e);
+            }                    
+            } catch (_) {
+                // TODO
             }
         }
     } catch (error) {
