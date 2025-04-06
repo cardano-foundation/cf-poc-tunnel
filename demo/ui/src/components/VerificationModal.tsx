@@ -117,13 +117,24 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
                 }
             } else {
                 console.log("hey3");
-                enabledApi.experimental.verifyKeriInteraction(
+                const verified = await enabledApi.experimental.verifyKeriInteraction(
                     formData[tab].aid, 
                     formData[tab].oobi, 
                     formData[tab].hash, 
                     formData[tab].sequence,
                     true
                 );
+                if (verified.verified){
+                    setVerificationResult((prev) => ({
+                        ...prev,
+                        [tab]: "Signature verification successful1!!",
+                      }));
+                } else {
+                    setVerificationResult((prev) => ({
+                        ...prev,
+                        [tab]: "Signature verification failed!!",
+                      }));
+                }
             }                
 
             
