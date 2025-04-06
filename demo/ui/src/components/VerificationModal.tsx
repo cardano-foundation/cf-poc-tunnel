@@ -99,11 +99,21 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
                         ...prev,
                         [tab]: "Signature verification successful1!!",
                       }));
+                    eventBus.publish("toast", {
+                        message: "Document verified successfully!",
+                        type: "success",
+                        duration: 3000,
+                    }); 
                 } else {
                     setVerificationResult((prev) => ({
                         ...prev,
                         [tab]: "Signature verification failed!!",
                       }));
+                    eventBus.publish("toast", {
+                        message: "Document not verified!",
+                        type: "warning",
+                        duration: 3000,
+                    });    
                 }
             } else {
                 const verified = await enabledApi.experimental.verifyKeriInteraction(
@@ -128,7 +138,7 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
                         ...prev,
                         [tab]: "Signature verification failed!!",
                       }));
-                      eventBus.publish("toast", {
+                    eventBus.publish("toast", {
                         message: "Document not verified!",
                         type: "warning",
                         duration: 3000,
