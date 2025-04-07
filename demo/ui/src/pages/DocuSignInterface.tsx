@@ -346,6 +346,7 @@ const DocuSignInterface: React.FC = () => {
   
       const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
       const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const helveticaOblique = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
   
       const primaryColor = rgb(0.1, 0.45, 0.75);
       const secondaryColor = rgb(0.05, 0.25, 0.5);
@@ -532,7 +533,7 @@ const DocuSignInterface: React.FC = () => {
   
       const brandingYCenter = startY + blockHeight / 2;
       const iconSize = 50; 
-      const iconX = startX + blockWidth - padding - 120;
+      const iconX = startX + blockWidth - padding - 119;
       const iconY = brandingYCenter + 5; 
   
       newPage.drawImage(veridianIconImage, {
@@ -555,7 +556,7 @@ const DocuSignInterface: React.FC = () => {
         x: startX + blockWidth - padding - 140,
         y: brandingYCenter - 20, // Adjusted down to make room for icon
         size: 14,
-        font: helveticaBold,
+        font: helveticaOblique,
         color: primaryColor,
       });
   
