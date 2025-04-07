@@ -28,7 +28,7 @@ const IconAnimation: React.FC<AnimationProps> = () => {
       setIconType(type.iconType);
       setIconColor(
         type.iconType === 'signature' ? '#23649e' :
-        type.iconType === 'check' ? 'green' :
+        type.iconType === 'check' ? 'gray' :
         'gray'
       );
 

@@ -783,7 +783,7 @@ const DocuSignInterface: React.FC = () => {
       <div className="p-4 border-b border-gray-200 flex flex-col items-center">
       <IconAnimation />
         <div className="text-center mt-2">
-          <h2 className="text-lg font-semibold text-gray-800">Verisign App</h2>
+          <h2 className="text-lg font-semibold text-gray-800">Veridian Kerisign</h2>
         </div>
       </div>
 

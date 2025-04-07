@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // Add useEffect to imports
 import { X, Copy } from "lucide-react";
 import { eventBus } from "../utils/EventBus";
 
@@ -35,6 +35,18 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
     B: string | null;
   }>({ A: null, B: null });
 
+  // Add useEffect to clear verificationResult after 3 seconds
+  useEffect(() => {
+    if (verificationResult.A || verificationResult.B) {
+      const timer = setTimeout(() => {
+        setVerificationResult({ A: null, B: null });
+      }, 3000); // 3000ms = 3 seconds
+
+      // Cleanup the timeout if the component unmounts or verificationResult changes
+      return () => clearTimeout(timer);
+    }
+  }, [verificationResult]);
+
   const handleInputChange = (
     tab: "A" | "B",
     field: "aid" | "oobi" | "hash" | "sequence" | "signature",
@@ -65,9 +77,9 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
     if (text) {
       navigator.clipboard.writeText(text).then(() => {
         eventBus.publish("toast", {
-            message: "Copied to clipboard!",
-            type: "",
-            duration: 2000,
+          message: "Copied to clipboard!",
+          type: "",
+          duration: 2000,
         });
       });
     }
@@ -79,76 +91,76 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
       if (!aid || !oobi || !hash) {
         throw new Error("Fields are required");
       }
-     
 
-    if (window.cardano && window.cardano["idw_p2p"]) {
+      if (window.cardano && window.cardano["idw_p2p"]) {
         const api = window.cardano["idw_p2p"];
         const enabledApi = await api.enable();
         try {
-            if (activeTab === "A"){
-                const verified = await enabledApi.experimental.verifySignature(
-                    formData[tab].aid, 
-                    formData[tab].oobi, 
-                    formData[tab].hash, 
-                    formData[tab].signature,
-                    false,
-                );
-
-                if (verified.verified){
-                    setVerificationResult((prev) => ({
-                        ...prev,
-                        [tab]: "Signature verification successful!",
-                      }));
-                    eventBus.publish("toast", {
-                        message: "Signature verified successfully!",
-                        type: "success",
-                        duration: 3000,
-                    }); 
-                } else {
-                    setVerificationResult((prev) => ({
-                        ...prev,
-                        [tab]: "Signature verification failed!!",
-                      }));
-                    eventBus.publish("toast", {
-                        message: "Signature not verified!",
-                        type: "error",
-                        duration: 3000,
-                    });    
-                }
+          if (activeTab === "A") {
+            const verified = await enabledApi.experimental.verifySignature(
+              formData[tab].aid,
+              formData[tab].oobi,
+              formData[tab].hash,
+              formData[tab].signature,
+              false
+            );
+            eventBus.publish("startIconAnimation", { iconType: "check" });
+            if (verified.verified) {
+              setVerificationResult((prev) => ({
+                ...prev,
+                [tab]: "Signature verification successful!",
+              }));
+              eventBus.publish("toast", {
+                message: "Signature verified successfully!",
+                type: "success",
+                duration: 3000,
+              });
             } else {
-                const verified = await enabledApi.experimental.verifyKeriInteraction(
-                    formData[tab].aid, 
-                    formData[tab].oobi, 
-                    formData[tab].hash, 
-                    formData[tab].sequence,
-                    true
-                );
-                if (verified.verified){
-                    setVerificationResult((prev) => ({
-                        ...prev,
-                        [tab]: "Document verification successfully!",
-                      }));
-                    eventBus.publish("toast", {
-                        message: "Document verified successfully!",
-                        type: "success",
-                        duration: 3000,
-                    });  
-                } else {
-                    setVerificationResult((prev) => ({
-                        ...prev,
-                        [tab]: "Document verification failed!",
-                      }));
-                    eventBus.publish("toast", {
-                        message: "Document verification failed!",
-                        type: "error",
-                        duration: 3000,
-                    });  
-                }
-            }                    
-            } catch (_) {
-                // TODO
+              setVerificationResult((prev) => ({
+                ...prev,
+                [tab]: "Signature verification failed!!",
+              }));
+              eventBus.publish("toast", {
+                message: "Signature not verified!",
+                type: "error",
+                duration: 3000,
+              });
             }
+          } else {
+            const verified = await enabledApi.experimental.verifyKeriInteraction(
+              formData[tab].aid,
+              formData[tab].oobi,
+              formData[tab].hash,
+              formData[tab].sequence,
+              true
+            );
+            eventBus.publish("startIconAnimation", { iconType: "check" });
+            if (verified.verified) {
+              setVerificationResult((prev) => ({
+                ...prev,
+                [tab]: "Document verification successful!",
+              }));
+              eventBus.publish("toast", {
+                message: "Document verified successfully!",
+                type: "success",
+                duration: 3000,
+              });
+            } else {
+              setVerificationResult((prev) => ({
+                ...prev,
+                [tab]: "Document verification failed!",
+              }));
+              eventBus.publish("toast", {
+                message: "Document verification failed!",
+                type: "error",
+                duration: 3000,
+              });
+            }
+          }
+        } catch (_) {
+          // TODO
         }
+      }
     } catch (error) {
       setVerificationResult((prev) => ({
         ...prev,
