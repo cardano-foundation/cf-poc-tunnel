@@ -271,9 +271,9 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
           iconType: "signature"
         });
       } catch (e) {
-        if (e instanceof Error && 'code' in e && 'info' in e) {
+        if (typeof e === 'object' && e !== null && 'code' in e && 'info' in e) {             
           eventBus.publish("toast", {
-            message: (e.code === 2 ? "User declined to sign" : (e as any).info),
+            message: "User declined to sign the document",
             type: "error",
             duration: 3000,
           });
@@ -328,9 +328,9 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
           iconType: "signature"
         });
       } catch (e) {
-        if (e instanceof Error && 'code' in e && 'info' in e) {
+        if (typeof e === 'object' && e !== null && 'code' in e && 'info' in e) {             
           eventBus.publish("toast", {
-            message: (e.code === 2 ? "User declined to sign" : (e as any).info),
+            message: "User declined to sign the document",
             type: "error",
             duration: 3000,
           });

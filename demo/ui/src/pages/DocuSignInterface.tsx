@@ -117,7 +117,6 @@ const DocuSignInterface: React.FC = () => {
         break;
       }
       case "verification": {
-        console.log("heeey3")
         setShowVerificationModal(true);
         break;
       }
@@ -767,16 +766,7 @@ const DocuSignInterface: React.FC = () => {
     </div>
   );
 
-  const verifyPDF = () => {
-    if (!selectedWalletConnected.aid.length){
-      eventBus.publish("toast", {
-        message: "Wallet not connected",
-        type: "warning",
-        duration: 3000,
-      });
-      return;
-    }
-  }
+
   return (
     <div className="flex h-screen bg-gray-100 pt-20">
       <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
@@ -896,7 +886,6 @@ const DocuSignInterface: React.FC = () => {
       open={showVerificationModal} 
       metadata={selectedDocument?.metadata} 
       onClose={() => setShowVerificationModal(false)}
-      verify={(data) => verifyPDF()}  
       />
     </div>
   );

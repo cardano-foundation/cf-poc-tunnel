@@ -16,36 +16,38 @@ interface VerificationModalProps {
 const VerificationModal: React.FC<VerificationModalProps> = ({
   open,
   metadata,
-  verify,
   onClose,
 }) => {
-  if (!open) return null;
-
   const [activeTab, setActiveTab] = useState<"A" | "B">("A");
 
-  const kelData = metadata && Object.keys(metadata).includes("KEL") ? JSON.parse(Buffer.from(metadata["KEL"], "hex").toString()) : undefined;
-  const ephimeralSigData = metadata && Object.keys(metadata).includes("Signature") ? JSON.parse(Buffer.from(metadata["Signature"], "hex").toString()) : undefined;
 
-  const [formData, setFormData] = useState({
-    A: { aid: ephimeralSigData?.aid, oobi: ephimeralSigData?.oobi, hash: ephimeralSigData?.hash, signature: ephimeralSigData?.signature },
-    B: { aid: kelData?.aid, oobi: kelData?.oobi, hash: kelData?.hash, sequence: kelData?.sequence },
-  });
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [formData, setFormData] = useState({});
   const [verificationResult, setVerificationResult] = useState<{
     A: string | null;
     B: string | null;
   }>({ A: null, B: null });
 
-  // Add useEffect to clear verificationResult after 3 seconds
+  useEffect(() => {
+    const kelData = metadata && Object.keys(metadata).includes("KEL") ? JSON.parse(Buffer.from(metadata["KEL"], "hex").toString()) : undefined;
+    const ephimeralSigData = metadata && Object.keys(metadata).includes("Signature") ? JSON.parse(Buffer.from(metadata["Signature"], "hex").toString()) : undefined;
+    setFormData({
+      A: { aid: ephimeralSigData?.aid, oobi: ephimeralSigData?.oobi, hash: ephimeralSigData?.hash, signature: ephimeralSigData?.signature },
+      B: { aid: kelData?.aid, oobi: kelData?.oobi, hash: kelData?.hash, sequence: kelData?.sequence },
+    })
+  }, [metadata]);
+
   useEffect(() => {
     if (verificationResult.A || verificationResult.B) {
       const timer = setTimeout(() => {
         setVerificationResult({ A: null, B: null });
-      }, 3000); // 3000ms = 3 seconds
+      }, 6000);
 
-      // Cleanup the timeout if the component unmounts or verificationResult changes
       return () => clearTimeout(timer);
     }
   }, [verificationResult]);
+
+  if (!open) return null;
 
   const handleInputChange = (
     tab: "A" | "B",
@@ -86,6 +88,7 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
   };
 
   const handleVerify = async (tab: "A" | "B") => {
+    setIsVerifying(true);
     try {
       const { aid, oobi, hash } = formData[tab];
       if (!aid || !oobi || !hash) {
@@ -157,8 +160,18 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
               });
             }
           }
-        } catch (_) {
-          // TODO
+        } catch (e) {
+          if (typeof e === 'object' && e !== null && 'code' in e && 'info' in e) {
+            setVerificationResult((prev) => ({
+              ...prev,
+              [tab] : "User declined to verify the document",
+            }));
+            eventBus.publish("toast", {
+              message: "User declined to verify the document",
+              type: "error",
+              duration: 3000,
+            });
+          }
         }
       }
     } catch (error) {
@@ -166,32 +179,40 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
         ...prev,
         [tab]: error instanceof Error ? error.message : "Verification failed",
       }));
+      eventBus.publish("toast", {
+        message: "Verification failed",
+        type: "error",
+        duration: 3000,
+      });
+    }
+    finally {
+      setIsVerifying(false);
     }
   };
 
   const renderInputWithCopy = (
-    tab: "A" | "B",
     field: "aid" | "oobi" | "hash" | "sequence" | "signature",
     label: string,
     placeholder: string,
     type: string = "text",
     pattern?: string,
     inputMode?: "numeric" | "text"
-  ) => (
-    <div className="flex flex-col mx-2">
+  ) => {
+    return <>
+      <div className="flex flex-col mx-2">
       <label className="text-sm font-medium text-gray-600 mb-1">{label}</label>
       <div className="relative">
         <input
           type={type}
-          value={formData[tab][field] || ""}
-          onChange={(e) => handleInputChange(tab, field, e.target.value)}
+          value={formData[activeTab][field] || ""}
+          onChange={(e) => handleInputChange(activeTab, field, e.target.value)}
           className="bg-white text-black border border-gray-300 rounded-md px-3 py-2 w-full pr-10 focus:outline-none focus:ring-1 focus:ring-blue-500"
           placeholder={placeholder}
           pattern={pattern}
           inputMode={inputMode}
         />
         <div
-          onClick={() => handleCopy(formData[tab][field])}
+          onClick={() => handleCopy(formData[activeTab][field])}
           className="absolute cursor-pointer right-2 top-1/2 bg-slate-100 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
           title="Copy to clipboard"
         >
@@ -199,34 +220,49 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
         </div>
       </div>
     </div>
-  );
+    </>
+  };
 
-  const renderTabContent = (tab: "A" | "B") => (
+  const renderTabContent = () => (
     <div className="space-y-4">
-      {renderInputWithCopy(tab, "aid", "AID", "Enter AID...")}
-      {renderInputWithCopy(tab, "oobi", "OOBI", "Enter OOBI...")}
-      {renderInputWithCopy(tab, "hash", "Hash", "Enter hash...")}
-      {tab === "B" ? (
-        renderInputWithCopy(tab, "sequence", "Sequence", "Enter sequence...", "text", "[0-9]*", "numeric")
+      {renderInputWithCopy("aid", "AID", "Enter AID...")}
+      {renderInputWithCopy("oobi", "OOBI", "Enter OOBI...")}
+      {renderInputWithCopy("hash", "Hash", "Enter hash...")}
+      {activeTab === "B" ? (
+        renderInputWithCopy("sequence", "Sequence", "Enter sequence...", "text", "[0-9]*", "numeric")
       ) : (
-        renderInputWithCopy(tab, "signature", "Signature", "Enter signature...")
+        renderInputWithCopy("signature", "Signature", "Enter signature...")
       )}
       <button
-        onClick={() => handleVerify(tab)}
-        className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded focus:outline-none focus:ring-1 focus:ring-blue-300"
+        onClick={() => handleVerify(activeTab)}
+        disabled={isVerifying}
+        className={`w-full py-2 rounded focus:outline-none focus:ring-1 focus:ring-blue-300 flex items-center justify-center
+          ${isVerifying 
+            ? 'bg-blue-300 cursor-not-allowed' 
+            : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
       >
-        Verify
+        {isVerifying ? (
+          <>
+            <svg className="animate-spin h-5 w-5 mr-2 text-white" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+            Verifying...
+          </>
+        ) : (
+          'Verify'
+        )}
       </button>
       <div className="h-6">
-        {verificationResult[tab] && (
+        {verificationResult[activeTab] && (
           <div
             className={`text-center text-sm ${
-              verificationResult[tab]?.includes("successful")
+              verificationResult[activeTab]?.includes("successful")
                 ? "text-green-600"
                 : "text-red-600"
             }`}
           >
-            {verificationResult[tab]}
+            {verificationResult[activeTab]}
           </div>
         )}
       </div>
@@ -277,7 +313,7 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {activeTab === "A" ? renderTabContent("A") : renderTabContent("B")}
+          {renderTabContent()}
         </div>
       </div>
     </div>
